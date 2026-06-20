@@ -55,7 +55,10 @@ LanguageAI/
 
 ## Roadmap
 
-- [ ] Replace the dummy reply generator with a real LLM (Claude via the Anthropic SDK).
+- [x] Replace the dummy reply generator with a real LLM (Claude via the Anthropic SDK).
+      Opt-in: set `LANGUAGEAI_ANTHROPIC_API_KEY` (or `ANTHROPIC_API_KEY`) and the
+      `/api/chat` endpoint uses `claude-opus-4-8` with structured `{reply, mood}`
+      output; with no key it falls back to the dummy generator.
 - [ ] Server-side TTS with viseme timing for tighter lip-sync.
 - [ ] Auth, rate limiting, and conversation history.
 - [ ] Richer avatar art + more expressions.

@@ -31,3 +31,16 @@ pytest
 
 `mood` is one of `neutral · happy · excited · thinking · sad` and drives the
 avatar's facial expression on the frontend.
+
+## Real replies (optional)
+
+By default `/api/chat` uses a deterministic dummy generator. To use Claude
+instead, set an API key — the endpoint then calls `claude-opus-4-8` with
+structured outputs (`{reply, mood}`) and falls back to the dummy on any error:
+
+```bash
+export LANGUAGEAI_ANTHROPIC_API_KEY=sk-ant-...   # or ANTHROPIC_API_KEY
+# optional: export LANGUAGEAI_ANTHROPIC_MODEL=claude-opus-4-8
+```
+
+See `app/llm.py`.
