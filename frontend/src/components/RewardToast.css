@@ -1,0 +1,32 @@
+.rewardtoast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.5rem;
+  background: #fff;
+  border-radius: var(--pill);
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--violet-d);
+  animation: rewardtoast-in 0.3s ease both;
+}
+.rewardtoast__star {
+  font-size: 1.5rem;
+  animation: rewardtoast-pop 0.5s ease both;
+}
+
+@keyframes rewardtoast-in {
+  from { opacity: 0; transform: translate(-50%, 16px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes rewardtoast-pop {
+  0% { transform: scale(0.3) rotate(-20deg); }
+  60% { transform: scale(1.35) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); }
+}

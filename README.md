@@ -1,11 +1,22 @@
 # LanguageAI 🗣️
 
-A friendly **talking human avatar** (Talking-Tom style): type a message and a
-cartoon avatar speaks the reply back to you, lip-syncing and emoting as it talks.
+A bright, **gamified speech-practice app** for mixed ages — including children —
+designed for people who **stutter**. A friendly avatar models words, the user
+practices by voice, and effort is always rewarded with stars (there are **no
+"wrong" answers** and no anxiety-inducing timers).
 
-Built with the **fullstack-guardian** skill (three-perspective: Frontend / Backend
-/ Security). This is the initial scaffold with a **dummy** backend — the avatar's
-replies are canned for now and meant to be swapped for a real model later.
+**Activities:** Repeat-after-me · Read-aloud · Free chat · Breathing & pacing.
+**Gamification:** XP, levels, stars, day streaks, and a session summary for a
+parent or therapist.
+
+Design principles baked in: self-paced (no countdowns), encouraging-only
+feedback, large/clear targets, `prefers-reduced-motion` support — and exercises
+**record the user's real audio** (`MediaRecorder`) rather than grading a
+transcript, so stutters are captured, never penalised. That audio is the seam
+for the planned backend AI analysis (`submitAttempt` in `frontend/src/api/client.ts`).
+
+Built with the **fullstack-guardian** (lead), **react-expert** (UI rework),
+**fastapi-expert**, and **claude-api** skills.
 
 ```
 ┌────────────┐   POST /api/chat    ┌──────────────────────┐
@@ -48,7 +59,8 @@ Open http://localhost:5173, type a message, and watch the avatar talk back.
 ```
 LanguageAI/
 ├── backend/      FastAPI dummy API  (see backend/README.md)
-├── frontend/     React avatar app   (see frontend/README.md)
+├── frontend/     React app: gamified screens (Home, Repeat, Read, Chat, Breathe)
+│                 + store/ (XP/stars/streak), hooks (speech, mic recorder)
 ├── specs/        Three-perspective design doc
 └── README.md
 ```
@@ -59,8 +71,10 @@ LanguageAI/
       Opt-in: set `LANGUAGEAI_ANTHROPIC_API_KEY` (or `ANTHROPIC_API_KEY`) and the
       `/api/chat` endpoint uses `claude-opus-4-8` with structured `{reply, mood}`
       output; with no key it falls back to the dummy generator.
+- [ ] **Backend audio-analysis endpoint** — accept recorded attempts (`submitAttempt`
+      seam already in place), run AI analysis, and return spoken audio feedback.
 - [ ] Server-side TTS with viseme timing for tighter lip-sync.
-- [ ] Auth, rate limiting, and conversation history.
+- [ ] Therapist accounts: save sessions, assign word lists, view trends over time.
 - [ ] Richer avatar art + more expressions.
 
 ## Skills used
