@@ -13,4 +13,4 @@ export interface ChatResponse {
 }
 
 /** High-level avatar animation state, independent of mood. */
-export type AvatarState = 'idle' | 'thinking' | 'talking';
+export type AvatarState = 'idle' | 'listening' | 'thinking' | 'talking';

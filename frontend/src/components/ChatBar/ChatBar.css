@@ -14,6 +14,44 @@
 .chatbar__row {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+}
+
+.chatbar__mic {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #34c759;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+.chatbar__mic:hover:not(:disabled) {
+  background: #2ba84a;
+}
+.chatbar__mic:active:not(:disabled) {
+  transform: scale(0.94);
+}
+.chatbar__mic:disabled {
+  background: #c2c8d0;
+  cursor: not-allowed;
+}
+.chatbar__mic--active {
+  background: #e2526b;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(226, 82, 107, 0.5); }
+  50% { box-shadow: 0 0 0 10px rgba(226, 82, 107, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chatbar__mic--active {
+    animation: none;
+  }
 }
 
 .chatbar__input {

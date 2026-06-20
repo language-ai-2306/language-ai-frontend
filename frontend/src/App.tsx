@@ -1,10 +1,11 @@
-/** App — composes the avatar, speech, and chat into the talking-avatar screen. */
+/** App — composes the avatar, speech (TTS + STT), and chat into the screen. */
 import { useCallback, useState } from 'react';
 
 import { Avatar } from './components/Avatar/Avatar';
 import { ChatBar } from './components/ChatBar/ChatBar';
 import { useChat } from './hooks/useChat';
 import { useSpeech, type SpeakOptions } from './hooks/useSpeech';
+import { useSpeechRecognition } from './hooks/useSpeechRecognition';
 import type { AvatarState, Mood } from './types';
 import './App.css';
 
@@ -19,12 +20,10 @@ const VOICE_BY_MOOD: Record<Mood, SpeakOptions> = {
 
 export default function App(): JSX.Element {
   const { send, isLoading, error, clearError } = useChat();
-  const { speak, isSpeaking, mouthOpen, supported } = useSpeech();
+  const { speak, cancel, isSpeaking, mouthOpen, supported } = useSpeech();
 
   const [mood, setMood] = useState<Mood>('neutral');
-  const [reply, setReply] = useState<string>("Hi! I'm your avatar. Say something below.");
-
-  const avatarState: AvatarState = isLoading ? 'thinking' : isSpeaking ? 'talking' : 'idle';
+  const [reply, setReply] = useState<string>("Hi! I'm your avatar. Talk or type to me.");
 
   const handleSend = useCallback(
     async (message: string) => {
@@ -38,6 +37,29 @@ export default function App(): JSX.Element {
     [send, speak, clearError],
   );
 
+  // Voice input: transcribe speech, then run it through the same chat flow.
+  const recog = useSpeechRecognition({ onResult: handleSend });
+
+  const toggleMic = useCallback(() => {
+    if (recog.isListening) {
+      recog.stop();
+      return;
+    }
+    cancel(); // stop any current speech so the avatar doesn't hear itself
+    recog.start();
+  }, [recog, cancel]);
+
+  const avatarState: AvatarState = recog.isListening
+    ? 'listening'
+    : isLoading
+      ? 'thinking'
+      : isSpeaking
+        ? 'talking'
+        : 'idle';
+
+  const bubbleText = recog.isListening ? recog.interim || 'Listening…' : reply;
+  const message = error ?? recog.error;
+
   return (
     <main className="app">
       <header className="app__header">
@@ -49,7 +71,7 @@ export default function App(): JSX.Element {
         <Avatar mood={mood} state={avatarState} mouthOpen={mouthOpen} />
 
         <p className="app__bubble" aria-live="polite">
-          {reply}
+          {bubbleText}
         </p>
 
         {!supported && (
@@ -57,15 +79,26 @@ export default function App(): JSX.Element {
             Your browser can&apos;t speak out loud, but the avatar will still show replies.
           </p>
         )}
-        {error && (
+        {!recog.supported && (
+          <p className="app__note">Voice input needs Chrome, Edge, or Safari — you can still type.</p>
+        )}
+        {message && (
           <p className="app__error" role="alert">
-            {error}
+            {message}
           </p>
         )}
       </section>
 
       <footer className="app__footer">
-        <ChatBar onSend={handleSend} disabled={isLoading || isSpeaking} />
+        <ChatBar
+          onSend={handleSend}
+          disabled={isLoading || isSpeaking}
+          micSupported={recog.supported}
+          micDisabled={isLoading}
+          isListening={recog.isListening}
+          interim={recog.interim}
+          onMicToggle={toggleMic}
+        />
       </footer>
     </main>
   );

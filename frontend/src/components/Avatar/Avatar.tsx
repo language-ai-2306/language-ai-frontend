@@ -69,6 +69,14 @@ function AvatarComponent({ mood, state, mouthOpen }: AvatarProps): JSX.Element {
       aria-label={`Avatar feeling ${mood}${talking ? ', talking' : ''}`}
     >
       <svg viewBox="0 0 200 230" className="avatar__svg" aria-hidden="true">
+        {/* Listening indicator — sound-wave rings pulsing behind the head */}
+        {state === 'listening' && (
+          <g className="avatar__listening">
+            <circle cx="100" cy="116" r="90" />
+            <circle cx="100" cy="116" r="90" />
+          </g>
+        )}
+
         {/* Thinking indicator */}
         {state === 'thinking' && (
           <g className="avatar__thinking">

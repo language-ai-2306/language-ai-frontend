@@ -49,6 +49,23 @@
   95% { transform: scaleY(0.08); }
 }
 
+/* Listening — concentric sound-wave rings pulsing out from the head */
+.avatar__listening circle {
+  fill: none;
+  stroke: #34c759;
+  stroke-width: 3;
+  transform-box: view-box;
+  transform-origin: 100px 116px;
+  animation: listen-pulse 1.8s ease-out infinite;
+}
+.avatar__listening circle:nth-child(2) {
+  animation-delay: 0.9s;
+}
+@keyframes listen-pulse {
+  0% { transform: scale(0.72); opacity: 0.55; }
+  100% { transform: scale(1.04); opacity: 0; }
+}
+
 /* Thinking dots */
 .avatar__thinking circle { fill: #b9c2cf; }
 .avatar__thinking circle:nth-child(1) { animation: think-pop 1.2s infinite 0s; }
@@ -63,7 +80,11 @@
   .avatar--idle .avatar__svg,
   .avatar--talking .avatar__svg,
   .avatar__eyes,
-  .avatar__thinking circle {
+  .avatar__thinking circle,
+  .avatar__listening circle {
     animation: none;
+  }
+  .avatar__listening circle {
+    opacity: 0.4;
   }
 }
