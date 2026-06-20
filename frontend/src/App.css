@@ -1,0 +1,77 @@
+.app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 2rem 1rem 2.5rem;
+}
+
+.app__header {
+  text-align: center;
+}
+.app__title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #4434c4;
+}
+.app__subtitle {
+  margin: 0.25rem 0 0;
+  color: #6b7280;
+}
+
+.app__stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.app__bubble {
+  position: relative;
+  max-width: min(520px, 90vw);
+  margin: 0;
+  padding: 0.9rem 1.25rem;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(68, 52, 196, 0.12);
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+.app__bubble::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 10px 12px;
+  border-style: solid;
+  border-color: transparent transparent #fff;
+}
+
+.app__note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+.app__error {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  background: #fde8ec;
+  color: #c0334e;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.app__footer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}

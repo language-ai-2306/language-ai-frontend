@@ -1,0 +1,66 @@
+.chatbar {
+  width: min(540px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.chatbar__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.chatbar__row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chatbar__input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #d3dae6;
+  border-radius: 999px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  background: #fff;
+}
+.chatbar__input:focus {
+  border-color: #7c6cf5;
+}
+.chatbar__input[aria-invalid='true'] {
+  border-color: #e2526b;
+}
+.chatbar__input:disabled {
+  background: #f1f3f7;
+  cursor: not-allowed;
+}
+
+.chatbar__send {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: #7c6cf5;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+.chatbar__send:hover:not(:disabled) {
+  background: #6a59e8;
+}
+.chatbar__send:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.chatbar__send:disabled {
+  background: #b9b2ec;
+  cursor: not-allowed;
+}
+
+.chatbar__warn {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #e2526b;
+}

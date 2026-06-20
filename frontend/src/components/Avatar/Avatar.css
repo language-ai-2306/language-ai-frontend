@@ -1,0 +1,69 @@
+.avatar {
+  width: clamp(220px, 42vw, 340px);
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.18));
+}
+
+.avatar__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Idle floating bob */
+.avatar--idle .avatar__svg {
+  animation: avatar-bob 3.6s ease-in-out infinite;
+}
+.avatar--talking .avatar__svg {
+  animation: avatar-nod 0.9s ease-in-out infinite;
+}
+
+@keyframes avatar-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes avatar-nod {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(-1deg); }
+}
+
+/* Palette */
+.avatar__skin { fill: #f2c8a0; stroke: #d9a87e; stroke-width: 2; }
+.avatar__hair { fill: #5b3a29; }
+.avatar__cheek { fill: #ff9c9c; transition: opacity 0.4s ease; }
+.avatar__brow { fill: none; stroke: #5b3a29; stroke-width: 5; stroke-linecap: round; transition: transform 0.3s ease; }
+.avatar__eye-white { fill: #ffffff; stroke: #d9a87e; stroke-width: 1.5; }
+.avatar__pupil { fill: #33271f; transition: cx 0.25s ease, cy 0.25s ease; }
+.avatar__glint { fill: #ffffff; }
+.avatar__nose { fill: none; stroke: #d9a87e; stroke-width: 3; stroke-linecap: round; }
+.avatar__mouth-rest { fill: none; stroke: #7a3b2e; stroke-width: 5; stroke-linecap: round; transition: d 0.2s ease; }
+.avatar__mouth-open { fill: #7a2f33; stroke: #5e2329; stroke-width: 2; }
+.avatar__tongue { fill: #e8718a; }
+
+/* Blink */
+.avatar__eyes {
+  transform-origin: 100px 102px;
+  animation: avatar-blink 4.2s infinite;
+}
+@keyframes avatar-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.08); }
+}
+
+/* Thinking dots */
+.avatar__thinking circle { fill: #b9c2cf; }
+.avatar__thinking circle:nth-child(1) { animation: think-pop 1.2s infinite 0s; }
+.avatar__thinking circle:nth-child(2) { animation: think-pop 1.2s infinite 0.2s; }
+.avatar__thinking circle:nth-child(3) { animation: think-pop 1.2s infinite 0.4s; }
+@keyframes think-pop {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar--idle .avatar__svg,
+  .avatar--talking .avatar__svg,
+  .avatar__eyes,
+  .avatar__thinking circle {
+    animation: none;
+  }
+}
