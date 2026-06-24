@@ -22,6 +22,11 @@ export interface UseSpeech {
   isSpeaking: boolean;
   /** 0 = closed, 1 = wide open. Drive the avatar mouth with this. */
   mouthOpen: number;
+  /**
+   * Character index in the utterance text where the word currently being spoken
+   * begins (-1 when idle). Use it to highlight the active word for read-along.
+   */
+  charIndex: number;
   /** False when the browser has no speechSynthesis support. */
   supported: boolean;
 }
@@ -36,6 +41,8 @@ export function useSpeech(): UseSpeech {
 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [mouthOpen, setMouthOpen] = useState(0);
+  // Where the currently-spoken word starts in the utterance text (-1 = idle).
+  const [charIndex, setCharIndex] = useState(-1);
 
   const rafRef = useRef<number | null>(null);
   const speakingRef = useRef(false);
@@ -83,6 +90,7 @@ export function useSpeech(): UseSpeech {
     if (supported) window.speechSynthesis.cancel();
     speakingRef.current = false;
     setIsSpeaking(false);
+    setCharIndex(-1);
     stopLoop();
   }, [supported, stopLoop]);
 
@@ -99,14 +107,17 @@ export function useSpeech(): UseSpeech {
       utter.onstart = () => {
         speakingRef.current = true;
         setIsSpeaking(true);
+        setCharIndex(-1);
         startLoop();
       };
-      utter.onboundary = () => {
+      utter.onboundary = (e) => {
         wordPulseRef.current = 0.4; // pop the mouth on each new word
+        if (e.name === undefined || e.name === 'word') setCharIndex(e.charIndex);
       };
       const finish = () => {
         speakingRef.current = false;
         setIsSpeaking(false);
+        setCharIndex(-1);
         stopLoop();
       };
       utter.onend = finish;
@@ -125,5 +136,5 @@ export function useSpeech(): UseSpeech {
     };
   }, [supported]);
 
-  return { speak, cancel, isSpeaking, mouthOpen, supported };
+  return { speak, cancel, isSpeaking, mouthOpen, charIndex, supported };
 }

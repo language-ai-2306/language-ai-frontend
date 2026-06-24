@@ -317,3 +317,140 @@
   font-size: 0.95rem;
   text-align: center;
 }
+
+/* ============================================================
+   Modern / minimal variant — scoped to the practice + feedback
+   flow via .screen--minimal so other screens are unaffected.
+   ============================================================ */
+.screen--minimal {
+  gap: 1.5rem;
+}
+
+/* Header: neutral, lighter weight */
+.screen--minimal .screenhead__title {
+  color: var(--m-text);
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+}
+.screen--minimal .screenhead__back {
+  color: var(--m-text);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  box-shadow: none;
+}
+
+/* Calmer, smaller avatar */
+.screen--minimal .avatar {
+  width: clamp(120px, 28vw, 160px);
+  filter: drop-shadow(0 8px 18px rgba(20, 20, 43, 0.12));
+}
+
+/* Target card: flat surface, hairline border, generous padding */
+.screen--minimal .target-card {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-lg);
+  box-shadow: var(--m-shadow);
+  padding: 2rem 1.5rem;
+}
+.screen--minimal .target-word {
+  color: var(--m-text);
+  font-weight: 700;
+  font-size: clamp(2.3rem, 11vw, 3.4rem);
+  letter-spacing: -0.01em;
+}
+.screen--minimal .reading-text {
+  color: var(--m-text);
+  font-weight: 600;
+  font-size: clamp(1.45rem, 6vw, 2.1rem);
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+.screen--minimal .hint {
+  color: var(--m-muted);
+  font-weight: 500;
+}
+
+/* Buttons: drop the all-800 weight; flat accent / quiet ghost */
+.screen--minimal .btn {
+  font-weight: 600;
+}
+.screen--minimal .btn--ghost {
+  color: var(--m-muted);
+}
+.screen--minimal .btn--ghost:hover:not(:disabled) {
+  color: var(--m-text);
+  filter: none;
+}
+.screen--minimal .btn--primary {
+  background: var(--m-accent);
+  color: #fff;
+  box-shadow: none;
+  border-radius: var(--m-radius);
+}
+.screen--minimal .btn--primary:hover:not(:disabled) {
+  background: var(--m-accent-d);
+  filter: none;
+}
+
+/* Mic as the single focal control, with breathing room */
+.controls-row--practice {
+  gap: 1.6rem;
+}
+
+/* Analyzing state: slim spinner + calm copy */
+.analyzing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 0;
+  color: var(--m-muted);
+  font-weight: 600;
+}
+.analyzing__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--m-border-strong);
+  border-top-color: var(--m-accent);
+  animation: minimal-spin 0.7s linear infinite;
+}
+@keyframes minimal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Minimal linear progress */
+.practice-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.practice-progress__track {
+  flex: 1;
+  height: 6px;
+  background: var(--m-border);
+  border-radius: var(--pill);
+  overflow: hidden;
+}
+.practice-progress__fill {
+  display: block;
+  height: 100%;
+  background: var(--m-accent);
+  border-radius: var(--pill);
+  transition: width 0.4s ease;
+}
+.practice-progress__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--m-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

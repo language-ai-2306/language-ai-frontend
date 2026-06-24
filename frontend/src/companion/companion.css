@@ -1,0 +1,351 @@
+/* =================================================================
+   Companion — immersive, full-screen 3D speech-practice layout.
+   Room fills the screen, the 3D avatar sits on top (~80%), and three
+   controls float as overlays: phrase text, replay, microphone.
+   Tokens are scoped to .companion so nothing else is affected.
+   ================================================================= */
+
+.companion {
+  --c-cream: #fff7e8;
+  --c-sky: #cdeff4;
+  --c-indigo: #6867d8;
+  --c-indigo-d: #5654c0;
+  --c-mint: #56c7b2;
+  --c-mint-d: #3fae9a;
+  --c-navy: #26364d;
+  --c-yellow: #ffd88a;
+  --c-white: #ffffff;
+  --c-muted: #667085;
+
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--c-cream);
+  color: var(--c-navy);
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.companion :focus-visible {
+  outline: 3px solid var(--c-indigo);
+  outline-offset: 3px;
+  border-radius: 16px;
+}
+
+/* ---- Layers ----------------------------------------------------- */
+.room-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* 3D avatar fills the screen; pointer-events off so overlays stay tappable */
+.companion__avatar {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.avatar-stage,
+.avatar-stage canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.avatar-stage__fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-stage__fallback .pip {
+  width: min(80vw, 68vh);
+  height: auto;
+}
+
+/* ---- Loading gate (until the 3D model is ready) ----------------- */
+.companion__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+}
+.companion__loading-spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 4px solid rgba(38, 54, 77, 0.15);
+  border-top-color: var(--c-indigo);
+  animation: spin 0.8s linear infinite;
+}
+.companion__loading-text {
+  margin: 0;
+  font-weight: 700;
+  color: var(--c-muted);
+}
+
+/* ---- Overlay 1: phrase text ------------------------------------- */
+.overlay-phrase {
+  position: absolute;
+  z-index: 2;
+  top: calc(env(safe-area-inset-top, 0px) + 0.8rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92%, 460px);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 24px;
+  padding: 0.9rem 1.2rem 1rem;
+  box-shadow: 0 8px 28px rgba(38, 54, 77, 0.14);
+}
+.overlay-phrase__eyebrow {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-indigo);
+  margin-bottom: 0.3rem;
+}
+.overlay-phrase__text {
+  margin: 0;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.4rem, 5.6vw, 1.95rem);
+  line-height: 1.32;
+  color: var(--c-navy);
+}
+/* Read-along: the word currently being spoken lights up. */
+.overlay-phrase__word {
+  transition: color 0.12s ease;
+}
+.overlay-phrase__word--active {
+  color: var(--c-indigo);
+}
+.overlay-phrase__status {
+  margin: 0.55rem 0 0;
+  min-height: 1.3em;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--c-muted);
+}
+.overlay-phrase__status--success {
+  color: var(--c-mint-d);
+}
+.overlay-phrase__status--retry {
+  color: #b8860b;
+}
+
+/* ---- Overlay 2 & 3: dock with replay + mic ---------------------- */
+.overlay-dock {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.6rem);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Microphone — the primary control. The caption is positioned out of flow so
+   the mic and replay buttons center-align on one horizontal line. */
+.mic {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.mic__button {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 20px rgba(104, 103, 216, 0.38);
+  transition: transform 0.12s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.mic__button--ready {
+  background: var(--c-indigo);
+}
+.mic__button--ready:hover {
+  background: var(--c-indigo-d);
+}
+.mic__button--listening {
+  background: var(--c-mint);
+  box-shadow: 0 12px 28px rgba(86, 199, 178, 0.45);
+}
+.mic__button--processing {
+  background: #aeb7c4;
+  box-shadow: none;
+  cursor: default;
+}
+.mic__button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+.mic__button:disabled {
+  cursor: not-allowed;
+}
+.mic__ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 3px solid var(--c-mint);
+  opacity: 0.6;
+  animation: mic-ring 1.6s ease-out infinite;
+}
+@keyframes mic-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.28);
+    opacity: 0;
+  }
+}
+.mic__spinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Replay — circular icon button, equal in size to the mic */
+.replay-button {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(38, 54, 77, 0.08);
+  color: var(--c-navy);
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(38, 54, 77, 0.14);
+  backdrop-filter: blur(6px);
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.replay-button:hover:not(:disabled) {
+  background: #fff;
+}
+.replay-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.replay-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =================================================================
+   SVG mascot fallback (used when WebGL is unavailable / loading).
+   ================================================================= */
+.pip {
+  display: block;
+  overflow: visible;
+}
+.pip__skin {
+  fill: var(--c-mint);
+  stroke: var(--c-mint-d);
+  stroke-width: 3;
+}
+.pip__belly {
+  fill: #c9efe6;
+}
+.pip__ear {
+  fill: var(--c-mint);
+  stroke: var(--c-mint-d);
+  stroke-width: 3;
+}
+.pip__ear-inner {
+  fill: #9fe0d2;
+}
+.pip__arm,
+.pip__foot {
+  fill: #4fbca8;
+}
+.pip__eye {
+  fill: #fff;
+  stroke: #d9efe9;
+  stroke-width: 1.5;
+}
+.pip__pupil {
+  fill: var(--c-navy);
+}
+.pip__glint {
+  fill: #fff;
+}
+.pip__cheek {
+  fill: #ffb3b3;
+}
+.pip__mouth {
+  fill: none;
+  stroke: #2c3e54;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+}
+.pip__mouth-open {
+  fill: #2c3e54;
+}
+.pip__rings,
+.pip__think,
+.pip__sparkles {
+  opacity: 0;
+}
+.pip__eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pip-blink 4.6s infinite;
+}
+@keyframes pip-blink {
+  0%, 92%, 100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.12);
+  }
+}
+.pip--idle .pip__body {
+  transform-origin: 100px 196px;
+  animation: pip-breathe 3.6s ease-in-out infinite;
+}
+@keyframes pip-breathe {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+.pip--celebrating .pip__sparkles {
+  opacity: 1;
+}
+
+/* ---- Reduced motion --------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .mic__ring,
+  .mic__spinner,
+  .pip__eyes,
+  .pip__body {
+    animation: none !important;
+  }
+}

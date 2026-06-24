@@ -30,6 +30,15 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-opus-4-8"
 
+    # Where streamed practice-attempt audio is written (relative to the backend
+    # working dir). This is the input seam for the future ML analysis model.
+    audio_storage_dir: str = "data/attempts"
+    # Hard cap on a single attempt's audio, in bytes (defends against unbounded
+    # memory/disk use over the WebSocket). 25 MiB ~= several minutes of Opus.
+    max_audio_bytes: int = 25 * 1024 * 1024
+    # Floor below which a recording is treated as empty/clipped and rejected.
+    min_audio_bytes: int = 64
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

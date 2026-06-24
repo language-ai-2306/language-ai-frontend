@@ -20,6 +20,25 @@
   --shadow-sm: 0 6px 16px rgba(76, 29, 149, 0.1);
   --shadow: 0 16px 38px rgba(76, 29, 149, 0.16);
 
+  /* Modern/minimal token set — used by the reworked practice + feedback flow
+     (scoped under .screen--minimal). Additive: does not affect other screens. */
+  --m-bg: #f7f7fa;
+  --m-surface: #ffffff;
+  --m-border: rgba(20, 20, 43, 0.08);
+  --m-border-strong: rgba(20, 20, 43, 0.14);
+  --m-text: #1c1b29;
+  --m-muted: #6b7280;
+  --m-accent: #6366f1;
+  --m-accent-d: #4f46e5;
+  --m-accent-weak: #eef0fe;
+  --m-ok: #16a34a;
+  --m-ok-weak: #ecfdf3;
+  --m-warn: #d97706;
+  --m-warn-weak: #fff7ed;
+  --m-radius: 14px;
+  --m-radius-lg: 20px;
+  --m-shadow: 0 1px 2px rgba(20, 20, 43, 0.06), 0 8px 24px rgba(20, 20, 43, 0.05);
+
   font-family: 'Nunito', 'Baloo 2', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--ink);
   font-size: 17px;

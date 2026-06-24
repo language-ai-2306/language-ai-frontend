@@ -39,34 +39,13 @@ export function HomeScreen(): JSX.Element {
         </div>
       </div>
 
-      <div className="home__grid">
-        <Tile
-          icon="🦜"
-          title="Repeat after me"
-          subtitle={settings.simpleMode ? undefined : 'Say it back'}
-          accent="violet"
-          onClick={() => navigate('repeat')}
-        />
+      <div className="home__grid" style={{ gridTemplateColumns: '1fr' }}>
         <Tile
           icon="📖"
           title="Read aloud"
-          subtitle={settings.simpleMode ? undefined : 'Read a sentence'}
+          subtitle={settings.simpleMode ? undefined : 'Read with Pip'}
           accent="green"
-          onClick={() => navigate('read')}
-        />
-        <Tile
-          icon="💬"
-          title="Let's chat"
-          subtitle={settings.simpleMode ? undefined : 'Talk freely'}
-          accent="sky"
-          onClick={() => navigate('chat')}
-        />
-        <Tile
-          icon="🌬️"
-          title="Breathe & relax"
-          subtitle={settings.simpleMode ? undefined : 'Calm breathing'}
-          accent="amber"
-          onClick={() => navigate('breathing')}
+          onClick={() => navigate('companion')}
         />
       </div>
 

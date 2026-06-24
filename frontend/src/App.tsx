@@ -1,4 +1,5 @@
 /** App — screen router + global reward toast, wrapped in the app store. */
+import { CompanionScreen } from './companion/CompanionScreen';
 import { RewardToast } from './components/RewardToast';
 import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
@@ -23,6 +24,8 @@ function Router(): JSX.Element {
       return <BreathingScreen />;
     case 'summary':
       return <SummaryScreen />;
+    case 'companion':
+      return <CompanionScreen />;
     case 'home':
     default:
       return <HomeScreen />;

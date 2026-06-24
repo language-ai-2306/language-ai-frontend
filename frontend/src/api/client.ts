@@ -50,24 +50,4 @@ export function sendChat(message: string): Promise<ChatResponse> {
   });
 }
 
-export interface AttemptMeta {
-  exercise: string;
-  target?: string;
-  durationMs: number;
-}
-
-/**
- * Seam for the future backend AI pipeline. The exercises capture the user's
- * real (possibly stuttered) speech as audio and hand it here. Today this is a
- * no-op so practice never blocks on the network; when the backend endpoint
- * exists, POST the audio so the model can analyse it and return audio feedback.
- */
-export async function submitAttempt(_audio: Blob, _meta: AttemptMeta): Promise<void> {
-  // TODO(backend): wire the AI audio-analysis endpoint, e.g.
-  //   const form = new FormData();
-  //   form.append('audio', _audio, 'attempt.webm');
-  //   form.append('meta', JSON.stringify(_meta));
-  //   await fetch(`${BASE_URL}/api/attempts`, { method: 'POST', body: form });
-  //   -> returns audio feedback to play back to the user.
-  return Promise.resolve();
-}
+// Practice-attempt audio is uploaded over a WebSocket — see ./audioSocket.ts.

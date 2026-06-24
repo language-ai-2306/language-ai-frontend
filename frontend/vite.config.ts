@@ -13,6 +13,8 @@ export default defineConfig({
       '/api': {
         target: apiTarget,
         changeOrigin: true,
+        // Proxy the WebSocket upgrade too (used by /api/attempts/ws for audio).
+        ws: true,
       },
     },
   },

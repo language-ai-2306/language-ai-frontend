@@ -5,12 +5,18 @@ __pycache__/
 .pytest_cache/
 backend/.env
 
+# Recorded practice-attempt audio (runtime artifacts, never committed)
+backend/data/
+
 # Node / frontend
 frontend/node_modules/
 frontend/dist/
 frontend/.env.local
 frontend/*.local
 *.tsbuildinfo
+
+# Downloaded 3D model source pack (only the chosen model in public/models is used)
+frontend/animation/
 
 # Local Claude Code settings (machine-specific)
 .claude/settings.local.json
@@ -20,3 +26,4 @@ frontend/*.local
 .idea/
 .vscode/
 *.log
+.Rhistory

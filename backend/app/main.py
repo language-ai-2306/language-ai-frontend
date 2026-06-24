@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.config import settings
-from app.routers import chat, health
+from app.routers import attempts, chat, health
 
 logging.basicConfig(level=logging.DEBUG if settings.debug else logging.INFO)
 
@@ -35,6 +35,8 @@ app.add_middleware(
 # All app routes live under /api.
 app.include_router(health.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
+# WebSocket: /api/attempts/ws — streamed practice-attempt audio.
+app.include_router(attempts.router, prefix="/api")
 
 
 @app.get("/", tags=["root"])
