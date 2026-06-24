@@ -145,6 +145,49 @@
   color: #b8860b;
 }
 
+/* ---- Articulation mouth chart (during lip-sync playback) -------- */
+.mouth-chart {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem);
+  transform: translateX(-50%);
+  width: 132px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(38, 54, 77, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 10px 28px rgba(38, 54, 77, 0.16);
+  backdrop-filter: blur(8px);
+  padding: 0.5rem 0.6rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  animation: feedback-in 0.2s ease both;
+}
+.mouth-chart__label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-indigo);
+}
+.mouthchart__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+@keyframes feedback-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 /* ---- Overlay 2 & 3: dock with replay + mic ---------------------- */
 .overlay-dock {
   position: absolute;
@@ -230,6 +273,36 @@
     transform: rotate(360deg);
   }
 }
+/* Speed dial — circular, equal in size; tap to slow down */
+.speed-button {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(38, 54, 77, 0.08);
+  color: var(--c-navy);
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(38, 54, 77, 0.14);
+  backdrop-filter: blur(6px);
+  transition: background 0.15s ease, transform 0.1s ease, color 0.15s ease;
+}
+.speed-button:active {
+  transform: scale(0.95);
+}
+.speed-button--slow {
+  background: var(--c-mint);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(86, 199, 178, 0.4);
+}
+.speed-button__value {
+  font-weight: 800;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Replay — circular icon button, equal in size to the mic */
 .replay-button {
   width: 68px;

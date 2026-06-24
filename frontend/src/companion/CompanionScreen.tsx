@@ -7,18 +7,36 @@
  * records, another stops; the avatar reacts and gives gentle, auto-advancing
  * feedback. Analysis is mocked; mic + replay are real, behind typed hooks.
  */
-import { Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 
 import { useSpeech } from '../hooks/useSpeech';
 import { AvatarStage } from './components/AvatarStage';
 import { MicrophoneButton, type MicVisualState } from './components/MicrophoneButton';
+import { MouthChart } from './components/MouthChart';
 import { ReplayButton } from './components/ReplayButton';
 import { RoomBackground } from './components/RoomBackground';
+import { SpeedButton } from './components/SpeedButton';
 import { useMicrophoneRecorder } from './hooks/useMicrophoneRecorder';
 import { usePracticeSession } from './hooks/usePracticeSession';
+import { useLipSync, type MouthShape } from './lipsync/useLipSync';
 import './companion.css';
 
 const NO_MIC_LISTEN_MS = 1500;
+/** Speech-speed steps the dial cycles through (slowing down). */
+const SPEEDS = [1, 0.75, 0.5];
+
+/** How far the fox's "mouth"/head opens per viseme (drives the 3D head chatter). */
+const SHAPE_OPEN: Record<MouthShape, number> = {
+  X: 0,
+  A: 0.04,
+  B: 0.22,
+  C: 0.5,
+  D: 0.9,
+  E: 0.6,
+  F: 0.28,
+  G: 0.2,
+  H: 0.5,
+};
 
 /** Shown over the room until the 3D character (chunk + model) is fully ready. */
 function CompanionLoading(): JSX.Element {
@@ -34,16 +52,30 @@ export function CompanionScreen(): JSX.Element {
   const session = usePracticeSession();
   const recorder = useMicrophoneRecorder();
   const speech = useSpeech();
+  const [speed, setSpeed] = useState(1);
+  const lip = useLipSync(session.phrase, speed);
 
   const { phase, phrase, feedback } = session;
 
-  // Mascot state: replay (speaking) overrides the phase-derived state.
-  const avatarState = speech.isSpeaking ? 'speaking' : session.avatarState;
-  const mouthOpen = speech.isSpeaking ? speech.mouthOpen : 0;
+  const cycleSpeed = useCallback(() => {
+    setSpeed((s) => SPEEDS[(SPEEDS.indexOf(s) + 1) % SPEEDS.length]);
+  }, []);
+
+  // "Talking" can come from the pre-rendered lip-sync audio (preferred, real
+  // visemes) or the browser TTS fallback.
+  const speaking = lip.isPlaying || speech.isSpeaking;
+  const avatarState = speaking ? 'speaking' : session.avatarState;
+  // Drive the fox's head chatter from the active viseme (lip-sync) or TTS amplitude.
+  const mouthOpen = lip.isPlaying
+    ? SHAPE_OPEN[lip.mouthShape]
+    : speech.isSpeaking
+      ? speech.mouthOpen
+      : 0;
 
   const handleMic = useCallback(async () => {
     if (phase === 'ready') {
       speech.cancel();
+      lip.stop();
       if (recorder.supported) {
         const ok = await recorder.start();
         if (ok) session.beginListening();
@@ -58,17 +90,22 @@ export function CompanionScreen(): JSX.Element {
       session.endListening();
       if (recorder.supported) void recorder.stop();
     }
-  }, [phase, recorder, session, speech]);
+  }, [phase, recorder, session, speech, lip]);
 
   const handleReplay = useCallback(() => {
-    if (!speech.supported) return;
-    // A touch slow so the child can follow the highlighted word as it's spoken.
-    speech.speak(phrase, { rate: 0.85 });
-  }, [speech, phrase]);
+    // Prefer the pre-rendered audio + viseme mouth chart; fall back to TTS.
+    // Either way, play at the speed set on the dial.
+    if (lip.available) {
+      speech.cancel();
+      lip.play();
+    } else if (speech.supported) {
+      speech.speak(phrase, { rate: speed });
+    }
+  }, [lip, speech, phrase, speed]);
 
-  // Split the phrase into words with their char offsets, and find the one being
-  // spoken right now (read-along highlight). charIndex is the start of the
-  // current word, so the active word is the last one starting at/<= charIndex.
+  // Split the phrase into words with their char offsets, then find the word
+  // being spoken right now (read-along highlight) — from the lip-sync progress
+  // when that's playing, otherwise from the TTS word-boundary index.
   const words = useMemo(() => {
     const out: { text: string; start: number }[] = [];
     const re = /\S+/g;
@@ -76,9 +113,16 @@ export function CompanionScreen(): JSX.Element {
     while ((m = re.exec(phrase)) !== null) out.push({ text: m[0], start: m.index });
     return out;
   }, [phrase]);
-  const activeWord = speech.isSpeaking
-    ? words.reduce((acc, w, i) => (speech.charIndex >= w.start ? i : acc), -1)
-    : -1;
+  const wordCursor = lip.isPlaying
+    ? lip.progress * phrase.length
+    : speech.isSpeaking
+      ? speech.charIndex
+      : -1;
+  const activeWord =
+    wordCursor < 0 ? -1 : words.reduce((acc, w, i) => (wordCursor >= w.start ? i : acc), -1);
+
+  const replayDisabled =
+    (!lip.available && !speech.supported) || phase === 'listening' || phase === 'processing';
 
   const micState: MicVisualState =
     phase === 'listening' ? 'listening' : phase === 'processing' ? 'processing' : 'ready';
@@ -123,14 +167,20 @@ export function CompanionScreen(): JSX.Element {
           </p>
         </div>
 
-        {/* Overlay elements 2 & 3 — replay + microphone */}
+        {/* Articulation: the 2D mouth chart forms each sound while the
+            pre-rendered audio plays, so the child can see how to say it. */}
+        {lip.isPlaying && (
+          <div className="mouth-chart" aria-hidden="true">
+            <span className="mouth-chart__label">Watch my mouth</span>
+            <MouthChart shape={lip.mouthShape} />
+          </div>
+        )}
+
+        {/* Dock — speed dial, replay, microphone (one horizontal row) */}
         <div className="overlay-dock">
-          <ReplayButton
-            onClick={handleReplay}
-            disabled={!speech.supported || phase === 'listening' || phase === 'processing'}
-            playing={speech.isSpeaking}
-          />
-          <MicrophoneButton state={micState} onClick={handleMic} disabled={speech.isSpeaking || micBusy} />
+          <SpeedButton speed={speed} onCycle={cycleSpeed} />
+          <ReplayButton onClick={handleReplay} disabled={replayDisabled} playing={speaking} />
+          <MicrophoneButton state={micState} onClick={handleMic} disabled={speaking || micBusy} />
         </div>
       </Suspense>
     </div>
