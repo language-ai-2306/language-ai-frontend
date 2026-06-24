@@ -159,75 +159,7 @@
   cursor: pointer;
 }
 
-/* ---- Profile picker ---- */
-.profiles {
-  gap: 1.5rem;
-}
-.profiles__title {
-  margin: 0;
-  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
-  font-weight: 800;
-  font-size: 1.8rem;
-  color: var(--c-navy);
-}
-.profiles__grid {
-  display: flex;
-  gap: 1.2rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.profile-card {
-  width: 130px;
-  background: var(--c-white);
-  border: none;
-  border-radius: 24px;
-  box-shadow: 0 12px 30px rgba(38, 54, 77, 0.12);
-  padding: 1.2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.15s ease;
-}
-.profile-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 40px rgba(38, 54, 77, 0.18);
-}
-.profile-card:active {
-  transform: translateY(-1px) scale(0.99);
-}
-.profile-card__avatar {
-  width: 84px;
-  height: 84px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 2.6rem;
-  background: linear-gradient(135deg, #ffe0b8, #ffd0cf);
-}
-.profile-card--add .profile-card__avatar {
-  background: #eef0fe;
-  color: var(--c-indigo);
-}
-.profile-card__name {
-  font-weight: 800;
-  font-size: 1.05rem;
-  color: var(--c-navy);
-}
-.profiles__grownups {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(38, 54, 77, 0.1);
-  border-radius: 999px;
-  padding: 0.5rem 1.1rem;
-  font-weight: 700;
-  font-family: inherit;
-  color: var(--c-navy);
-  cursor: pointer;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .profile-card,
   .auth-submit {
     transition: none;
   }

@@ -12,7 +12,7 @@ import { useApp } from '../store/AppStore';
 import './auth.css';
 
 export function LoginScreen(): JSX.Element {
-  const { navigate } = useApp();
+  const { state, navigate } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
@@ -21,7 +21,8 @@ export function LoginScreen(): JSX.Element {
     e.preventDefault();
     // TEMP(testing): auth is bypassed — clicking "Log in" proceeds with no
     // credentials. Restore validation + a real sign-in call before launch.
-    navigate('profiles');
+    // First login → the quick check; afterwards straight to Home.
+    navigate(state.assessment ? 'home' : 'assessment');
   };
 
   return (

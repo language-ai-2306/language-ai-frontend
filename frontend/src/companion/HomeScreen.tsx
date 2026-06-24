@@ -63,8 +63,9 @@ const GAMES: Game[] = [
 ];
 
 export function HomeScreen(): JSX.Element {
-  const { state, navigate } = useApp();
+  const { state, navigate, clearAssessment } = useApp();
   const name = state.name.trim() || 'friend';
+  const { assessment } = state;
 
   return (
     <div className="home-screen">
@@ -101,7 +102,11 @@ export function HomeScreen(): JSX.Element {
 
         <button type="button" className="home2__plan" onClick={() => navigate('companion')}>
           <span className="home2__plan-eyebrow">⭐ Today's practice</span>
-          <span className="home2__plan-title">3 fun activities</span>
+          <span className="home2__plan-title">
+            {assessment
+              ? `Level ${assessment.level} · ${assessment.dailyMinutes} min a day`
+              : '3 fun activities'}
+          </span>
           <span className="home2__plan-cta">Start ▸</span>
         </button>
 
@@ -132,6 +137,17 @@ export function HomeScreen(): JSX.Element {
             </button>
           ))}
         </div>
+
+        <button
+          type="button"
+          className="home2__retake"
+          onClick={() => {
+            clearAssessment();
+            navigate('assessment');
+          }}
+        >
+          Retake quick check
+        </button>
       </div>
     </div>
   );

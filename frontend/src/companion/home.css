@@ -261,6 +261,23 @@
   color: var(--c-navy);
 }
 
+/* Retake the quick check */
+.home2__retake {
+  align-self: center;
+  margin-top: 0.2rem;
+  background: none;
+  border: none;
+  color: var(--c-muted);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.home2__retake:hover {
+  color: var(--c-navy);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .home2__avatar-load::after {
     animation: none;
