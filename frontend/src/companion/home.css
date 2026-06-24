@@ -1,0 +1,268 @@
+/* Home hub — matches the companion palette; scrolls if content is tall. */
+.home-screen {
+  --c-cream: #fff7e8;
+  --c-sky: #cdeff4;
+  --c-indigo: #6867d8;
+  --c-indigo-d: #5654c0;
+  --c-mint: #56c7b2;
+  --c-mint-d: #3fae9a;
+  --c-navy: #26364d;
+  --c-yellow: #ffd88a;
+  --c-white: #ffffff;
+  --c-muted: #667085;
+
+  position: relative;
+  min-height: 100dvh;
+  background: var(--c-cream);
+  color: var(--c-navy);
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Keep the illustrated room fixed behind the (scrollable) content. */
+.home-screen .room-bg {
+  position: fixed;
+}
+
+.home-screen :focus-visible {
+  outline: 3px solid var(--c-indigo);
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+
+.home2 {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 0.8rem) 1.1rem
+    calc(env(safe-area-inset-bottom, 0px) + 1.4rem);
+}
+
+/* Top bar */
+.home2__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.home2__hello {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--c-navy);
+}
+.home2__topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.home2__grownups {
+  border: 1px solid rgba(38, 54, 77, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--c-navy);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.home2__grownups:hover {
+  background: #fff;
+}
+.home2__logout {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(38, 54, 77, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--c-navy);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.home2__logout:hover {
+  background: #fff;
+}
+.home2__logout:active {
+  transform: scale(0.94);
+}
+
+/* Avatar greeting */
+.home2__avatar {
+  height: clamp(170px, 32vh, 280px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.home2__avatar .avatar-stage {
+  width: 100%;
+  height: 100%;
+}
+.home2__avatar-load {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+.home2__avatar-load::after {
+  content: '';
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 4px solid rgba(38, 54, 77, 0.15);
+  border-top-color: var(--c-indigo);
+  animation: home-spin 0.8s linear infinite;
+}
+@keyframes home-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.home2__greeting {
+  margin: 0;
+  text-align: center;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: var(--c-navy);
+}
+
+/* Today's plan — hero CTA */
+.home2__plan {
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  background: linear-gradient(135deg, var(--c-indigo), var(--c-indigo-d));
+  color: #fff;
+  border-radius: 22px;
+  padding: 1.1rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  box-shadow: 0 12px 28px rgba(104, 103, 216, 0.35);
+  transition: transform 0.1s ease;
+}
+.home2__plan:active {
+  transform: scale(0.99);
+}
+.home2__plan-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.92;
+}
+.home2__plan-title {
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+.home2__plan-cta {
+  margin-top: 0.5rem;
+  align-self: flex-end;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.22);
+  padding: 0.4rem 1.1rem;
+  border-radius: 999px;
+}
+
+/* Activity cards — full-width banner cards (store-style), stacked vertically */
+.home2__games {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.game-card {
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--c-white);
+  box-shadow: 0 10px 26px rgba(38, 54, 77, 0.12);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+}
+.game-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(38, 54, 77, 0.18);
+}
+.game-card:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.995);
+}
+.game-card--soon {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.game-card__banner {
+  position: relative;
+  height: 118px;
+  display: flex;
+  align-items: center;
+  padding: 0 1.3rem;
+  overflow: hidden;
+}
+.game-card__tagline {
+  max-width: 58%;
+  color: #fff;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1.2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+.game-card__art {
+  position: absolute;
+  right: 1.1rem;
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+  font-size: 4.2rem;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.2));
+}
+.game-card__soon {
+  position: absolute;
+  top: 0.7rem;
+  left: 1.3rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--c-navy);
+  font-weight: 800;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+.game-card--soon .game-card__tagline {
+  margin-top: 1.1rem; /* clear the Soon badge */
+}
+.game-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.95rem 1.3rem;
+  background: var(--c-white);
+}
+.game-card__arrow {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--c-navy);
+}
+.game-card__name {
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--c-navy);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home2__avatar-load::after {
+    animation: none;
+  }
+}

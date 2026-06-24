@@ -10,6 +10,7 @@
 import { Suspense, useCallback, useMemo } from 'react';
 
 import { useSpeech } from '../hooks/useSpeech';
+import { useApp } from '../store/AppStore';
 import { AvatarStage } from './components/AvatarStage';
 import { BackButton } from './components/BackButton';
 import { MicrophoneButton, type MicVisualState } from './components/MicrophoneButton';
@@ -48,6 +49,7 @@ function CompanionLoading(): JSX.Element {
 }
 
 export function CompanionScreen(): JSX.Element {
+  const { navigate } = useApp();
   const session = usePracticeSession();
   const recorder = useMicrophoneRecorder();
   const speech = useSpeech();
@@ -104,6 +106,14 @@ export function CompanionScreen(): JSX.Element {
     lip.stop();
     session.next();
   }, [speech, lip, session]);
+
+  // Back to the home hub.
+  const handleBack = useCallback(() => {
+    speech.cancel();
+    lip.stop();
+    void recorder.stop();
+    navigate('home');
+  }, [speech, lip, recorder, navigate]);
 
   // Split the phrase into words with their char offsets, then find the word
   // being spoken right now (read-along highlight) — from the lip-sync progress
@@ -178,9 +188,9 @@ export function CompanionScreen(): JSX.Element {
           </div>
         )}
 
-        {/* Dock — back (disabled), replay, microphone, skip (one horizontal row) */}
+        {/* Dock — back to home, replay, microphone, skip (one horizontal row) */}
         <div className="overlay-dock">
-          <BackButton disabled />
+          <BackButton onClick={handleBack} />
           <ReplayButton onClick={handleReplay} disabled={replayDisabled} playing={speaking} />
           <MicrophoneButton state={micState} onClick={handleMic} disabled={speaking || micBusy} />
           <SkipButton onClick={handleSkip} disabled={phase === 'listening' || phase === 'processing'} />

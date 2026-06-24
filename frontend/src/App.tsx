@@ -1,9 +1,11 @@
 /** App — screen router + global reward toast, wrapped in the app store. */
 import { CompanionScreen } from './companion/CompanionScreen';
+import { HomeScreen } from './companion/HomeScreen';
+import { LoginScreen } from './companion/LoginScreen';
+import { ProfilesScreen } from './companion/ProfilesScreen';
 import { RewardToast } from './components/RewardToast';
 import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
-import { HomeScreen } from './screens/HomeScreen';
 import { ReadAloudScreen } from './screens/ReadAloudScreen';
 import { RepeatScreen } from './screens/RepeatScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
@@ -14,6 +16,10 @@ import './App.css';
 function Router(): JSX.Element {
   const { state } = useApp();
   switch (state.screen) {
+    case 'login':
+      return <LoginScreen />;
+    case 'profiles':
+      return <ProfilesScreen />;
     case 'repeat':
       return <RepeatScreen />;
     case 'read':

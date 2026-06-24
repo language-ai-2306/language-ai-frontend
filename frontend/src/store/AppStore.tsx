@@ -15,7 +15,16 @@ import {
   type ReactNode,
 } from 'react';
 
-export type Screen = 'home' | 'repeat' | 'read' | 'chat' | 'breathing' | 'summary' | 'companion';
+export type Screen =
+  | 'login'
+  | 'profiles'
+  | 'home'
+  | 'repeat'
+  | 'read'
+  | 'chat'
+  | 'breathing'
+  | 'summary'
+  | 'companion';
 export type Exercise = 'repeat' | 'read' | 'chat' | 'breathing';
 
 export interface Settings {
@@ -75,7 +84,7 @@ function loadPersisted(): Persisted | null {
 function makeInitialState(): AppState {
   const p = loadPersisted();
   return {
-    screen: 'companion',
+    screen: 'login',
     name: p?.name ?? '',
     settings: p?.settings ?? { sound: true, simpleMode: false },
     progress: p?.progress ?? { xp: 0, stars: 0, streakDays: 0, lastActiveDate: null },
