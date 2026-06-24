@@ -198,7 +198,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 /* Microphone — the primary control. The caption is positioned out of flow so
@@ -273,38 +273,10 @@
     transform: rotate(360deg);
   }
 }
-/* Speed dial — circular, equal in size; tap to slow down */
-.speed-button {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(38, 54, 77, 0.08);
-  color: var(--c-navy);
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(38, 54, 77, 0.14);
-  backdrop-filter: blur(6px);
-  transition: background 0.15s ease, transform 0.1s ease, color 0.15s ease;
-}
-.speed-button:active {
-  transform: scale(0.95);
-}
-.speed-button--slow {
-  background: var(--c-mint);
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(86, 199, 178, 0.4);
-}
-.speed-button__value {
-  font-weight: 800;
-  font-size: 1rem;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Replay — circular icon button, equal in size to the mic */
-.replay-button {
+/* Secondary circular dock buttons — back, replay, skip (equal to the mic) */
+.replay-button,
+.skip-button,
+.back-button {
   width: 68px;
   height: 68px;
   border-radius: 50%;
@@ -318,14 +290,20 @@
   backdrop-filter: blur(6px);
   transition: background 0.15s ease, transform 0.1s ease;
 }
-.replay-button:hover:not(:disabled) {
+.replay-button:hover:not(:disabled),
+.skip-button:hover:not(:disabled),
+.back-button:hover:not(:disabled) {
   background: #fff;
 }
-.replay-button:active:not(:disabled) {
+.replay-button:active:not(:disabled),
+.skip-button:active:not(:disabled),
+.back-button:active:not(:disabled) {
   transform: scale(0.97);
 }
-.replay-button:disabled {
-  opacity: 0.45;
+.replay-button:disabled,
+.skip-button:disabled,
+.back-button:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 

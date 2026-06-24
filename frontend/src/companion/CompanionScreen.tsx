@@ -7,23 +7,22 @@
  * records, another stops; the avatar reacts and gives gentle, auto-advancing
  * feedback. Analysis is mocked; mic + replay are real, behind typed hooks.
  */
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
 
 import { useSpeech } from '../hooks/useSpeech';
 import { AvatarStage } from './components/AvatarStage';
+import { BackButton } from './components/BackButton';
 import { MicrophoneButton, type MicVisualState } from './components/MicrophoneButton';
 import { MouthChart } from './components/MouthChart';
 import { ReplayButton } from './components/ReplayButton';
 import { RoomBackground } from './components/RoomBackground';
-import { SpeedButton } from './components/SpeedButton';
+import { SkipButton } from './components/SkipButton';
 import { useMicrophoneRecorder } from './hooks/useMicrophoneRecorder';
 import { usePracticeSession } from './hooks/usePracticeSession';
 import { useLipSync, type MouthShape } from './lipsync/useLipSync';
 import './companion.css';
 
 const NO_MIC_LISTEN_MS = 1500;
-/** Speech-speed steps the dial cycles through (slowing down). */
-const SPEEDS = [1, 0.75, 0.5];
 
 /** How far the fox's "mouth"/head opens per viseme (drives the 3D head chatter). */
 const SHAPE_OPEN: Record<MouthShape, number> = {
@@ -52,14 +51,11 @@ export function CompanionScreen(): JSX.Element {
   const session = usePracticeSession();
   const recorder = useMicrophoneRecorder();
   const speech = useSpeech();
-  const [speed, setSpeed] = useState(1);
-  const lip = useLipSync(session.phrase, speed);
+  // Playback tempo will be supplied by the backend (based on user input); use a
+  // neutral default for now.
+  const lip = useLipSync(session.phrase);
 
   const { phase, phrase, feedback } = session;
-
-  const cycleSpeed = useCallback(() => {
-    setSpeed((s) => SPEEDS[(SPEEDS.indexOf(s) + 1) % SPEEDS.length]);
-  }, []);
 
   // "Talking" can come from the pre-rendered lip-sync audio (preferred, real
   // visemes) or the browser TTS fallback.
@@ -94,14 +90,20 @@ export function CompanionScreen(): JSX.Element {
 
   const handleReplay = useCallback(() => {
     // Prefer the pre-rendered audio + viseme mouth chart; fall back to TTS.
-    // Either way, play at the speed set on the dial.
     if (lip.available) {
       speech.cancel();
       lip.play();
     } else if (speech.supported) {
-      speech.speak(phrase, { rate: speed });
+      speech.speak(phrase, { rate: 1 });
     }
-  }, [lip, speech, phrase, speed]);
+  }, [lip, speech, phrase]);
+
+  // Skip the current phrase and move to the next one.
+  const handleSkip = useCallback(() => {
+    speech.cancel();
+    lip.stop();
+    session.next();
+  }, [speech, lip, session]);
 
   // Split the phrase into words with their char offsets, then find the word
   // being spoken right now (read-along highlight) — from the lip-sync progress
@@ -176,11 +178,12 @@ export function CompanionScreen(): JSX.Element {
           </div>
         )}
 
-        {/* Dock — speed dial, replay, microphone (one horizontal row) */}
+        {/* Dock — back (disabled), replay, microphone, skip (one horizontal row) */}
         <div className="overlay-dock">
-          <SpeedButton speed={speed} onCycle={cycleSpeed} />
+          <BackButton disabled />
           <ReplayButton onClick={handleReplay} disabled={replayDisabled} playing={speaking} />
           <MicrophoneButton state={micState} onClick={handleMic} disabled={speaking || micBusy} />
+          <SkipButton onClick={handleSkip} disabled={phase === 'listening' || phase === 'processing'} />
         </div>
       </Suspense>
     </div>

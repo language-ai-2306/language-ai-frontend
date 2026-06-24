@@ -9,6 +9,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    // Listen on all interfaces so the dev server is reachable from a phone on
+    // the same network and through a tunnel (e.g. cloudflared/ngrok).
+    host: true,
+    // Accept any Host header (LAN IP, *.trycloudflare.com, *.ngrok-free.app …).
+    allowedHosts: true,
     proxy: {
       '/api': {
         target: apiTarget,
