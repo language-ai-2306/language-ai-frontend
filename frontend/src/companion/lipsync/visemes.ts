@@ -59,6 +59,84 @@ export function lerpPose(a: VisemePose, b: VisemePose, t: number): VisemePose {
   };
 }
 
+// --- Phoneme → ARKit therapy mapping ----------------------------------------
+//
+// Clinical, slightly exaggerated ARKit blendshape targets per speech-sound
+// group (see docs/ROADMAP.md). Weights are 0..1 morph influences keyed by exact
+// ARKit names — so the SAME table can later score a child's live face from
+// MediaPipe (which reports ARKit-named blendshapes). The real-time lip-sync maps
+// Rhubarb's coarse mouth shapes (A–H) onto these groups.
+
+/** ARKit blendshape name → influence (0..1). */
+export type ArkitWeights = Partial<Record<string, number>>;
+
+/** Clarity multiplier — kids learn from exaggeration. Applied then clamped to 1. */
+const EXAGGERATION = 1.15;
+
+/** Target mouth shape per speech-sound group, in exact ARKit blendshape names. */
+export const PHONEME_ARKIT: Record<string, ArkitWeights> = {
+  rest: {},
+  // /p/ /b/ /m/ — lips pressed fully shut
+  bilabial: { mouthClose: 1.0 },
+  // /f/ /v/ — top teeth resting on the lower lip
+  labiodental: { mouthRollLower: 0.7, mouthLowerDownLeft: 0.5, mouthLowerDownRight: 0.5, jawOpen: 0.1 },
+  // /w/ "oo" — tight lip rounding
+  round: { mouthPucker: 1.0, mouthFunnel: 0.5, jawOpen: 0.1 },
+  // /o/ "aw"/"oh" — open rounding
+  openRound: { jawOpen: 0.45, mouthFunnel: 0.6, mouthPucker: 0.3 },
+  // /a/ "ah" — maximum jaw opening
+  open: { jawOpen: 0.95, mouthStretchLeft: 0.4, mouthStretchRight: 0.4 },
+  // "eh"/"ae" — mid-open
+  mid: { jawOpen: 0.45, mouthStretchLeft: 0.3, mouthStretchRight: 0.3 },
+  // "ee"/"i" + many consonants — wide, teeth showing
+  wide: { mouthSmileLeft: 0.45, mouthSmileRight: 0.45, jawOpen: 0.12, mouthPressLeft: 0.15, mouthPressRight: 0.15 },
+  // /l/ — tongue tip up/forward; tongueOut makes the placement visible
+  lateral: { tongueOut: 0.5, jawOpen: 0.4 },
+};
+
+/** Which speech-sound group each Rhubarb mouth shape maps to. */
+const RHUBARB_TO_PHONEME: Record<MouthShape, string> = {
+  X: 'rest',
+  A: 'bilabial', // p, b, m
+  B: 'wide', // many consonants, "ee"
+  C: 'mid', // "eh", "ae"
+  D: 'open', // "ah"
+  E: 'openRound', // "aw", "oh"
+  F: 'round', // "oo", w
+  G: 'labiodental', // f, v
+  H: 'lateral', // l
+};
+
+/** Resolved ARKit target weights for a Rhubarb mouth shape (exact-name keys). */
+export function arkitWeightsForViseme(v: MouthShape): ArkitWeights {
+  return PHONEME_ARKIT[RHUBARB_TO_PHONEME[v]] ?? {};
+}
+
+/** Lowercased lookup the runtime driver uses (built once at module load). */
+const RHUBARB_ARKIT_LC: Record<MouthShape, Map<string, number>> = (() => {
+  const out = {} as Record<MouthShape, Map<string, number>>;
+  for (const v of Object.keys(RHUBARB_TO_PHONEME) as MouthShape[]) {
+    const m = new Map<string, number>();
+    for (const [name, w] of Object.entries(arkitWeightsForViseme(v))) {
+      if (w !== undefined) m.set(name.toLowerCase(), w);
+    }
+    out[v] = m;
+  }
+  return out;
+})();
+
+/** Canonical (lowercased) ARKit name → rig name candidates (handles rig typos). */
+const ARKIT_ALIASES: Record<string, string[]> = {
+  mouthlowerdownleft: ['mouthlowerdownleft', 'mouthlowerdownletf'], // Pun-Chan rig typo
+};
+
+/** Every ARKit shape the therapy table drives (lowercased) — for resolution + relax. */
+const ARKIT_DRIVEN: string[] = [
+  ...new Set(
+    Object.values(PHONEME_ARKIT).flatMap((w) => Object.keys(w).map((k) => k.toLowerCase())),
+  ),
+];
+
 // --- Morph-target wiring ----------------------------------------------------
 
 /** Oculus / Ready-Player-Me viseme morph names per Rhubarb shape (best match). */
@@ -74,32 +152,14 @@ const OCULUS_VISEME: Record<MouthShape, string[]> = {
   H: ['viseme_nn', 'viseme_RR'],
 };
 
-type Channel = 'open' | 'funnel' | 'pucker' | 'close' | 'wide';
-
-/** ARKit / generic blendshape names per pose channel. */
-const CHANNEL_ALIASES: Record<Channel, string[]> = {
-  open: ['jawopen', 'mouthopen', 'jaw_open', 'mouth_open', 'aa'],
-  funnel: ['mouthfunnel', 'mouth_funnel'],
-  pucker: ['mouthpucker', 'mouth_pucker', 'mouthupperupmiddle'],
-  close: ['mouthclose', 'mouth_close'],
-  wide: [
-    'mouthsmileleft',
-    'mouthsmileright',
-    'mouthsmile_l',
-    'mouthsmile_r',
-    'mouthsmile',
-    'mouthstretchleft',
-    'mouthstretchright',
-  ],
-};
-
 interface MorphMesh {
   influences: number[];
   /** Direct viseme → morph index (Oculus rigs). */
   visemeIndex: Partial<Record<MouthShape, number>>;
-  /** Pose channel → morph indices (ARKit / generic rigs). */
-  channelIndex: Partial<Record<Channel, number[]>>;
+  /** Canonical (lowercased) ARKit name → morph index (ARKit rigs). */
+  arkit: Map<string, number>;
   hasVisemes: boolean;
+  hasArkit: boolean;
   /** Every index we manage, so unused morphs relax to 0. */
   managed: number[];
 }
@@ -120,15 +180,6 @@ function findIndex(lowerKeys: Map<string, number>, aliases: string[]): number | 
     if (idx !== undefined) return idx;
   }
   return undefined;
-}
-
-function findAll(lowerKeys: Map<string, number>, aliases: string[]): number[] {
-  const out: number[] = [];
-  for (const a of aliases) {
-    const idx = lowerKeys.get(a.toLowerCase());
-    if (idx !== undefined && !out.includes(idx)) out.push(idx);
-  }
-  return out;
 }
 
 /**
@@ -155,25 +206,31 @@ export function buildMorphPlan(scene: Object3D): MorphPlan | null {
     });
     const hasVisemes = Object.keys(visemeIndex).length >= 3; // enough to be a viseme rig
 
-    // 2) ARKit / generic channels.
-    const channelIndex: Partial<Record<Channel, number[]>> = {};
-    (Object.keys(CHANNEL_ALIASES) as Channel[]).forEach((ch) => {
-      const all = findAll(lowerKeys, CHANNEL_ALIASES[ch]);
-      if (all.length) channelIndex[ch] = all;
-    });
-    const hasChannels = Object.keys(channelIndex).length > 0;
+    // 2) ARKit blendshapes — resolve each therapy-driven shape by exact name.
+    const arkit = new Map<string, number>();
+    for (const name of ARKIT_DRIVEN) {
+      for (const cand of ARKIT_ALIASES[name] ?? [name]) {
+        const idx = lowerKeys.get(cand);
+        if (idx !== undefined) {
+          arkit.set(name, idx);
+          break;
+        }
+      }
+    }
+    const hasArkit = arkit.size > 0;
 
-    if (!hasVisemes && !hasChannels) return;
+    if (!hasVisemes && !hasArkit) return;
 
     const managed = new Set<number>();
     if (hasVisemes) Object.values(visemeIndex).forEach((i) => managed.add(i));
-    else Object.values(channelIndex).forEach((arr) => arr?.forEach((i) => managed.add(i)));
+    else arkit.forEach((i) => managed.add(i));
 
     meshes.push({
       influences: m.morphTargetInfluences,
       visemeIndex,
-      channelIndex,
+      arkit,
       hasVisemes,
+      hasArkit,
       managed: [...managed],
     });
   });
@@ -200,16 +257,16 @@ export function applyVisemeMorphs(
         if (idx !== undefined) targets.set(idx, key === viseme ? 1 : 0);
       }
     } else {
-      const set = (ch: Channel, value: number): void => {
-        for (const idx of mesh.channelIndex[ch] ?? []) {
-          targets.set(idx, Math.max(targets.get(idx) ?? 0, value));
-        }
-      };
-      set('open', pose.open);
-      set('funnel', pose.round * 0.8);
-      set('pucker', pose.round);
-      set('close', pose.press);
-      set('wide', pose.wide * 0.6);
+      // ARKit therapy weights for the current sound (exaggerated, clamped).
+      const weights = RHUBARB_ARKIT_LC[viseme] ?? RHUBARB_ARKIT_LC.X;
+      for (const [name, idx] of mesh.arkit) {
+        targets.set(idx, Math.min(1, (weights.get(name) ?? 0) * EXAGGERATION));
+      }
+      // No Rhubarb cue (e.g. browser TTS) but we have a raw amplitude → open jaw.
+      if (viseme === 'X' && pose.open > 0.001) {
+        const jaw = mesh.arkit.get('jawopen');
+        if (jaw !== undefined) targets.set(jaw, Math.min(1, pose.open));
+      }
     }
 
     // Relax any managed morph we didn't set this frame.
