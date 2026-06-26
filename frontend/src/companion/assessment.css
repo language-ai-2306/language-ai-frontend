@@ -64,13 +64,19 @@
   color: var(--c-muted);
 }
 
-/* Avatar */
+/* Avatar — full-bleed behind the UI so the 3D framing matches the practice
+   screen. The camera is tuned for a full-screen bust; a small flex box cropped
+   it. Lives above .room-bg (z-index 0, earlier in DOM) and below the content. */
 .assessment__avatar {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+/* Transparent filler that lets the avatar show between the bar and the phrase. */
+.assessment__spacer {
   flex: 1;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .assessment__avatar .avatar-stage,
 .assessment__avatar .avatar-stage canvas {

@@ -173,6 +173,7 @@ export function CompanionScreen(): JSX.Element {
             micActive={recorder.isRecording}
             getLevel={recorder.getLevel}
             viseme={viseme}
+            emotion={lip.emotion}
           />
         </div>
 

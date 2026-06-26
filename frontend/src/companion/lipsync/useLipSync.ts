@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { phraseSlug } from './slug';
+import type { Emotion } from './visemes';
 
 export type MouthShape = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'X';
 
@@ -30,6 +31,8 @@ export interface UseLipSync {
   isPlaying: boolean;
   /** Current viseme ('X' when idle/silent). */
   mouthShape: MouthShape;
+  /** Emotion of the current phrase (drives the avatar's expression). */
+  emotion: Emotion;
   /** 0..1 through the audio (for read-along word highlighting). */
   progress: number;
   play: () => void;
@@ -46,6 +49,7 @@ export function useLipSync(phrase: string, rate = 1): UseLipSync {
   const [available, setAvailable] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [mouthShape, setMouthShape] = useState<MouthShape>('X');
+  const [emotion, setEmotion] = useState<Emotion>('neutral');
   const [progress, setProgress] = useState(0);
 
   const cuesRef = useRef<Cue[]>([]);
@@ -80,10 +84,11 @@ export function useLipSync(phrase: string, rate = 1): UseLipSync {
     setAvailable(false);
     fetch(cuesUrl)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('no cues'))))
-      .then((data: { duration?: number; mouthCues?: Cue[] }) => {
+      .then((data: { duration?: number; mouthCues?: Cue[]; emotion?: Emotion }) => {
         if (cancelled) return;
         cuesRef.current = data.mouthCues ?? [];
         durationRef.current = data.duration ?? 0;
+        setEmotion(data.emotion ?? 'neutral');
         setAvailable(cuesRef.current.length > 0);
       })
       .catch(() => {
@@ -131,5 +136,5 @@ export function useLipSync(phrase: string, rate = 1): UseLipSync {
 
   useEffect(() => stop, [stop]); // cleanup on unmount
 
-  return { available, isPlaying, mouthShape, progress, play, stop };
+  return { available, isPlaying, mouthShape, emotion, progress, play, stop };
 }

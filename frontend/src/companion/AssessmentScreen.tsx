@@ -147,6 +147,18 @@ export function AssessmentScreen(): JSX.Element {
     <div className="assessment">
       <RoomBackground />
 
+      {/* Full-bleed avatar behind the UI — same framing as the practice screen. */}
+      <div className="assessment__avatar">
+        <Suspense fallback={<div className="assessment__avatar-load" aria-hidden="true" />}>
+          <AvatarStage
+            state={avatarState}
+            mouthOpen={mouthOpen}
+            micActive={recorder.isRecording}
+            getLevel={recorder.getLevel}
+          />
+        </Suspense>
+      </div>
+
       <div className="assessment__content">
         <header className="assessment__bar">
           <span className="assessment__title">Quick check 🌟</span>
@@ -154,16 +166,7 @@ export function AssessmentScreen(): JSX.Element {
           <span className="assessment__count">{count} done</span>
         </header>
 
-        <div className="assessment__avatar">
-          <Suspense fallback={<div className="assessment__avatar-load" aria-hidden="true" />}>
-            <AvatarStage
-              state={avatarState}
-              mouthOpen={mouthOpen}
-              micActive={recorder.isRecording}
-              getLevel={recorder.getLevel}
-            />
-          </Suspense>
-        </div>
+        <div className="assessment__spacer" aria-hidden="true" />
 
         <div className="assessment__phrase">
           <span className="assessment__phrase-eyebrow">Say this</span>

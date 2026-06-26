@@ -8,6 +8,7 @@
 import { Canvas } from '@react-three/fiber';
 
 import type { MouthShape } from '../lipsync/useLipSync';
+import type { Emotion } from '../lipsync/visemes';
 import type { AvatarState } from '../types';
 import { AnimalModel } from './AnimalModel';
 import { AVATAR_KIND } from './avatarConfig';
@@ -20,6 +21,8 @@ export interface Avatar3DCanvasProps {
   getLevel: () => number;
   /** Current Rhubarb viseme from lip-sync ('X' when not lip-syncing). */
   viseme?: MouthShape;
+  /** Emotion to express while speaking. */
+  emotion?: Emotion;
 }
 
 // Camera framing differs per avatar: the fox is a full-body wide shot; the human

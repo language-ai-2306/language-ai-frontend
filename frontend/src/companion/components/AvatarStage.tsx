@@ -10,6 +10,7 @@
 import { Component, lazy, useMemo, type ReactNode } from 'react';
 
 import type { MouthShape } from '../lipsync/useLipSync';
+import type { Emotion } from '../lipsync/visemes';
 import type { AvatarState } from '../types';
 import { isWebGLAvailable } from '../utils/webgl';
 import { CompanionAvatar } from './CompanionAvatar';
@@ -40,6 +41,8 @@ export interface AvatarStageProps {
   getLevel: () => number;
   /** Current Rhubarb viseme from lip-sync ('X' when not lip-syncing). */
   viseme?: MouthShape;
+  /** Emotion to express while speaking (drives facial blendshapes). */
+  emotion?: Emotion;
 }
 
 /** Falls back to the SVG mascot if the 3D canvas throws at runtime. */
@@ -59,6 +62,7 @@ export function AvatarStage({
   micActive,
   getLevel,
   viseme = 'X',
+  emotion = 'neutral',
 }: AvatarStageProps): JSX.Element {
   const webgl = useMemo(() => isWebGLAvailable(), []);
   const fallback = (
@@ -77,6 +81,7 @@ export function AvatarStage({
             micActive={micActive}
             getLevel={getLevel}
             viseme={viseme}
+            emotion={emotion}
           />
         </WebGLBoundary>
       ) : (

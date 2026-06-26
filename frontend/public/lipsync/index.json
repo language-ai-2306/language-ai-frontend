@@ -1,34 +1,42 @@
 [
   {
     "slug": "the-sun-is-shining-in-the-sky",
-    "phrase": "The sun is shining in the sky."
+    "phrase": "The sun is shining in the sky.",
+    "emotion": "happy"
   },
   {
     "slug": "my-cat-likes-to-chase-the-ball",
-    "phrase": "My cat likes to chase the ball."
+    "phrase": "My cat likes to chase the ball.",
+    "emotion": "happy"
   },
   {
     "slug": "the-little-rabbit-jumped-over-the-log",
-    "phrase": "The little rabbit jumped over the log."
+    "phrase": "The little rabbit jumped over the log.",
+    "emotion": "happy"
   },
   {
     "slug": "we-are-going-to-the-park-today",
-    "phrase": "We are going to the park today."
+    "phrase": "We are going to the park today.",
+    "emotion": "happy"
   },
   {
     "slug": "i-can-ride-my-bike-very-fast",
-    "phrase": "I can ride my bike very fast."
+    "phrase": "I can ride my bike very fast.",
+    "emotion": "happy"
   },
   {
     "slug": "the-green-frog-hops-from-leaf-to-leaf",
-    "phrase": "The green frog hops from leaf to leaf."
+    "phrase": "The green frog hops from leaf to leaf.",
+    "emotion": "happy"
   },
   {
     "slug": "pancakes-taste-yummy-in-the-morning",
-    "phrase": "Pancakes taste yummy in the morning."
+    "phrase": "Pancakes taste yummy in the morning.",
+    "emotion": "happy"
   },
   {
     "slug": "goodnight-moon-goodnight-little-stars",
-    "phrase": "Goodnight moon, goodnight little stars."
+    "phrase": "Goodnight moon, goodnight little stars.",
+    "emotion": "calm"
   }
 ]

@@ -125,6 +125,16 @@ interface Persisted {
 
 function loadPersisted(): Persisted | null {
   try {
+    // Dev/QA: opening the app with `?reset` wipes saved progress so it returns to
+    // the login + first-time assessment flow. The param is stripped afterward so a
+    // normal reload doesn't keep clearing progress.
+    if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('reset')) {
+      localStorage.removeItem(STORAGE_KEY);
+      const url = new URL(location.href);
+      url.searchParams.delete('reset');
+      history.replaceState(null, '', url.toString());
+      return null;
+    }
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as Persisted) : null;
   } catch {

@@ -23,6 +23,7 @@ import {
   lerpPose,
   poseForViseme,
   REST_POSE,
+  type Emotion,
   type VisemePose,
 } from '../lipsync/visemes';
 import type { AvatarState } from '../types';
@@ -54,6 +55,8 @@ export interface AnimalModelProps {
   getLevel: () => number;
   /** Current Rhubarb viseme from lip-sync ('X' when not lip-syncing). */
   viseme?: MouthShape;
+  /** Accepted for prop parity with RpmModel; the fox has no expression morphs. */
+  emotion?: Emotion;
 }
 
 export function AnimalModel({

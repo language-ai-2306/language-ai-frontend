@@ -137,6 +137,62 @@ const ARKIT_DRIVEN: string[] = [
   ),
 ];
 
+/** Lip-sync-owned ARKit shapes (lowercased) — emotion overlays ADD onto these. */
+export const LIPSYNC_ARKIT: ReadonlySet<string> = new Set(ARKIT_DRIVEN);
+
+// --- Emotional expression ---------------------------------------------------
+//
+// A facial expression per emotion (exact ARKit names), layered OVER lip-sync so
+// the avatar looks emotional while it talks. Mostly non-mouth shapes (brows,
+// cheeks) so they don't fight the mouth; shapes that overlap lip-sync (e.g.
+// mouthSmile) are added on top of the mouth motion. The emotion comes from the
+// phrase's Typecast emotion tag (see tools/typecast/generate.mjs).
+
+export type Emotion = 'neutral' | 'happy' | 'calm' | 'sad' | 'angry';
+
+export const EMOTION_EXPRESSION: Record<Emotion, ArkitWeights> = {
+  neutral: {},
+  happy: {
+    mouthSmileLeft: 0.5,
+    mouthSmileRight: 0.5,
+    cheekSquintLeft: 0.45,
+    cheekSquintRight: 0.45,
+    browInnerUp: 0.1,
+  },
+  calm: { mouthSmileLeft: 0.15, mouthSmileRight: 0.15, browInnerUp: 0.12 },
+  sad: { browInnerUp: 0.6, mouthFrownLeft: 0.4, mouthFrownRight: 0.4 },
+  angry: {
+    browDownLeft: 0.6,
+    browDownRight: 0.6,
+    noseSneerLeft: 0.25,
+    noseSneerRight: 0.25,
+    mouthPressLeft: 0.2,
+    mouthPressRight: 0.2,
+  },
+};
+
+/** Every ARKit shape any emotion uses (lowercased) — for resolving on the rig. */
+export const EMOTION_DRIVEN: string[] = [
+  ...new Set(
+    Object.values(EMOTION_EXPRESSION).flatMap((w) => Object.keys(w).map((k) => k.toLowerCase())),
+  ),
+];
+
+const EMOTION_LC: Record<Emotion, Map<string, number>> = (() => {
+  const out = {} as Record<Emotion, Map<string, number>>;
+  for (const e of Object.keys(EMOTION_EXPRESSION) as Emotion[]) {
+    const m = new Map<string, number>();
+    for (const [k, v] of Object.entries(EMOTION_EXPRESSION[e])) if (v !== undefined) m.set(k.toLowerCase(), v);
+    out[e] = m;
+  }
+  return out;
+})();
+
+/** Lowercased expression weights for the runtime driver. */
+export function expressionWeights(e: Emotion): Map<string, number> {
+  return EMOTION_LC[e] ?? EMOTION_LC.neutral;
+}
+
 // --- Morph-target wiring ----------------------------------------------------
 
 /** Oculus / Ready-Player-Me viseme morph names per Rhubarb shape (best match). */

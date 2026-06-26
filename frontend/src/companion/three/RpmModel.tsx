@@ -22,9 +22,13 @@ import type { MouthShape } from '../lipsync/useLipSync';
 import {
   applyVisemeMorphs,
   buildMorphPlan,
+  EMOTION_DRIVEN,
+  expressionWeights,
   lerpPose,
+  LIPSYNC_ARKIT,
   poseForViseme,
   REST_POSE,
+  type Emotion,
   type VisemePose,
 } from '../lipsync/visemes';
 import type { AvatarState } from '../types';
@@ -123,6 +127,30 @@ function collectIdleBones(scene: Object3D): IdleBone[] {
   return out;
 }
 
+interface ExprMesh {
+  influences: number[];
+  /** Lowercased ARKit name → morph index, for the emotion shapes present. */
+  index: Map<string, number>;
+}
+
+/** Resolve the emotion/expression blendshapes present on each morph mesh. */
+function buildExpressionMeshes(scene: Object3D): ExprMesh[] {
+  const out: ExprMesh[] = [];
+  scene.traverse((obj) => {
+    const m = obj as MorphCapable;
+    if (!m.morphTargetDictionary || !m.morphTargetInfluences) return;
+    const lower = new Map<string, number>();
+    for (const [k, v] of Object.entries(m.morphTargetDictionary)) lower.set(k.toLowerCase(), v);
+    const index = new Map<string, number>();
+    for (const name of EMOTION_DRIVEN) {
+      const idx = lower.get(name);
+      if (idx !== undefined) index.set(name, idx);
+    }
+    if (index.size) out.push({ influences: m.morphTargetInfluences, index });
+  });
+  return out;
+}
+
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 export interface RpmModelProps {
@@ -131,6 +159,7 @@ export interface RpmModelProps {
   micActive: boolean;
   getLevel: () => number;
   viseme?: MouthShape;
+  emotion?: Emotion;
 }
 
 export function RpmModel({
@@ -139,6 +168,7 @@ export function RpmModel({
   micActive,
   getLevel,
   viseme = 'X',
+  emotion = 'neutral',
 }: RpmModelProps): JSX.Element {
   const group = useRef<Group>(null);
   const { scene } = useGLTF(RPM_AVATAR_URL);
@@ -156,6 +186,7 @@ export function RpmModel({
   );
   const head = useMemo(() => scene.getObjectByName('Head') ?? null, [scene]);
   const idleBones = useMemo(() => collectIdleBones(scene), [scene]);
+  const exprMeshes = useMemo(() => buildExpressionMeshes(scene), [scene]);
 
   // Live inputs mirrored into refs for the frame loop.
   const stateRef = useRef(state);
@@ -163,15 +194,18 @@ export function RpmModel({
   const micRef = useRef(micActive);
   const levelRef = useRef(getLevel);
   const visemeRef = useRef(viseme);
+  const emotionRef = useRef(emotion);
   stateRef.current = state;
   mouthRef.current = mouthOpen;
   micRef.current = micActive;
   levelRef.current = getLevel;
   visemeRef.current = viseme;
+  emotionRef.current = emotion;
 
   const poseRef = useRef<VisemePose>(REST_POSE);
   const breath = useRef(0);
   const nextBlinkAt = useRef(2);
+  const emoAmt = useRef(0); // emotion ramp (0 idle → 1 while speaking)
 
   useFrame((st) => {
     const t = st.clock.elapsedTime;
@@ -221,6 +255,21 @@ export function RpmModel({
         : { open: Math.min(1, mouthRef.current), round: 0, wide: 0, press: 0 };
     poseRef.current = lerpPose(poseRef.current, goal, 0.35);
     if (morphPlan) applyVisemeMorphs(morphPlan, speaking ? vis : 'X', poseRef.current, 0.4);
+
+    // Emotional expression — layered OVER lip-sync (so it runs last). Ramps in
+    // while speaking and relaxes to neutral otherwise.
+    emoAmt.current = lerp(emoAmt.current, speaking ? 1 : 0, 0.06);
+    if (emoAmt.current > 0.001 || emotionRef.current !== 'neutral') {
+      const weights = expressionWeights(emotionRef.current);
+      for (const em of exprMeshes) {
+        for (const [name, idx] of em.index) {
+          const target = (weights.get(name) ?? 0) * emoAmt.current;
+          em.influences[idx] = LIPSYNC_ARKIT.has(name)
+            ? Math.min(1, (em.influences[idx] ?? 0) + target) // add on top of the mouth motion
+            : target; // brows/cheeks/etc. — lip-sync doesn't touch these
+        }
+      }
+    }
   });
 
   return (
