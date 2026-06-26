@@ -24,7 +24,9 @@ export type Screen =
   | 'breathing'
   | 'summary'
   | 'companion'
-  | 'assessment';
+  | 'assessment'
+  | 'levelComplete'
+  | 'dailyComplete';
 export type Exercise = 'repeat' | 'read' | 'chat' | 'breathing';
 
 export interface Settings {
@@ -65,11 +67,26 @@ export interface AppState {
   assessment: AssessmentResult | null;
   /** All past assessments, for progress tracking. */
   assessmentHistory: AssessmentResult[];
+  /** Practice levels finished all-time (drives "You completed Level N"). */
+  levelsCompleted: number;
+  /** Practice levels finished today, and the day they count for. */
+  levelsToday: number;
+  levelDay: string | null;
 }
 
 const XP_PER_LEVEL = 100;
 export const levelFromXp = (xp: number): number => Math.floor(xp / XP_PER_LEVEL) + 1;
 export const levelProgress = (xp: number): number => (xp % XP_PER_LEVEL) / XP_PER_LEVEL;
+/** XP into the current level tier, and the XP total at the next tier. */
+export const xpIntoLevel = (xp: number): number => xp % XP_PER_LEVEL;
+export const xpForNextLevel = (xp: number): number =>
+  (Math.floor(xp / XP_PER_LEVEL) + 1) * XP_PER_LEVEL;
+
+/** Reward for finishing one practice level (mock economy). */
+export const LEVEL_XP_REWARD = 50;
+export const LEVEL_STAR_REWARD = 10;
+/** Practice levels that make up a day's goal (the "daily mission"). */
+export const DAILY_GOAL_LEVELS = 3;
 
 /** Map phrases completed in the 5-min check → a level (1–5). Tunable mock until
  *  the ML scoring backend lands. */
@@ -101,6 +118,9 @@ interface Persisted {
   progress: Progress;
   assessment: AssessmentResult | null;
   assessmentHistory: AssessmentResult[];
+  levelsCompleted: number;
+  levelsToday: number;
+  levelDay: string | null;
 }
 
 function loadPersisted(): Persisted | null {
@@ -123,6 +143,9 @@ function makeInitialState(): AppState {
     toast: null,
     assessment: p?.assessment ?? null,
     assessmentHistory: p?.assessmentHistory ?? [],
+    levelsCompleted: p?.levelsCompleted ?? 0,
+    levelsToday: p?.levelsToday ?? 0,
+    levelDay: p?.levelDay ?? null,
   };
 }
 
@@ -134,6 +157,7 @@ type Action =
   | { type: 'award'; xp: number; stars: number; exercise: Exercise; word?: string; message?: string }
   | { type: 'completeAssessment'; result: AssessmentResult }
   | { type: 'clearAssessment' }
+  | { type: 'completeLevel' }
   | { type: 'dismissToast' }
   | { type: 'resetSession' };
 
@@ -163,6 +187,23 @@ function reducer(state: AppState, action: Action): AppState {
       };
     case 'clearAssessment':
       return { ...state, assessment: null };
+    case 'completeLevel': {
+      const today = dayKey(new Date());
+      const streaked = bumpStreak(state.progress);
+      const progress: Progress = {
+        ...streaked,
+        xp: streaked.xp + LEVEL_XP_REWARD,
+        stars: streaked.stars + LEVEL_STAR_REWARD,
+      };
+      const baseToday = state.levelDay === today ? state.levelsToday : 0;
+      return {
+        ...state,
+        progress,
+        levelsCompleted: state.levelsCompleted + 1,
+        levelsToday: baseToday + 1,
+        levelDay: today,
+      };
+    }
     case 'dismissToast':
       return { ...state, toast: null };
     case 'resetSession':
@@ -201,6 +242,8 @@ export interface AppApi {
   award: (input: { xp: number; stars: number; exercise: Exercise; word?: string; message?: string }) => void;
   completeAssessment: (result: AssessmentResult) => void;
   clearAssessment: () => void;
+  /** Record finishing one practice level (awards XP/stars, bumps counters). */
+  completeLevel: () => void;
   dismissToast: () => void;
   resetSession: () => void;
 }
@@ -218,13 +261,25 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       progress: state.progress,
       assessment: state.assessment,
       assessmentHistory: state.assessmentHistory,
+      levelsCompleted: state.levelsCompleted,
+      levelsToday: state.levelsToday,
+      levelDay: state.levelDay,
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     } catch {
       /* storage unavailable (private mode) — ignore */
     }
-  }, [state.name, state.settings, state.progress, state.assessment, state.assessmentHistory]);
+  }, [
+    state.name,
+    state.settings,
+    state.progress,
+    state.assessment,
+    state.assessmentHistory,
+    state.levelsCompleted,
+    state.levelsToday,
+    state.levelDay,
+  ]);
 
   const api = useMemo<AppApi>(
     () => ({
@@ -236,6 +291,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       award: (input) => dispatch({ type: 'award', ...input }),
       completeAssessment: (result) => dispatch({ type: 'completeAssessment', result }),
       clearAssessment: () => dispatch({ type: 'clearAssessment' }),
+      completeLevel: () => dispatch({ type: 'completeLevel' }),
       dismissToast: () => dispatch({ type: 'dismissToast' }),
       resetSession: () => dispatch({ type: 'resetSession' }),
     }),
@@ -249,4 +305,11 @@ export function useApp(): AppApi {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useApp must be used within <AppProvider>');
   return ctx;
+}
+
+/** Levels completed today *after* the next one finishes (handles day rollover). */
+export function levelsTodayAfterNext(state: AppState): number {
+  const today = dayKey(new Date());
+  const base = state.levelDay === today ? state.levelsToday : 0;
+  return base + 1;
 }

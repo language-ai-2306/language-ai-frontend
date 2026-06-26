@@ -1,0 +1,150 @@
+/* Daily-mission complete — deep-purple stage matching the quest theme. */
+.dm-screen {
+  position: relative;
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #3f1684 0%, #2c0c60 100%);
+  color: #fff;
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  overflow-x: hidden;
+}
+.dm-screen :focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+
+.dm-content {
+  position: relative;
+  z-index: 1;
+  max-width: 440px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 1.6rem) 1.4rem
+    calc(env(safe-area-inset-bottom, 0px) + 1.6rem);
+}
+
+/* Logo card */
+.dm-logo {
+  position: relative;
+  width: 78%;
+  max-width: 300px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.6rem 1rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+}
+/* Colourful "tape" tabs peeking from the top corners */
+.dm-logo__tabs {
+  position: absolute;
+  top: -10px;
+  width: 60px;
+  height: 22px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    #f472b6 0 10px,
+    #f9d048 10px 20px,
+    #38bdf8 20px 30px,
+    #84cc16 30px 40px,
+    #a855f7 40px 50px
+  );
+  opacity: 0.95;
+}
+.dm-logo__tabs--l {
+  left: 14px;
+  transform: rotate(-6deg);
+}
+.dm-logo__tabs--r {
+  right: 14px;
+  transform: rotate(6deg);
+}
+.dm-logo__owl {
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 3.6rem;
+  background: radial-gradient(circle at 50% 40%, #ede9fe 0%, #d8ccf7 100%);
+  border: 3px solid #c4b5fd;
+}
+.dm-logo__brand {
+  margin-top: 0.55rem;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+  color: #5b21b6;
+}
+.dm-logo__sub {
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: #6d28d9;
+}
+
+/* Copy */
+.dm-title {
+  margin: 0.4rem 0 0;
+  text-align: center;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 2.25rem;
+  line-height: 1.12;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.dm-sub {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Buttons */
+.dm-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 1rem 1.2rem;
+  border-radius: 999px;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.15s ease, background 0.15s ease;
+}
+.dm-btn:active {
+  transform: scale(0.99);
+}
+.dm-btn--go {
+  margin-top: 0.4rem;
+  color: #2e3d0c;
+  background: #8cc63f;
+  border: none;
+  border-bottom: 5px solid #5f8a23;
+  box-shadow: 0 8px 18px rgba(140, 198, 63, 0.4);
+}
+.dm-btn--go:hover {
+  filter: brightness(1.04);
+}
+.dm-btn--later {
+  color: #fff;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+}
+.dm-btn--later:hover {
+  background: rgba(255, 255, 255, 0.12);
+}

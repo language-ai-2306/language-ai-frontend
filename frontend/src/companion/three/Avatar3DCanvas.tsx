@@ -7,28 +7,42 @@
  */
 import { Canvas } from '@react-three/fiber';
 
+import type { MouthShape } from '../lipsync/useLipSync';
 import type { AvatarState } from '../types';
 import { AnimalModel } from './AnimalModel';
+import { AVATAR_KIND } from './avatarConfig';
+import { RpmModel } from './RpmModel';
 
 export interface Avatar3DCanvasProps {
   state: AvatarState;
   mouthOpen: number;
   micActive: boolean;
   getLevel: () => number;
+  /** Current Rhubarb viseme from lip-sync ('X' when not lip-syncing). */
+  viseme?: MouthShape;
 }
+
+// Camera framing differs per avatar: the fox is a full-body wide shot; the human
+// avatar is framed as a head-and-shoulders bust. The bust camera sits at y=0
+// looking straight ahead (the model shifts its face down to the origin), so the
+// look-direction is unambiguous and we get an eye-level shot, not a top-down one.
+const CAMERA =
+  AVATAR_KIND === 'rpm'
+    ? { position: [0, 0, 1.4] as [number, number, number], fov: 28 }
+    : { position: [0, 0.55, 7.0] as [number, number, number], fov: 40 };
 
 export default function Avatar3DCanvas(props: Avatar3DCanvasProps): JSX.Element {
   return (
     <Canvas
       dpr={[1, 1.5]}
-      camera={{ position: [0, 0.55, 7.0], fov: 40 }}
+      camera={CAMERA}
       gl={{ antialias: true, alpha: true }}
       style={{ width: '100%', height: '100%' }}
     >
       <ambientLight intensity={0.9} />
       <directionalLight position={[3, 5, 4]} intensity={1.1} />
       <pointLight position={[-3, 1, 3]} intensity={0.4} />
-      <AnimalModel {...props} />
+      {AVATAR_KIND === 'rpm' ? <RpmModel {...props} /> : <AnimalModel {...props} />}
     </Canvas>
   );
 }

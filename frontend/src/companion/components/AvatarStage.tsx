@@ -9,6 +9,7 @@
  */
 import { Component, lazy, useMemo, type ReactNode } from 'react';
 
+import type { MouthShape } from '../lipsync/useLipSync';
 import type { AvatarState } from '../types';
 import { isWebGLAvailable } from '../utils/webgl';
 import { CompanionAvatar } from './CompanionAvatar';
@@ -31,12 +32,14 @@ const Avatar3DCanvas = lazy(() => importWithRetry(() => import('../three/Avatar3
 
 export interface AvatarStageProps {
   state: AvatarState;
-  /** Lip-sync amplitude while speaking (0..1). */
+  /** Lip-sync amplitude while speaking (0..1) — used when no visemes exist. */
   mouthOpen: number;
   /** True while recording — enables the level-driven reactions. */
   micActive: boolean;
   /** Instantaneous input level accessor (0..1). */
   getLevel: () => number;
+  /** Current Rhubarb viseme from lip-sync ('X' when not lip-syncing). */
+  viseme?: MouthShape;
 }
 
 /** Falls back to the SVG mascot if the 3D canvas throws at runtime. */
@@ -50,7 +53,13 @@ class WebGLBoundary extends Component<{ fallback: ReactNode; children: ReactNode
   }
 }
 
-export function AvatarStage({ state, mouthOpen, micActive, getLevel }: AvatarStageProps): JSX.Element {
+export function AvatarStage({
+  state,
+  mouthOpen,
+  micActive,
+  getLevel,
+  viseme = 'X',
+}: AvatarStageProps): JSX.Element {
   const webgl = useMemo(() => isWebGLAvailable(), []);
   const fallback = (
     <div className="avatar-stage__fallback">
@@ -67,6 +76,7 @@ export function AvatarStage({ state, mouthOpen, micActive, getLevel }: AvatarSta
             mouthOpen={mouthOpen}
             micActive={micActive}
             getLevel={getLevel}
+            viseme={viseme}
           />
         </WebGLBoundary>
       ) : (

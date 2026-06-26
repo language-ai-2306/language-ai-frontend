@@ -19,6 +19,20 @@ frontend/*.local
 # Downloaded 3D model source pack (only the chosen model in public/models is used)
 frontend/animation/
 
+# Unoptimized Pun-Chan VRM/GLB (68 MB) — commit an optimized version instead
+frontend/public/models/punchan.glb
+
+# Large 3D source / candidate-model files (PolyWink sample, etc.) — kept locally
+Model/
+
+# Local tooling (Piper TTS engine + voices) — large binaries, install locally
+tools/
+
+# Demo model backups: large binaries stay local; the README is tracked
+backups/3d-models/*.glb
+backups/3d-models/*.vrm
+backups/3d-models/*.fbx
+
 # Local Claude Code settings (machine-specific)
 .claude/settings.local.json
 

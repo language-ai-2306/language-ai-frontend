@@ -17,6 +17,16 @@ const PROCESSING_MS = 1600;
 const SUCCESS_HOLD_MS = 2400; // celebrate, then advance to the next phrase
 const RETRY_HOLD_MS = 2000; // encourage, then return to ready (same phrase)
 
+/** Successful phrases that make up one practice "level". */
+export const PHRASES_PER_LEVEL = 3;
+
+export interface PracticeSessionOptions {
+  /** Successful phrases needed to finish the level. */
+  phrasesPerLevel?: number;
+  /** Fired once the level's successful-phrase goal is reached. */
+  onLevelComplete?: () => void;
+}
+
 const PHASE_AVATAR: Record<PracticePhase, AvatarState> = {
   ready: 'idle',
   listening: 'listening',
@@ -38,6 +48,10 @@ export interface UsePracticeSession {
   index: number;
   total: number;
   phrase: string;
+  /** Successful phrases completed so far in the current level (0..goal). */
+  levelProgress: number;
+  /** Successful phrases needed to finish the level. */
+  levelGoal: number;
   feedback: FeedbackResult | null;
   /** Mascot animation state derived from the phase. */
   avatarState: AvatarState;
@@ -49,11 +63,19 @@ export interface UsePracticeSession {
   retry: () => void;
 }
 
-export function usePracticeSession(): UsePracticeSession {
+export function usePracticeSession(options: PracticeSessionOptions = {}): UsePracticeSession {
+  const goal = options.phrasesPerLevel ?? PHRASES_PER_LEVEL;
   const [index, setIndex] = useState(START_INDEX);
   const [phase, setPhase] = useState<PracticePhase>('ready');
   const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
+  const [levelProgress, setLevelProgress] = useState(0);
+  // Authoritative success count lives in a ref so the completion side-effect
+  // stays out of the state updater (which StrictMode double-invokes in dev).
+  const progressRef = useRef(0);
   const timerRef = useRef<number | null>(null);
+  // Keep the latest callback without re-arming timers / stale closures.
+  const onCompleteRef = useRef(options.onLevelComplete);
+  onCompleteRef.current = options.onLevelComplete;
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -81,13 +103,25 @@ export function usePracticeSession(): UsePracticeSession {
       timerRef.current = window.setTimeout(
         () => {
           setFeedback(null);
-          if (success) setIndex((i) => (i + 1) % PHRASES.length);
+          if (success) {
+            // Count the win; finish the level once the goal is reached.
+            const done = progressRef.current + 1;
+            if (done >= goal) {
+              progressRef.current = 0;
+              setLevelProgress(0); // start the next level fresh
+              onCompleteRef.current?.();
+            } else {
+              progressRef.current = done;
+              setLevelProgress(done);
+              setIndex((i) => (i + 1) % PHRASES.length);
+            }
+          }
           setPhase('ready');
         },
         success ? SUCCESS_HOLD_MS : RETRY_HOLD_MS,
       );
     }, PROCESSING_MS);
-  }, [clearTimer]);
+  }, [clearTimer, goal]);
 
   const next = useCallback(() => {
     clearTimer();
@@ -109,6 +143,8 @@ export function usePracticeSession(): UsePracticeSession {
     index,
     total: PHRASES.length,
     phrase: PHRASES[index],
+    levelProgress,
+    levelGoal: goal,
     feedback,
     avatarState: PHASE_AVATAR[phase],
     statusMessage: feedback?.message ?? PHASE_STATUS[phase],

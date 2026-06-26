@@ -1,7 +1,9 @@
 /** App — screen router + global reward toast, wrapped in the app store. */
 import { AssessmentScreen } from './companion/AssessmentScreen';
 import { CompanionScreen } from './companion/CompanionScreen';
+import { DailyCompleteScreen } from './companion/DailyCompleteScreen';
 import { HomeScreen } from './companion/HomeScreen';
+import { LevelCompleteScreen } from './companion/LevelCompleteScreen';
 import { LoginScreen } from './companion/LoginScreen';
 import { RewardToast } from './components/RewardToast';
 import { BreathingScreen } from './screens/BreathingScreen';
@@ -32,6 +34,10 @@ function Router(): JSX.Element {
       return <SummaryScreen />;
     case 'companion':
       return <CompanionScreen />;
+    case 'levelComplete':
+      return <LevelCompleteScreen />;
+    case 'dailyComplete':
+      return <DailyCompleteScreen />;
     case 'home':
     default:
       return <HomeScreen />;

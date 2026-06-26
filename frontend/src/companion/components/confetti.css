@@ -1,0 +1,25 @@
+/* Decorative confetti scatter — fills its positioned parent, sits behind content. */
+.confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.confetti__bit {
+  position: absolute;
+  border-radius: 3px;
+  opacity: 0.92;
+  animation: confetti-float 3s ease-in-out infinite alternate;
+}
+.confetti__bit--round {
+  border-radius: 50%;
+}
+@keyframes confetti-float {
+  from {
+    transform: translateY(-6px) rotate(0deg);
+  }
+  to {
+    transform: translateY(10px) rotate(24deg);
+  }
+}

@@ -7,10 +7,10 @@
  * records, another stops; the avatar reacts and gives gentle, auto-advancing
  * feedback. Analysis is mocked; mic + replay are real, behind typed hooks.
  */
-import { Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo, useRef } from 'react';
 
 import { useSpeech } from '../hooks/useSpeech';
-import { useApp } from '../store/AppStore';
+import { DAILY_GOAL_LEVELS, levelsTodayAfterNext, useApp } from '../store/AppStore';
 import { AvatarStage } from './components/AvatarStage';
 import { BackButton } from './components/BackButton';
 import { MicrophoneButton, type MicVisualState } from './components/MicrophoneButton';
@@ -49,8 +49,10 @@ function CompanionLoading(): JSX.Element {
 }
 
 export function CompanionScreen(): JSX.Element {
-  const { navigate } = useApp();
-  const session = usePracticeSession();
+  const { state, navigate, completeLevel } = useApp();
+  // Indirection so the level-complete handler can use hooks declared below.
+  const completeRef = useRef<() => void>(() => {});
+  const session = usePracticeSession({ onLevelComplete: () => completeRef.current() });
   const recorder = useMicrophoneRecorder();
   const speech = useSpeech();
   // Playback tempo will be supplied by the backend (based on user input); use a
@@ -63,7 +65,9 @@ export function CompanionScreen(): JSX.Element {
   // visemes) or the browser TTS fallback.
   const speaking = lip.isPlaying || speech.isSpeaking;
   const avatarState = speaking ? 'speaking' : session.avatarState;
-  // Drive the fox's head chatter from the active viseme (lip-sync) or TTS amplitude.
+  // The avatar's mouth is driven by the real viseme during lip-sync (precise
+  // per-sound shapes); TTS has no visemes, so it falls back to raw amplitude.
+  const viseme = lip.isPlaying ? lip.mouthShape : 'X';
   const mouthOpen = lip.isPlaying
     ? SHAPE_OPEN[lip.mouthShape]
     : speech.isSpeaking
@@ -115,6 +119,18 @@ export function CompanionScreen(): JSX.Element {
     navigate('home');
   }, [speech, lip, recorder, navigate]);
 
+  // Finish the level: bank the reward, then celebrate — the daily-mission
+  // screen once today's goal is met, otherwise the level-complete screen.
+  const handleLevelComplete = useCallback(() => {
+    speech.cancel();
+    lip.stop();
+    void recorder.stop();
+    const dailyGoalMet = levelsTodayAfterNext(state) >= DAILY_GOAL_LEVELS;
+    completeLevel();
+    navigate(dailyGoalMet ? 'dailyComplete' : 'levelComplete');
+  }, [speech, lip, recorder, state, completeLevel, navigate]);
+  completeRef.current = handleLevelComplete;
+
   // Split the phrase into words with their char offsets, then find the word
   // being spoken right now (read-along highlight) — from the lip-sync progress
   // when that's playing, otherwise from the TTS word-boundary index.
@@ -157,6 +173,7 @@ export function CompanionScreen(): JSX.Element {
             mouthOpen={mouthOpen}
             micActive={recorder.isRecording}
             getLevel={recorder.getLevel}
+            viseme={viseme}
           />
         </div>
 
