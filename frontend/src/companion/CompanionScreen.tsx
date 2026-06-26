@@ -14,7 +14,6 @@ import { DAILY_GOAL_LEVELS, levelsTodayAfterNext, useApp } from '../store/AppSto
 import { AvatarStage } from './components/AvatarStage';
 import { BackButton } from './components/BackButton';
 import { MicrophoneButton, type MicVisualState } from './components/MicrophoneButton';
-import { MouthChart } from './components/MouthChart';
 import { ReplayButton } from './components/ReplayButton';
 import { RoomBackground } from './components/RoomBackground';
 import { SkipButton } from './components/SkipButton';
@@ -195,15 +194,6 @@ export function CompanionScreen(): JSX.Element {
             {recorder.error ?? session.statusMessage}
           </p>
         </div>
-
-        {/* Articulation: the 2D mouth chart forms each sound while the
-            pre-rendered audio plays, so the child can see how to say it. */}
-        {lip.isPlaying && (
-          <div className="mouth-chart" aria-hidden="true">
-            <span className="mouth-chart__label">Watch my mouth</span>
-            <MouthChart shape={lip.mouthShape} />
-          </div>
-        )}
 
         {/* Dock — back to home, replay, microphone, skip (one horizontal row) */}
         <div className="overlay-dock">

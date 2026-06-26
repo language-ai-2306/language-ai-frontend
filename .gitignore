@@ -19,8 +19,9 @@ frontend/*.local
 # Downloaded 3D model source pack (only the chosen model in public/models is used)
 frontend/animation/
 
-# Unoptimized Pun-Chan VRM/GLB (68 MB) — commit an optimized version instead
-frontend/public/models/punchan.glb
+# NOTE: frontend/public/models/punchan.glb is now the OPTIMIZED 1.3 MB model
+# (meshopt + WebP, 52 ARKit blendshapes) and IS committed. The original 68 MB
+# source lives in backups/3d-models (git-ignored below).
 
 # Large 3D source / candidate-model files (PolyWink sample, etc.) — kept locally
 Model/

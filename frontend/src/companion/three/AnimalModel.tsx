@@ -26,6 +26,7 @@ import {
   type VisemePose,
 } from '../lipsync/visemes';
 import type { AvatarState } from '../types';
+import { AVATAR_KIND } from './avatarConfig';
 
 const MODEL_URL = '/models/Fox.gltf';
 
@@ -138,4 +139,7 @@ export function AnimalModel({
   );
 }
 
-useGLTF.preload(MODEL_URL);
+// Only preload the fox when it's the selected avatar — otherwise (e.g. the RPM /
+// Pun-Chan path) this module is still imported by Avatar3DCanvas and would
+// needlessly fetch the 3 MB fox.
+if (AVATAR_KIND === 'fox') useGLTF.preload(MODEL_URL);
