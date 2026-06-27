@@ -7,7 +7,7 @@
  * records, another stops; the avatar reacts and gives gentle, auto-advancing
  * feedback. Analysis is mocked; mic + replay are real, behind typed hooks.
  */
-import { Suspense, useCallback, useMemo, useRef } from 'react';
+import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
 
 import { useSpeech } from '../hooks/useSpeech';
 import { DAILY_GOAL_LEVELS, levelsTodayAfterNext, useApp } from '../store/AppStore';
@@ -17,12 +17,21 @@ import { MicrophoneButton, type MicVisualState } from './components/MicrophoneBu
 import { ReplayButton } from './components/ReplayButton';
 import { RoomBackground } from './components/RoomBackground';
 import { SkipButton } from './components/SkipButton';
+import { SpeedControl } from './components/SpeedControl';
 import { useMicrophoneRecorder } from './hooks/useMicrophoneRecorder';
 import { usePracticeSession } from './hooks/usePracticeSession';
 import { useLipSync, type MouthShape } from './lipsync/useLipSync';
 import './companion.css';
 
 const NO_MIC_LISTEN_MS = 1500;
+
+// Playback speed: "normal" is 1.0×, adjustable in 0.05 steps. Slower playback
+// helps users hear each sound clearly; clamped to a sensible, still-natural range.
+const RATE_STEP = 0.05;
+const MIN_RATE = 0.5;
+const MAX_RATE = 1.5;
+const clampRate = (r: number): number =>
+  Math.round(Math.min(MAX_RATE, Math.max(MIN_RATE, r)) * 100) / 100;
 
 /** How far the fox's "mouth"/head opens per viseme (drives the 3D head chatter). */
 const SHAPE_OPEN: Record<MouthShape, number> = {
@@ -54,9 +63,9 @@ export function CompanionScreen(): JSX.Element {
   const session = usePracticeSession({ onLevelComplete: () => completeRef.current() });
   const recorder = useMicrophoneRecorder();
   const speech = useSpeech();
-  // Playback tempo will be supplied by the backend (based on user input); use a
-  // neutral default for now.
-  const lip = useLipSync(session.phrase);
+  // Playback speed the user sets with the slower/faster dock buttons (1.0 = normal).
+  const [rate, setRate] = useState(1);
+  const lip = useLipSync(session.phrase, rate);
 
   const { phase, phrase, feedback } = session;
 
@@ -99,9 +108,13 @@ export function CompanionScreen(): JSX.Element {
       speech.cancel();
       lip.play();
     } else if (speech.supported) {
-      speech.speak(phrase, { rate: 1 });
+      speech.speak(phrase, { rate });
     }
-  }, [lip, speech, phrase]);
+  }, [lip, speech, phrase, rate]);
+
+  // Slow down / speed up the voice by one step (±0.05), clamped to the range.
+  const handleSlower = useCallback(() => setRate((r) => clampRate(r - RATE_STEP)), []);
+  const handleFaster = useCallback(() => setRate((r) => clampRate(r + RATE_STEP)), []);
 
   // Skip the current phrase and move to the next one.
   const handleSkip = useCallback(() => {
@@ -196,7 +209,19 @@ export function CompanionScreen(): JSX.Element {
           </p>
         </div>
 
-        {/* Dock — back to home, replay, microphone, skip (one horizontal row) */}
+        {/* Speed control — vertical pill, floating top-right beside the phrase */}
+        <div className="overlay-speed">
+          <SpeedControl
+            vertical
+            rate={rate}
+            onSlower={handleSlower}
+            onFaster={handleFaster}
+            slowerDisabled={rate <= MIN_RATE}
+            fasterDisabled={rate >= MAX_RATE}
+          />
+        </div>
+
+        {/* Dock — back, replay, microphone, skip (one horizontal row) */}
         <div className="overlay-dock">
           <BackButton onClick={handleBack} />
           <ReplayButton onClick={handleReplay} disabled={replayDisabled} playing={speaking} />

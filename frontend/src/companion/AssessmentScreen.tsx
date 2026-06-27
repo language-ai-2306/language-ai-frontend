@@ -24,9 +24,24 @@ import { ReplayButton } from './components/ReplayButton';
 import { RoomBackground } from './components/RoomBackground';
 import { PHRASES } from './data';
 import { useMicrophoneRecorder } from './hooks/useMicrophoneRecorder';
+import { useLipSync, type MouthShape } from './lipsync/useLipSync';
 import './assessment.css';
 
 const TOTAL_SECONDS = 5 * 60;
+
+/** How far the avatar's mouth opens per viseme (drives the 3D head chatter).
+ *  Same mapping the main practice screen uses, so the Camila lip-sync matches. */
+const SHAPE_OPEN: Record<MouthShape, number> = {
+  X: 0,
+  A: 0.04,
+  B: 0.22,
+  C: 0.5,
+  D: 0.9,
+  E: 0.6,
+  F: 0.28,
+  G: 0.2,
+  H: 0.5,
+};
 
 function fmt(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -45,21 +60,34 @@ export function AssessmentScreen(): JSX.Element {
   const [result, setResult] = useState<AssessmentResult | null>(null);
 
   const phrase = PHRASES[count % PHRASES.length];
+  // Camila's pre-rendered audio + visemes — the same voice as the main practice
+  // screen. Falls back to TTS only if a phrase has no audio.
+  const lip = useLipSync(phrase);
   // Guards against overlapping start/stop while a tap's async work is pending.
   const micBusy = useRef(false);
+  // Which phrase index we've already modeled, and the previous availability, so
+  // we model each phrase exactly once — on the rising edge of `available` (when
+  // that phrase's cues have finished loading), never with another's cues.
+  const modeledRef = useRef(-1);
+  const prevAvail = useRef(false);
 
-  // Model each phrase as it comes up ("say it back").
+  // Model each phrase as it comes up ("say it back"), in Camila's voice.
   useEffect(() => {
-    if (phase !== 'running') return;
-    speech.speak(phrase, { rate: 0.95 });
-    // Only re-run when the phrase changes.
+    const rose = lip.available && !prevAvail.current;
+    prevAvail.current = lip.available;
+    if (phase !== 'running' || !rose || modeledRef.current === count) return;
+    modeledRef.current = count;
+    speech.cancel();
+    lip.play();
+    // Re-run on phrase change and when this phrase's audio becomes available.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [count, phase]);
+  }, [count, phase, lip.available]);
 
   const finish = useCallback(() => {
     setPhase((prev) => {
       if (prev === 'done') return prev;
       speech.cancel();
+      lip.stop();
       void recorder.stop();
       const level = levelFromPhraseCount(count);
       const res: AssessmentResult = {
@@ -72,7 +100,7 @@ export function AssessmentScreen(): JSX.Element {
       completeAssessment(res);
       return 'done';
     });
-  }, [count, speech, recorder, completeAssessment]);
+  }, [count, speech, lip, recorder, completeAssessment]);
 
   // Countdown.
   useEffect(() => {
@@ -95,6 +123,7 @@ export function AssessmentScreen(): JSX.Element {
         setCount((c) => c + 1); // a completed phrase
       } else {
         speech.cancel();
+        lip.stop();
         if (recorder.supported) {
           const ok = await recorder.start();
           if (!ok) setCount((c) => c + 1); // denied — don't block the exam
@@ -105,14 +134,27 @@ export function AssessmentScreen(): JSX.Element {
     } finally {
       micBusy.current = false;
     }
-  }, [recorder, speech]);
+  }, [recorder, speech, lip]);
 
   const handleReplay = useCallback(() => {
-    if (speech.supported) speech.speak(phrase, { rate: 0.95 });
-  }, [speech, phrase]);
+    // Prefer Camila's pre-rendered audio + visemes; fall back to TTS.
+    if (lip.available) {
+      speech.cancel();
+      lip.play();
+    } else if (speech.supported) {
+      speech.speak(phrase, { rate: 0.95 });
+    }
+  }, [lip, speech, phrase]);
 
-  const avatarState = speech.isSpeaking ? 'speaking' : recorder.isRecording ? 'listening' : 'idle';
-  const mouthOpen = speech.isSpeaking ? speech.mouthOpen : 0;
+  // "Talking" can be the Camila lip-sync (preferred, real visemes) or TTS fallback.
+  const speaking = lip.isPlaying || speech.isSpeaking;
+  const avatarState = speaking ? 'speaking' : recorder.isRecording ? 'listening' : 'idle';
+  const viseme = lip.isPlaying ? lip.mouthShape : 'X';
+  const mouthOpen = lip.isPlaying
+    ? SHAPE_OPEN[lip.mouthShape]
+    : speech.isSpeaking
+      ? speech.mouthOpen
+      : 0;
   const micState: MicVisualState = recorder.isRecording ? 'listening' : 'ready';
 
   if (phase === 'done' && result) {
@@ -155,6 +197,8 @@ export function AssessmentScreen(): JSX.Element {
             mouthOpen={mouthOpen}
             micActive={recorder.isRecording}
             getLevel={recorder.getLevel}
+            viseme={viseme}
+            emotion={lip.emotion}
           />
         </Suspense>
       </div>
@@ -174,7 +218,11 @@ export function AssessmentScreen(): JSX.Element {
         </div>
 
         <div className="assessment__dock">
-          <ReplayButton onClick={handleReplay} disabled={!speech.supported} playing={speech.isSpeaking} />
+          <ReplayButton
+            onClick={handleReplay}
+            disabled={!lip.available && !speech.supported}
+            playing={speaking}
+          />
           <MicrophoneButton state={micState} onClick={handleMic} />
           <button type="button" className="assessment__finish" onClick={finish}>
             Finish
