@@ -9,7 +9,7 @@
  * into VITE_RPM_AVATAR_URL, and restart the dev server. The morph-target query
  * params the lip-sync driver needs are appended automatically if you omit them.
  */
-export type AvatarKind = 'fox' | 'rpm';
+export type AvatarKind = 'fox' | 'rpm' | 'mascot';
 
 /** A documented RPM sample; replace with your own URL if this 404s. */
 const DEFAULT_RPM_URL = 'https://models.readyplayer.me/64bfa15f0e72c63d7c3934a6.glb';
@@ -19,8 +19,9 @@ const REQUIRED_MORPHS = 'Oculus Visemes,ARKit,eyeBlinkLeft,eyeBlinkRight';
 /** Keep the download light enough for phones. */
 const PERF_PARAMS = 'textureAtlas=1024&lod=1';
 
+const KIND = ((import.meta.env.VITE_AVATAR_KIND as string) || '').toLowerCase();
 export const AVATAR_KIND: AvatarKind =
-  ((import.meta.env.VITE_AVATAR_KIND as string) || '').toLowerCase() === 'rpm' ? 'rpm' : 'fox';
+  KIND === 'rpm' ? 'rpm' : KIND === 'mascot' ? 'mascot' : 'fox';
 
 /**
  * Ensure the RPM GLB ships with the mouth/eye blendshapes we drive. These query
