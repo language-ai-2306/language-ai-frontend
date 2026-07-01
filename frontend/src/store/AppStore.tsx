@@ -19,7 +19,7 @@ export type Screen =
   | 'login'
   | 'quickStart'
   | 'home'
-  | 'repeat'
+  | 'repeatSelect'
   | 'read'
   | 'chat'
   | 'breathing'
@@ -29,6 +29,15 @@ export type Screen =
   | 'levelComplete'
   | 'dailyComplete';
 export type Exercise = 'repeat' | 'read' | 'chat' | 'breathing';
+
+/** Which experience the shared game (CompanionScreen) runs: free conversation
+ *  ("Talk with Ollie") or guided repeat-after-me. Both launch the same game
+ *  screen but differ in UI details and which APIs they call. */
+export type GameMode = 'converse' | 'repeat';
+
+/** Difficulty chosen on the Repeat-After-Me picker. Drives which set of
+ *  questions the game fetches (from the API, later). Null for converse mode. */
+export type GameDifficulty = 'easy' | 'medium' | 'hard' | 'twister';
 
 export interface Settings {
   sound: boolean;
@@ -76,6 +85,10 @@ export interface AppState {
   /** Whether the child has an assigned doctor/therapist. Comes from the login
    *  API in future; picks which landing-page variant the home screen shows. */
   hasDoctor: boolean;
+  /** Which mode the shared game runs in, set when launching it from Home. */
+  gameMode: GameMode;
+  /** Chosen Repeat-After-Me difficulty (null for converse). */
+  gameDifficulty: GameDifficulty | null;
 }
 
 const XP_PER_LEVEL = 100;
@@ -132,7 +145,7 @@ const SCREENS: Screen[] = [
   'login',
   'quickStart',
   'home',
-  'repeat',
+  'repeatSelect',
   'read',
   'chat',
   'breathing',
@@ -204,11 +217,14 @@ function makeInitialState(): AppState {
     levelsToday: p?.levelsToday ?? 0,
     levelDay: p?.levelDay ?? null,
     hasDoctor: readDoctorOverride() ?? p?.hasDoctor ?? true,
+    gameMode: 'converse',
+    gameDifficulty: null,
   };
 }
 
 type Action =
   | { type: 'navigate'; screen: Screen }
+  | { type: 'startGame'; mode: GameMode; difficulty?: GameDifficulty | null }
   | { type: 'setName'; name: string }
   | { type: 'setHasDoctor'; value: boolean }
   | { type: 'toggleSound' }
@@ -232,6 +248,13 @@ function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'navigate':
       return { ...state, screen: action.screen };
+    case 'startGame':
+      return {
+        ...state,
+        gameMode: action.mode,
+        gameDifficulty: action.difficulty ?? null,
+        screen: 'companion',
+      };
     case 'setName':
       return { ...state, name: action.name };
     case 'setHasDoctor':
@@ -297,6 +320,8 @@ function reducer(state: AppState, action: Action): AppState {
 export interface AppApi {
   state: AppState;
   navigate: (screen: Screen) => void;
+  /** Launch the shared game (CompanionScreen) in a given mode + difficulty. */
+  startGame: (mode: GameMode, difficulty?: GameDifficulty | null) => void;
   setName: (name: string) => void;
   /** Set whether the child has a doctor (drives the landing-page variant). */
   setHasDoctor: (value: boolean) => void;
@@ -350,6 +375,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     () => ({
       state,
       navigate: (screen) => dispatch({ type: 'navigate', screen }),
+      startGame: (mode, difficulty) => dispatch({ type: 'startGame', mode, difficulty }),
       setName: (name) => dispatch({ type: 'setName', name }),
       setHasDoctor: (value) => dispatch({ type: 'setHasDoctor', value }),
       toggleSound: () => dispatch({ type: 'toggleSound' }),

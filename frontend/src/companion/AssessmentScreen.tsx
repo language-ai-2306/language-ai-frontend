@@ -21,7 +21,7 @@ import {
 import { AvatarStage } from './components/AvatarStage';
 import { MicrophoneButton, type MicVisualState } from './components/MicrophoneButton';
 import { ReplayButton } from './components/ReplayButton';
-import { RoomBackground } from './components/RoomBackground';
+import { BirdLoader } from './components/BirdLoader';
 import { PHRASES } from './data';
 import { useMicrophoneRecorder } from './hooks/useMicrophoneRecorder';
 import { useLipSync, type MouthShape } from './lipsync/useLipSync';
@@ -160,7 +160,7 @@ export function AssessmentScreen(): JSX.Element {
   if (phase === 'done' && result) {
     return (
       <div className="assessment">
-        <RoomBackground />
+        <div className="assessment__room" aria-hidden="true" />
         <div className="assessment__result">
           <span className="assessment__result-emoji" aria-hidden="true">
             🎉
@@ -187,11 +187,11 @@ export function AssessmentScreen(): JSX.Element {
 
   return (
     <div className="assessment">
-      <RoomBackground />
+      <div className="assessment__room" aria-hidden="true" />
 
       {/* Full-bleed avatar behind the UI — same framing as the practice screen. */}
       <div className="assessment__avatar">
-        <Suspense fallback={<div className="assessment__avatar-load" aria-hidden="true" />}>
+        <Suspense fallback={<BirdLoader />}>
           <AvatarStage
             state={avatarState}
             mouthOpen={mouthOpen}

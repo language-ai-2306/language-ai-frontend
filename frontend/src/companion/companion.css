@@ -23,7 +23,12 @@
   overflow: hidden;
   background: var(--c-cream);
   color: var(--c-navy);
-  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family:
+    "Nunito",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
 }
 
 .companion :focus-visible {
@@ -33,12 +38,19 @@
 }
 
 /* ---- Layers ----------------------------------------------------- */
-.room-bg {
+/* Room photo — same image as the Home hero, anchored bottom so the rug sits
+   under the mascot. Keeps the background consistent across Home and the game. */
+.companion__room {
+  /* --room-zoom scales the room image: 1 = fit (cover), >1 zooms in. Anchored to
+     the bottom so the rug stays put under the mascot. */
+  --room-zoom: 1;
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
   z-index: 0;
+  background: #efe6fb url("/backgroundImage.png") center bottom / cover
+    no-repeat;
+  transform: scale(var(--room-zoom));
+  transform-origin: center bottom;
 }
 
 /* 3D avatar fills the screen; pointer-events off so overlays stay tappable */
@@ -118,7 +130,7 @@
 }
 .overlay-phrase__text {
   margin: 0;
-  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-family: "Baloo 2", "Nunito", system-ui, sans-serif;
   font-weight: 700;
   font-size: clamp(1.4rem, 5.6vw, 1.95rem);
   line-height: 1.32;
@@ -237,7 +249,10 @@
   display: grid;
   place-items: center;
   box-shadow: 0 8px 20px rgba(104, 103, 216, 0.38);
-  transition: transform 0.12s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.12s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .mic__button--ready {
   background: var(--c-indigo);
@@ -306,7 +321,9 @@
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(38, 54, 77, 0.14);
   backdrop-filter: blur(6px);
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
 }
 .replay-button:hover:not(:disabled),
 .skip-button:hover:not(:disabled),
@@ -361,7 +378,9 @@
   border: 1px solid rgba(38, 54, 77, 0.08);
   color: var(--c-navy);
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
 }
 .speed-button:hover:not(:disabled) {
   background: #fff;
@@ -435,7 +454,9 @@
   animation: pip-blink 4.6s infinite;
 }
 @keyframes pip-blink {
-  0%, 92%, 100% {
+  0%,
+  92%,
+  100% {
     transform: scaleY(1);
   }
   96% {
@@ -447,7 +468,8 @@
   animation: pip-breathe 3.6s ease-in-out infinite;
 }
 @keyframes pip-breathe {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {

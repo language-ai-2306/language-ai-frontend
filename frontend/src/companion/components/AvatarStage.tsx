@@ -11,6 +11,7 @@ import { Component, lazy, useMemo, type ReactNode } from 'react';
 
 import type { MouthShape } from '../lipsync/useLipSync';
 import type { Emotion } from '../lipsync/visemes';
+import type { CameraPreset } from '../three/avatarConfig';
 import type { AvatarState } from '../types';
 import { isWebGLAvailable } from '../utils/webgl';
 import { CompanionAvatar } from './CompanionAvatar';
@@ -43,6 +44,8 @@ export interface AvatarStageProps {
   viseme?: MouthShape;
   /** Emotion to express while speaking (drives facial blendshapes). */
   emotion?: Emotion;
+  /** Fixed camera framing; omit to use the per-avatar-kind default. */
+  camera?: CameraPreset;
 }
 
 /** Falls back to the SVG mascot if the 3D canvas throws at runtime. */
@@ -63,6 +66,7 @@ export function AvatarStage({
   getLevel,
   viseme = 'X',
   emotion = 'neutral',
+  camera,
 }: AvatarStageProps): JSX.Element {
   const webgl = useMemo(() => isWebGLAvailable(), []);
   const fallback = (
@@ -82,6 +86,7 @@ export function AvatarStage({
             getLevel={getLevel}
             viseme={viseme}
             emotion={emotion}
+            camera={camera}
           />
         </WebGLBoundary>
       ) : (

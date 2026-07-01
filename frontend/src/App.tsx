@@ -6,11 +6,11 @@ import { HomeScreen } from './companion/HomeScreen';
 import { LevelCompleteScreen } from './companion/LevelCompleteScreen';
 import { LoginScreen } from './companion/LoginScreen';
 import { QuickStartScreen } from './companion/QuickStartScreen';
+import { RepeatAfterMeScreen } from './companion/RepeatAfterMeScreen';
 import { RewardToast } from './components/RewardToast';
 import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
 import { ReadAloudScreen } from './screens/ReadAloudScreen';
-import { RepeatScreen } from './screens/RepeatScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { AppProvider, useApp } from './store/AppStore';
 import './screens/screens.css';
@@ -23,10 +23,10 @@ function Router(): JSX.Element {
       return <LoginScreen />;
     case 'quickStart':
       return <QuickStartScreen />;
+    case 'repeatSelect':
+      return <RepeatAfterMeScreen />;
     case 'assessment':
       return <AssessmentScreen />;
-    case 'repeat':
-      return <RepeatScreen />;
     case 'read':
       return <ReadAloudScreen />;
     case 'chat':

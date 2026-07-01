@@ -10,12 +10,12 @@
 import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
 
 import { useSpeech } from '../hooks/useSpeech';
-import { DAILY_GOAL_LEVELS, levelsTodayAfterNext, useApp } from '../store/AppStore';
+import { useApp } from '../store/AppStore';
 import { AvatarStage } from './components/AvatarStage';
 import { BackButton } from './components/BackButton';
+import { BirdLoader } from './components/BirdLoader';
 import { MicrophoneButton, type MicVisualState } from './components/MicrophoneButton';
 import { ReplayButton } from './components/ReplayButton';
-import { RoomBackground } from './components/RoomBackground';
 import { SkipButton } from './components/SkipButton';
 import { SpeedControl } from './components/SpeedControl';
 import { useMicrophoneRecorder } from './hooks/useMicrophoneRecorder';
@@ -49,15 +49,18 @@ const SHAPE_OPEN: Record<MouthShape, number> = {
 /** Shown over the room until the 3D character (chunk + model) is fully ready. */
 function CompanionLoading(): JSX.Element {
   return (
-    <div className="companion__loading" role="status" aria-live="polite">
-      <span className="companion__loading-spinner" aria-hidden="true" />
-      <p className="companion__loading-text">Getting your buddy ready…</p>
+    <div className="companion__loading">
+      <BirdLoader label="Getting your buddy ready…" />
     </div>
   );
 }
 
 export function CompanionScreen(): JSX.Element {
   const { state, navigate, completeLevel } = useApp();
+  // Which experience launched this game: 'converse' (Talk with Ollie) or
+  // 'repeat' (Repeat After Me). Both run on this one screen; the mode tweaks the
+  // UI copy and — in future — which backend APIs the practice session calls.
+  const mode = state.gameMode;
   // Indirection so the level-complete handler can use hooks declared below.
   const completeRef = useRef<() => void>(() => {});
   const session = usePracticeSession({ onLevelComplete: () => completeRef.current() });
@@ -131,16 +134,14 @@ export function CompanionScreen(): JSX.Element {
     navigate('home');
   }, [speech, lip, recorder, navigate]);
 
-  // Finish the level: bank the reward, then celebrate — the daily-mission
-  // screen once today's goal is met, otherwise the level-complete screen.
+  // Finish the level: bank the reward, then show the celebration screen.
   const handleLevelComplete = useCallback(() => {
     speech.cancel();
     lip.stop();
     void recorder.stop();
-    const dailyGoalMet = levelsTodayAfterNext(state) >= DAILY_GOAL_LEVELS;
     completeLevel();
-    navigate(dailyGoalMet ? 'dailyComplete' : 'levelComplete');
-  }, [speech, lip, recorder, state, completeLevel, navigate]);
+    navigate('dailyComplete');
+  }, [speech, lip, recorder, completeLevel, navigate]);
   completeRef.current = handleLevelComplete;
 
   // Split the phrase into words with their char offsets, then find the word
@@ -171,8 +172,9 @@ export function CompanionScreen(): JSX.Element {
 
   return (
     <div className="companion companion--immersive">
-      {/* Layer 0 — room fills the whole screen (shown during loading too) */}
-      <RoomBackground />
+      {/* Layer 0 — room photo (same image as the Home hero) fills the whole
+          screen, for a consistent room across Home and the game. */}
+      <div className="companion__room" aria-hidden="true" />
 
       {/* Everything else waits behind one Suspense boundary, so the avatar and
           all controls appear together only once the 3D model is ready — no
@@ -192,7 +194,9 @@ export function CompanionScreen(): JSX.Element {
 
         {/* Overlay element 1 — the phrase text (with status/feedback subline) */}
         <div className="overlay-phrase">
-          <span className="overlay-phrase__eyebrow">Say this</span>
+          <span className="overlay-phrase__eyebrow">
+            {mode === 'repeat' ? 'Repeat after me' : 'Say this'}
+          </span>
           <p className="overlay-phrase__text">
             {words.map((w, i) => (
               <span

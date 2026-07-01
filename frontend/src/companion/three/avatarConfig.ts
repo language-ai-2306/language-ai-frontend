@@ -41,3 +41,30 @@ function ensureMorphTargets(url: string): string {
 export const RPM_AVATAR_URL = ensureMorphTargets(
   (import.meta.env.VITE_RPM_AVATAR_URL as string) || DEFAULT_RPM_URL,
 );
+
+/** A fixed 3D camera framing (no user controls). */
+export interface CameraPreset {
+  position: [number, number, number];
+  fov: number;
+}
+
+/**
+ * Default camera framing per avatar kind — used by the GAME (CompanionScreen,
+ * both converse + repeat) and as the fallback anywhere a screen doesn't pass its
+ * own. The mascot is dollied back with a moderate FOV: a prominent, flat
+ * (non-looming) full-body shot.
+ */
+export const CAMERA: CameraPreset =
+  AVATAR_KIND === 'rpm'
+    ? { position: [0, 0, 1.4], fov: 28 }
+    : AVATAR_KIND === 'mascot'
+      ? { position: [0, 0, 17.0], fov: 22 }
+      : { position: [0, 0.55, 7.0], fov: 40 };
+
+/**
+ * Home hero framing — a narrower FOV than the game (fov 12: more zoomed / flatter)
+ * so the companion reads larger in the shorter hero band. Screens that reuse the
+ * home hero (e.g. the Repeat picker) use this too. Non-mascot kinds fall back.
+ */
+export const HOME_CAMERA: CameraPreset =
+  AVATAR_KIND === 'mascot' ? { position: [0, 0, 20.0], fov: 12 } : CAMERA;

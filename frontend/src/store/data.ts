@@ -1,20 +1,5 @@
 /** Static practice content + encouragement copy. No "wrong" answers exist. */
 
-export const REPEAT_WORDS: string[] = [
-  'cat',
-  'dog',
-  'sun',
-  'ball',
-  'apple',
-  'water',
-  'happy',
-  'yellow',
-  'jump',
-  'music',
-  'butterfly',
-  'tomorrow',
-];
-
 export const READ_SENTENCES: string[] = [
   'The sun is bright today.',
   'I like to play outside.',

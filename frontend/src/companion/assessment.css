@@ -64,9 +64,20 @@
   color: var(--c-muted);
 }
 
+/* Room photo — the same image as Home + the game, so every test screen matches. */
+.assessment__room {
+  --room-zoom: 1;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #efe6fb url('/backgroundImage.png') center bottom / cover no-repeat;
+  transform: scale(var(--room-zoom));
+  transform-origin: center bottom;
+}
+
 /* Avatar — full-bleed behind the UI so the 3D framing matches the practice
    screen. The camera is tuned for a full-screen bust; a small flex box cropped
-   it. Lives above .room-bg (z-index 0, earlier in DOM) and below the content. */
+   it. Lives above .assessment__room (z-index 0, earlier in DOM), below content. */
 .assessment__avatar {
   position: absolute;
   inset: 0;

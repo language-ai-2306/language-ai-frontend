@@ -14,7 +14,7 @@ export interface SpeedControlProps {
   slowerDisabled?: boolean;
   /** Disabled at the fast limit (can't go faster). */
   fasterDisabled?: boolean;
-  /** Stack the buttons vertically (slower on top, faster on bottom). */
+  /** Stack the buttons vertically (faster on top, slower on bottom). */
   vertical?: boolean;
 }
 
@@ -35,11 +35,11 @@ export function SpeedControl({
       <button
         type="button"
         className="speed-button"
-        onClick={onSlower}
-        disabled={slowerDisabled}
-        aria-label="Slow the voice down"
+        onClick={onFaster}
+        disabled={fasterDisabled}
+        aria-label="Speed the voice up"
       >
-        <Turtle size={24} aria-hidden="true" />
+        <Rabbit size={24} aria-hidden="true" />
       </button>
       <span className="speed-control__value" aria-live="polite">
         {rate.toFixed(2)}×
@@ -47,11 +47,11 @@ export function SpeedControl({
       <button
         type="button"
         className="speed-button"
-        onClick={onFaster}
-        disabled={fasterDisabled}
-        aria-label="Speed the voice up"
+        onClick={onSlower}
+        disabled={slowerDisabled}
+        aria-label="Slow the voice down"
       >
-        <Rabbit size={24} aria-hidden="true" />
+        <Turtle size={24} aria-hidden="true" />
       </button>
     </div>
   );

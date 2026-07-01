@@ -1,0 +1,61 @@
+/* BirdLoader — a bird flying across while the 3D model loads. Shown over the
+   (purple) room, so the label is light with a soft shadow for contrast. */
+.bird-loader {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+}
+.bird-loader__sky {
+  position: relative;
+  width: min(72%, 240px);
+  height: 52px;
+  overflow: hidden;
+}
+.bird-loader__bird {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  font-size: 1.9rem;
+  line-height: 1;
+  will-change: transform;
+  animation: bird-fly 2.6s linear infinite;
+}
+/* Flies left → right, bobbing and banking like flight, then loops. */
+@keyframes bird-fly {
+  0% {
+    transform: translate(-18%, 8px) rotate(-8deg);
+  }
+  20% {
+    transform: translate(30px, -8px) rotate(6deg);
+  }
+  40% {
+    transform: translate(90px, 6px) rotate(-6deg);
+  }
+  60% {
+    transform: translate(150px, -8px) rotate(6deg);
+  }
+  80% {
+    transform: translate(210px, 6px) rotate(-6deg);
+  }
+  100% {
+    transform: translate(280px, 8px) rotate(-8deg);
+  }
+}
+.bird-loader__label {
+  margin: 0;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(20, 8, 50, 0.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bird-loader__bird {
+    left: 50%;
+    transform: translateX(-50%);
+    animation: none;
+  }
+}

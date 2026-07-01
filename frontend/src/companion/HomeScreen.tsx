@@ -14,6 +14,8 @@ import { Palette, PawPrint, User } from 'lucide-react';
 
 import { useApp } from '../store/AppStore';
 import { AvatarStage } from './components/AvatarStage';
+import { BirdLoader } from './components/BirdLoader';
+import { HOME_CAMERA } from './three/avatarConfig';
 import './home.css';
 
 /** A circular progress ring with a `value / total` label in its centre. */
@@ -66,7 +68,7 @@ function MissionCard({ label, value, total, caption, dots }: Mission): JSX.Eleme
 }
 
 export function HomeScreen(): JSX.Element {
-  const { state, navigate } = useApp();
+  const { state, navigate, startGame } = useApp();
   const firstName = state.name.trim() || 'friend';
 
   return (
@@ -76,7 +78,7 @@ export function HomeScreen(): JSX.Element {
           <span className="lq-brand__badge" aria-hidden="true">
             🦉
           </span>
-          <span className="lq-brand__title">Learning Quest</span>
+          <span className="lq-brand__title">LanguageAI</span>
         </div>
         <button
           type="button"
@@ -97,8 +99,14 @@ export function HomeScreen(): JSX.Element {
             <span className="lq-bubble__text">Hi {firstName}!</span>
           </div>
           <div className="lq-hero__stage">
-            <Suspense fallback={<div className="lq-avatar-load" aria-hidden="true" />}>
-              <AvatarStage state="idle" mouthOpen={0} micActive={false} getLevel={() => 0} />
+            <Suspense fallback={<BirdLoader />}>
+              <AvatarStage
+                state="idle"
+                mouthOpen={0}
+                micActive={false}
+                getLevel={() => 0}
+                camera={HOME_CAMERA}
+              />
             </Suspense>
           </div>
         </section>
@@ -129,17 +137,17 @@ export function HomeScreen(): JSX.Element {
             <button
               type="button"
               className="lq-action lq-action--green"
-              onClick={() => navigate('companion')}
+              onClick={() => startGame('converse')}
             >
               <span className="lq-action__icon" aria-hidden="true">
                 <PawPrint size={26} />
               </span>
-              <span className="lq-action__label">Converse with Ollie</span>
+              <span className="lq-action__label">Talk with Ollie</span>
             </button>
             <button
               type="button"
               className="lq-action lq-action--blue"
-              onClick={() => navigate('repeat')}
+              onClick={() => navigate('repeatSelect')}
             >
               <span className="lq-action__icon" aria-hidden="true">
                 <Palette size={26} />

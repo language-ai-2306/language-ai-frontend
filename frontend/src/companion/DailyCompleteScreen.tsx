@@ -20,16 +20,6 @@ export function DailyCompleteScreen(): JSX.Element {
       <Confetti />
 
       <div className="dm-content">
-        <div className="dm-logo">
-          <span className="dm-logo__tabs dm-logo__tabs--l" aria-hidden="true" />
-          <span className="dm-logo__tabs dm-logo__tabs--r" aria-hidden="true" />
-          <span className="dm-logo__owl" aria-hidden="true">
-            🦉
-          </span>
-          <span className="dm-logo__brand">Ollie</span>
-          <span className="dm-logo__sub">Language App</span>
-        </div>
-
         <h1 className="dm-title">Amazing job, {name}! 🌟</h1>
         <p className="dm-sub">
           You completed today&apos;s goal
