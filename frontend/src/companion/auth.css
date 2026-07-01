@@ -1,26 +1,26 @@
-/* Auth screens (login + profile picker) — kid-friendly, matches app palette. */
+/* Auth screens (login) — branded LanguageAI look, purple palette. */
 .auth-screen {
-  --c-cream: #fff7e8;
-  --c-indigo: #6867d8;
-  --c-indigo-d: #5654c0;
-  --c-mint: #56c7b2;
-  --c-navy: #26364d;
-  --c-white: #ffffff;
-  --c-muted: #667085;
+  --c-brand: #5b1a8b;        /* logo + wordmark purple */
+  --c-btn: #3d1152;          /* deep eggplant CTA */
+  --c-btn-hover: #4c1a67;
+  --c-link: #2f5bff;         /* blue links */
+  --c-navy: #1e1633;         /* labels / headings */
+  --c-muted: #8a8794;        /* subtitle / placeholder */
+  --c-input-bg: #efe9f7;
+  --c-input-border: #e5ddf1;
+  --c-icon: #9c8fb4;         /* in-field icons */
 
   min-height: 100dvh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
   padding: 1.5rem 1.1rem;
-  background: linear-gradient(170deg, #fff7e8 0%, #ffeede 55%, #e9f6f3 100%);
+  background: linear-gradient(160deg, #f5eefb 0%, #f1e8fa 55%, #efe9fb 100%);
   color: var(--c-navy);
   font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 .auth-screen :focus-visible {
-  outline: 3px solid var(--c-indigo);
+  outline: 3px solid var(--c-brand);
   outline-offset: 2px;
   border-radius: 12px;
 }
@@ -28,135 +28,171 @@
 /* ---- Login card ---- */
 .auth-card {
   width: 100%;
-  max-width: 400px;
-  background: var(--c-white);
-  border-radius: 26px;
-  box-shadow: 0 16px 40px rgba(38, 54, 77, 0.12);
-  padding: 1.6rem 1.4rem;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 30px;
+  box-shadow: 0 22px 60px rgba(58, 15, 82, 0.14);
+  padding: 2.4rem 2rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.5rem;
 }
-.auth-mascot {
-  font-size: 3rem;
-  text-align: center;
-  line-height: 1;
+
+/* ---- Brand ---- */
+.auth-logo {
+  display: grid;
+  place-items: center;
+  color: var(--c-brand);
+  margin-bottom: 0.4rem;
 }
 .auth-title {
   margin: 0;
   text-align: center;
   font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
   font-weight: 800;
-  font-size: 1.6rem;
-  color: var(--c-navy);
+  font-size: 2.5rem;
+  letter-spacing: -0.01em;
+  color: var(--c-brand);
+  line-height: 1.05;
 }
 .auth-sub {
-  margin: 0 0 0.3rem;
+  margin: 0.35rem 0 1.3rem;
   text-align: center;
   color: var(--c-muted);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
+  font-weight: 600;
 }
+
+/* ---- Fields ---- */
 .auth-field {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 .auth-field > span {
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: var(--c-navy);
-}
-.auth-field input,
-.auth-password input {
-  width: 100%;
-  border: 2px solid #e6e2f0;
-  border-radius: 14px;
-  padding: 0.8rem 1rem;
+  font-weight: 800;
   font-size: 1rem;
-  font-family: inherit;
   color: var(--c-navy);
-  background: #fff;
-  outline: none;
-  transition: border-color 0.15s ease;
 }
-.auth-field input:focus,
-.auth-password input:focus {
-  border-color: var(--c-indigo);
-}
-.auth-password {
+.auth-input {
   position: relative;
   display: flex;
+  align-items: center;
 }
-.auth-password input {
-  flex: 1;
+.auth-input-icon {
+  position: absolute;
+  left: 1.05rem;
+  color: var(--c-icon);
+  pointer-events: none;
+}
+.auth-input input {
+  width: 100%;
+  border: 2px solid var(--c-input-border);
+  border-radius: 999px;
+  padding: 1rem 1.1rem 1rem 3rem;
+  font-size: 1.05rem;
+  font-family: inherit;
+  color: var(--c-navy);
+  background: var(--c-input-bg);
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.auth-input input::placeholder {
+  color: var(--c-muted);
+}
+.auth-input input:focus {
+  border-color: var(--c-brand);
+  background: #fff;
+}
+/* password field leaves room for the show/hide toggle on the right */
+.auth-input input[type='password'],
+.auth-input input[autocomplete='current-password'] {
   padding-right: 3rem;
 }
 .auth-eye {
   position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 0.8rem;
   background: none;
   border: none;
-  color: var(--c-muted);
+  color: var(--c-icon);
   cursor: pointer;
   padding: 0.4rem;
   display: grid;
   place-items: center;
 }
+
+/* ---- Forgot password ---- */
 .auth-forgot {
   align-self: flex-end;
   background: none;
   border: none;
-  color: var(--c-indigo);
-  font-weight: 700;
-  font-size: 0.85rem;
+  color: var(--c-link);
+  font-weight: 800;
+  font-size: 1rem;
   font-family: inherit;
   cursor: pointer;
-  padding: 0.2rem;
+  padding: 0.1rem 0.2rem;
+  margin: -0.4rem 0 0.4rem;
 }
+
 .auth-error {
-  margin: 0;
-  background: #ffe6cf;
-  color: #8a4b22;
+  margin: 0 0 0.5rem;
+  background: #fde8ef;
+  color: #9a2b52;
   border-radius: 12px;
-  padding: 0.5rem 0.8rem;
-  font-size: 0.9rem;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.95rem;
   text-align: center;
 }
+
+/* ---- CTA ---- */
 .auth-submit {
-  margin-top: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
   border: none;
-  border-radius: 16px;
-  background: var(--c-indigo);
+  border-radius: 999px;
+  background: var(--c-btn);
   color: #fff;
   font-family: inherit;
   font-weight: 800;
-  font-size: 1.1rem;
-  padding: 0.9rem;
+  font-size: 1.25rem;
+  padding: 1.05rem;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.1s ease;
 }
 .auth-submit:hover {
-  background: var(--c-indigo-d);
+  background: var(--c-btn-hover);
 }
 .auth-submit:active {
   transform: scale(0.98);
 }
+
+/* ---- Footer ---- */
+.auth-divider {
+  border: none;
+  border-top: 1px solid #ece5f4;
+  margin: 1.5rem 0 1.1rem;
+}
 .auth-foot {
-  margin: 0.2rem 0 0;
+  margin: 0;
   text-align: center;
-  color: var(--c-muted);
-  font-size: 0.9rem;
+  color: var(--c-navy);
+  font-size: 1.05rem;
+  font-weight: 600;
 }
 .auth-link {
   background: none;
   border: none;
-  color: var(--c-indigo);
+  color: var(--c-link);
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   font-family: inherit;
   cursor: pointer;
+  padding: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

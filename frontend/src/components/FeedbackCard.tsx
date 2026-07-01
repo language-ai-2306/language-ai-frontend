@@ -33,7 +33,7 @@ export function FeedbackCard({
   /** The word/sentence the user was repeating. */
   target?: string;
   onRetry: () => void;
-  onNext: () => void;
+onNext: () => void;
 }): JSX.Element {
   const { headline, detail, tips, smoothness, events } = feedback;
 

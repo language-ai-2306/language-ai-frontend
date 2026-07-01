@@ -30,7 +30,7 @@ import {
 import type { AvatarState } from '../types';
 import { AVATAR_KIND } from './avatarConfig';
 
-const MODEL_URL = '/models/3dmascototter.glb';
+const MODEL_URL = '/models/basicanimationottermodel.glb';
 /** Yaw (degrees) to turn the model toward the camera. */
 const YAW_DEG = -90;
 /** World height the model is scaled to fill (matches the camera framing). */

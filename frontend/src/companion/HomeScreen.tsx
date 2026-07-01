@@ -1,52 +1,73 @@
 /**
- * HomeScreen — "Learning Quest" hub shown after login + the quick check.
+ * HomeScreen — "Learning Quest" landing hub, shown after login + the quick check.
  *
- * Layout (redesign): a full-bleed illustrated room with the 3D companion and a
- * left-side speech bubble forms the hero; a white rounded sheet slides up over
- * it holding the "Choose your quest level" picker (Easy unlocked; Medium/Hard
- * locked until previous quests are done) and the Explore Doctors / Retake rows.
+ * Two variants, keyed on `state.hasDoctor` (from the login API in future):
+ *   • With a doctor    → daily + weekly mission cards, then Continue Journey.
+ *   • Without a doctor  → Continue Journey + an "Explore Therapists" CTA.
  *
- * The 3D character is reused here (idle) so it preloads — the practice screen
- * then opens instantly — and the app feels like one character throughout.
+ * Layout: the 3D companion stands in its own white hero (disconnected from the
+ * menu), with a lavender content sheet below holding the missions/actions. The
+ * character is reused (idle) so it preloads and the practice screens open fast.
  */
 import { Suspense } from 'react';
-import { ChevronRight, Lock, RefreshCw, Sparkles, Star, Stethoscope, User } from 'lucide-react';
+import { Palette, PawPrint, User } from 'lucide-react';
 
 import { useApp } from '../store/AppStore';
 import { AvatarStage } from './components/AvatarStage';
-import { RoomBackground } from './components/RoomBackground';
 import './home.css';
 
-interface Quest {
-  key: string;
-  title: string;
-  tagline: string;
-  /** Easy is the entry point; Medium/Hard unlock as quests are completed. */
-  unlocked: boolean;
-  /** Difficulty colour modifier (lq-quest--easy / --medium / --hard). */
-  variant: string;
+/** A circular progress ring with a `value / total` label in its centre. */
+function MissionRing({ value, total }: { value: number; total: number }): JSX.Element {
+  const R = 34;
+  const C = 2 * Math.PI * R;
+  const frac = total > 0 ? Math.min(1, Math.max(0, value / total)) : 0;
+  return (
+    <div className="lq-ring">
+      <svg viewBox="0 0 80 80" aria-hidden="true">
+        <circle className="lq-ring__track" cx="40" cy="40" r={R} />
+        <circle
+          className="lq-ring__fill"
+          cx="40"
+          cy="40"
+          r={R}
+          strokeDasharray={`${C * frac} ${C}`}
+          transform="rotate(-90 40 40)"
+        />
+      </svg>
+      <span className="lq-ring__label">
+        <b>{value}</b>/{total}
+      </span>
+    </div>
+  );
 }
 
-const QUESTS: Quest[] = [
-  { key: 'easy', title: 'Easy', tagline: 'Start here!', unlocked: true, variant: 'lq-quest--easy' },
-  {
-    key: 'medium',
-    title: 'Medium',
-    tagline: 'Complete previous quests',
-    unlocked: false,
-    variant: 'lq-quest--medium',
-  },
-  {
-    key: 'hard',
-    title: 'Hard',
-    tagline: 'Complete previous quests',
-    unlocked: false,
-    variant: 'lq-quest--hard',
-  },
-];
+interface Mission {
+  label: string;
+  value: number;
+  total: number;
+  caption: string;
+  /** Carousel dots — presentational until missions come from the API. */
+  dots: number;
+}
+
+function MissionCard({ label, value, total, caption, dots }: Mission): JSX.Element {
+  return (
+    <article className="lq-mission">
+      <h3 className="lq-mission__label">{label}</h3>
+      <MissionRing value={value} total={total} />
+      <p className="lq-mission__caption">{caption}</p>
+      <span className="lq-dots" aria-hidden="true">
+        {Array.from({ length: dots }).map((_, i) => (
+          <i key={i} className={i === 0 ? 'is-active' : ''} />
+        ))}
+      </span>
+    </article>
+  );
+}
 
 export function HomeScreen(): JSX.Element {
-  const { navigate, clearAssessment } = useApp();
+  const { state, navigate } = useApp();
+  const firstName = state.name.trim() || 'friend';
 
   return (
     <div className="lq-screen">
@@ -69,73 +90,73 @@ export function HomeScreen(): JSX.Element {
       </header>
 
       <main className="lq-main">
-        {/* Hero — room scene + companion, with the speech bubble on the left. */}
+        {/* Hero — the companion stands on a white background, separate from the
+            menu below (per the reference layout). */}
         <section className="lq-hero">
-          <RoomBackground />
+          <div className="lq-bubble">
+            <span className="lq-bubble__text">Hi {firstName}!</span>
+          </div>
           <div className="lq-hero__stage">
             <Suspense fallback={<div className="lq-avatar-load" aria-hidden="true" />}>
               <AvatarStage state="idle" mouthOpen={0} micActive={false} getLevel={() => 0} />
             </Suspense>
           </div>
-          <div className="lq-bubble">
-            <span className="lq-bubble__text">
-              Hi there! I&apos;m <b>Ollie</b>. Let&apos;s learn together!
-            </span>
-          </div>
         </section>
 
-        {/* Sheet — quest picker + actions, slides up over the hero. */}
-        <section className="lq-sheet">
-          <h2 className="lq-sheet__heading">
-            <Sparkles className="lq-sheet__spark" size={18} aria-hidden="true" />
-            Choose your quest level
-            <Sparkles className="lq-sheet__spark" size={18} aria-hidden="true" />
-          </h2>
+        {/* Content sheet — missions (doctor users only) + Continue Journey. */}
+        <section className="lq-content">
+          {state.hasDoctor && (
+            <div className="lq-missions">
+              <MissionCard
+                label="Today's Mission"
+                value={0}
+                total={1}
+                caption="Ready to start?"
+                dots={2}
+              />
+              <MissionCard
+                label="Weekly Mission"
+                value={2}
+                total={5}
+                caption="Keep it up!"
+                dots={4}
+              />
+            </div>
+          )}
 
-          <div className="lq-quests">
-            {QUESTS.map((quest) => (
-              <button
-                key={quest.key}
-                type="button"
-                className={`lq-quest ${quest.variant}${quest.unlocked ? '' : ' lq-quest--locked'}`}
-                onClick={() => quest.unlocked && navigate('companion')}
-                disabled={!quest.unlocked}
-              >
-                <span className="lq-quest__icon" aria-hidden="true">
-                  {quest.unlocked ? <Star size={24} fill="currentColor" /> : <Lock size={20} />}
-                </span>
-                <span className="lq-quest__text">
-                  <span className="lq-quest__title">{quest.title}</span>
-                  <span className="lq-quest__tagline">{quest.tagline}</span>
-                </span>
-                {quest.unlocked && <span className="lq-quest__badge">Unlocked</span>}
-              </button>
-            ))}
-          </div>
-
-          <div className="lq-footer">
+          <h2 className="lq-journey__heading">Continue Journey</h2>
+          <div className="lq-journey">
             <button
               type="button"
-              className="lq-row"
-              onClick={() => window.alert('Explore Doctors — coming soon')}
+              className="lq-action lq-action--green"
+              onClick={() => navigate('companion')}
             >
-              <Stethoscope className="lq-row__icon" size={20} aria-hidden="true" />
-              <span className="lq-row__label">Explore Doctors</span>
-              <ChevronRight className="lq-row__chevron" size={20} aria-hidden="true" />
+              <span className="lq-action__icon" aria-hidden="true">
+                <PawPrint size={26} />
+              </span>
+              <span className="lq-action__label">Converse with Ollie</span>
             </button>
             <button
               type="button"
-              className="lq-row"
-              onClick={() => {
-                clearAssessment();
-                navigate('assessment');
-              }}
+              className="lq-action lq-action--blue"
+              onClick={() => navigate('repeat')}
             >
-              <RefreshCw className="lq-row__icon" size={20} aria-hidden="true" />
-              <span className="lq-row__label">Retake the test</span>
-              <ChevronRight className="lq-row__chevron" size={20} aria-hidden="true" />
+              <span className="lq-action__icon" aria-hidden="true">
+                <Palette size={26} />
+              </span>
+              <span className="lq-action__label">Repeat After Me</span>
             </button>
           </div>
+
+          {!state.hasDoctor && (
+            <button
+              type="button"
+              className="lq-therapists"
+              onClick={() => window.alert('Explore Therapists — coming soon')}
+            >
+              Explore Therapists
+            </button>
+          )}
         </section>
       </main>
     </div>

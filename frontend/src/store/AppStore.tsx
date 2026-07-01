@@ -17,6 +17,7 @@ import {
 
 export type Screen =
   | 'login'
+  | 'quickStart'
   | 'home'
   | 'repeat'
   | 'read'
@@ -72,6 +73,9 @@ export interface AppState {
   /** Practice levels finished today, and the day they count for. */
   levelsToday: number;
   levelDay: string | null;
+  /** Whether the child has an assigned doctor/therapist. Comes from the login
+   *  API in future; picks which landing-page variant the home screen shows. */
+  hasDoctor: boolean;
 }
 
 const XP_PER_LEVEL = 100;
@@ -121,6 +125,49 @@ interface Persisted {
   levelsCompleted: number;
   levelsToday: number;
   levelDay: string | null;
+  hasDoctor: boolean;
+}
+
+const SCREENS: Screen[] = [
+  'login',
+  'quickStart',
+  'home',
+  'repeat',
+  'read',
+  'chat',
+  'breathing',
+  'summary',
+  'companion',
+  'assessment',
+  'levelComplete',
+  'dailyComplete',
+];
+
+/** Dev/QA: `?screen=home` boots straight to a given screen for previewing,
+ *  bypassing the login flow. Returns null for an absent/unknown value. */
+function readScreenOverride(): Screen | null {
+  try {
+    if (typeof location === 'undefined') return null;
+    const v = new URLSearchParams(location.search).get('screen') as Screen | null;
+    return v && SCREENS.includes(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Dev/QA override for the landing-page variant: `?doctor=1` forces the
+ *  with-doctor screen, `?doctor=0` the no-doctor one. Returns null when absent,
+ *  so the persisted / default value is used. Replaced by the login API later. */
+function readDoctorOverride(): boolean | null {
+  try {
+    if (typeof location === 'undefined') return null;
+    const v = new URLSearchParams(location.search).get('doctor');
+    if (v === '1' || v === 'true') return true;
+    if (v === '0' || v === 'false') return false;
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 function loadPersisted(): Persisted | null {
@@ -145,7 +192,7 @@ function loadPersisted(): Persisted | null {
 function makeInitialState(): AppState {
   const p = loadPersisted();
   return {
-    screen: 'login',
+    screen: readScreenOverride() ?? 'login',
     name: p?.name ?? '',
     settings: p?.settings ?? { sound: true, simpleMode: false },
     progress: p?.progress ?? { xp: 0, stars: 0, streakDays: 0, lastActiveDate: null },
@@ -156,12 +203,14 @@ function makeInitialState(): AppState {
     levelsCompleted: p?.levelsCompleted ?? 0,
     levelsToday: p?.levelsToday ?? 0,
     levelDay: p?.levelDay ?? null,
+    hasDoctor: readDoctorOverride() ?? p?.hasDoctor ?? true,
   };
 }
 
 type Action =
   | { type: 'navigate'; screen: Screen }
   | { type: 'setName'; name: string }
+  | { type: 'setHasDoctor'; value: boolean }
   | { type: 'toggleSound' }
   | { type: 'toggleSimple' }
   | { type: 'award'; xp: number; stars: number; exercise: Exercise; word?: string; message?: string }
@@ -185,6 +234,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, screen: action.screen };
     case 'setName':
       return { ...state, name: action.name };
+    case 'setHasDoctor':
+      return { ...state, hasDoctor: action.value };
     case 'toggleSound':
       return { ...state, settings: { ...state.settings, sound: !state.settings.sound } };
     case 'toggleSimple':
@@ -247,6 +298,8 @@ export interface AppApi {
   state: AppState;
   navigate: (screen: Screen) => void;
   setName: (name: string) => void;
+  /** Set whether the child has a doctor (drives the landing-page variant). */
+  setHasDoctor: (value: boolean) => void;
   toggleSound: () => void;
   toggleSimple: () => void;
   award: (input: { xp: number; stars: number; exercise: Exercise; word?: string; message?: string }) => void;
@@ -274,6 +327,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       levelsCompleted: state.levelsCompleted,
       levelsToday: state.levelsToday,
       levelDay: state.levelDay,
+      hasDoctor: state.hasDoctor,
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
@@ -289,6 +343,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     state.levelsCompleted,
     state.levelsToday,
     state.levelDay,
+    state.hasDoctor,
   ]);
 
   const api = useMemo<AppApi>(
@@ -296,6 +351,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       state,
       navigate: (screen) => dispatch({ type: 'navigate', screen }),
       setName: (name) => dispatch({ type: 'setName', name }),
+      setHasDoctor: (value) => dispatch({ type: 'setHasDoctor', value }),
       toggleSound: () => dispatch({ type: 'toggleSound' }),
       toggleSimple: () => dispatch({ type: 'toggleSimple' }),
       award: (input) => dispatch({ type: 'award', ...input }),

@@ -1,12 +1,13 @@
 /**
  * LoginScreen — account sign-in for the grown-up (parent/guardian/therapist).
  *
- * Kid-friendly but adult-facing. Email + password only (no OAuth/2FA yet).
- * Auth is mocked for now: a valid-looking email + a password proceeds to the
- * child profile picker. Replace `submit` with a real API call later.
+ * Adult-facing, on-brand: chat-bubble logo + "LanguageAI" wordmark, email +
+ * password with in-field icons, and a pill "Login" action.
+ * Auth is mocked for now: submitting proceeds to the child profile picker /
+ * quick check. Replace `submit` with a real API call to /auth later.
  */
 import { useState, type FormEvent } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Lock, Mail, MessagesSquare } from 'lucide-react';
 
 import { useApp } from '../store/AppStore';
 import './auth.css';
@@ -19,40 +20,45 @@ export function LoginScreen(): JSX.Element {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    // TEMP(testing): auth is bypassed — clicking "Log in" proceeds with no
-    // credentials. Restore validation + a real sign-in call before launch.
-    // First login → the quick check; afterwards straight to Home.
-    navigate(state.assessment ? 'home' : 'assessment');
+    // TEMP(testing): auth is bypassed — submitting proceeds with no credentials.
+    // Restore validation + a real sign-in call before launch.
+    // First-time users get the quick-start intro (→ quick check); returning
+    // users (who already have an assessment) go straight to Home.
+    navigate(state.assessment ? 'home' : 'quickStart');
   };
 
   return (
     <div className="auth-screen">
       <form className="auth-card" onSubmit={submit}>
-        <div className="auth-mascot" aria-hidden="true">
-          🦊
+        <div className="auth-logo" aria-hidden="true">
+          <MessagesSquare size={40} strokeWidth={2.4} />
         </div>
-        <h1 className="auth-title">Welcome back!</h1>
-        <p className="auth-sub">Log in to keep practicing with Pip</p>
+        <h1 className="auth-title">LanguageAI</h1>
+        <p className="auth-sub">Welcome back! Ready to learn?</p>
 
         <label className="auth-field">
-          <span>Email</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="grown-up@email.com"
-            autoComplete="email"
-          />
+          <span>Email Address</span>
+          <div className="auth-input">
+            <Mail className="auth-input-icon" size={20} aria-hidden="true" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+          </div>
         </label>
 
         <label className="auth-field">
           <span>Password</span>
-          <div className="auth-password">
+          <div className="auth-input">
+            <Lock className="auth-input-icon" size={20} aria-hidden="true" />
             <input
               type={show ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Enter your password"
               autoComplete="current-password"
             />
             <button
@@ -71,21 +77,23 @@ export function LoginScreen(): JSX.Element {
           className="auth-forgot"
           onClick={() => window.alert('Password reset — coming soon')}
         >
-          Forgot password?
+          Forgot Password?
         </button>
 
         <button type="submit" className="auth-submit">
-          Log in
+          Login <ArrowRight size={22} aria-hidden="true" />
         </button>
 
+        <hr className="auth-divider" />
+
         <p className="auth-foot">
-          New here?{' '}
+          Don't have an account?{' '}
           <button
             type="button"
             className="auth-link"
             onClick={() => window.alert('Create an account — coming soon')}
           >
-            Create an account
+            Sign up
           </button>
         </p>
       </form>

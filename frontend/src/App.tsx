@@ -5,6 +5,7 @@ import { DailyCompleteScreen } from './companion/DailyCompleteScreen';
 import { HomeScreen } from './companion/HomeScreen';
 import { LevelCompleteScreen } from './companion/LevelCompleteScreen';
 import { LoginScreen } from './companion/LoginScreen';
+import { QuickStartScreen } from './companion/QuickStartScreen';
 import { RewardToast } from './components/RewardToast';
 import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
@@ -20,6 +21,8 @@ function Router(): JSX.Element {
   switch (state.screen) {
     case 'login':
       return <LoginScreen />;
+    case 'quickStart':
+      return <QuickStartScreen />;
     case 'assessment':
       return <AssessmentScreen />;
     case 'repeat':

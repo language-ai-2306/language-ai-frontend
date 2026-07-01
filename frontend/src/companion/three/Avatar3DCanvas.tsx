@@ -36,7 +36,9 @@ const CAMERA =
   AVATAR_KIND === 'rpm'
     ? { position: [0, 0, 1.4] as [number, number, number], fov: 28 }
     : AVATAR_KIND === 'mascot'
-      ? { position: [0, 0, 8.0] as [number, number, number], fov: 32 }
+      ? // Dolly back + narrow FOV: the mascot sits deeper in the room (flatter,
+      // less wide-angle "looming") while staying a prominent size, not small.
+      { position: [0, 0, 12.0] as [number, number, number], fov: 22 }
       : { position: [0, 0.55, 7.0] as [number, number, number], fov: 40 };
 
 // DEV: drag to orbit, scroll to zoom, right-drag to pan — for finding a camera
