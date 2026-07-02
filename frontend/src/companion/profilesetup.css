@@ -1,0 +1,213 @@
+/* Profile-setup (first-run onboarding) — branded LanguageAI purple palette. */
+.ps-screen {
+  --c-brand: #5b1a8b;
+  --c-btn: #3d1152;
+  --c-btn-hover: #4c1a67;
+  --c-navy: #1e1633;
+  --c-muted: #6f6a7d;
+  --c-input-bg: #faf7fe;
+  --c-input-border: #e0d7ee;
+  --c-divider: #ece5f4;
+
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.4rem 1.1rem 2.5rem;
+  background: linear-gradient(160deg, #f5eefb 0%, #f1e8fa 55%, #efe9fb 100%);
+  color: var(--c-navy);
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.ps-screen :focus-visible {
+  outline: 3px solid var(--c-brand);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* ---- Brand wordmark ---- */
+.ps-brand {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.3rem 1rem;
+  color: var(--c-brand);
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.55rem;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Card ---- */
+.ps-card {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border-radius: 26px;
+  box-shadow: 0 22px 60px rgba(58, 15, 82, 0.14);
+  padding: 1.8rem 1.6rem 1.7rem;
+  display: flex;
+  flex-direction: column;
+}
+.ps-title {
+  margin: 0;
+  text-align: center;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 2rem;
+  color: var(--c-brand);
+}
+.ps-sub {
+  margin: 0.3rem 0 0;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--c-navy);
+}
+
+/* ---- Sections ---- */
+.ps-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.ps-heading {
+  margin: 1.6rem 0 0;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: var(--c-navy);
+}
+
+.ps-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.ps-field > span,
+.ps-field__label {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--c-navy);
+}
+.ps-input {
+  width: 100%;
+  border: 1.5px solid var(--c-input-border);
+  border-radius: 999px;
+  padding: 0.95rem 1.2rem;
+  font-size: 1.05rem;
+  font-family: inherit;
+  color: var(--c-navy);
+  background: var(--c-input-bg);
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ps-input::placeholder {
+  color: #a49db4;
+}
+.ps-input:focus {
+  border-color: var(--c-brand);
+  background: #fff;
+}
+
+/* ---- Avatar grid ---- */
+.ps-avatars {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.7rem 0.5rem;
+}
+.ps-avatar {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  width: 100%;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  background: #eee6f6;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ps-avatar:hover {
+  transform: translateY(-2px);
+}
+.ps-avatar.is-selected {
+  border-color: var(--c-brand);
+  box-shadow: 0 6px 16px rgba(91, 26, 139, 0.3);
+}
+
+/* ---- Divider ---- */
+.ps-divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--c-divider);
+  margin: 1.6rem 0;
+}
+
+/* ---- Therapist connection ---- */
+.ps-question {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--c-navy);
+}
+.ps-choice {
+  display: flex;
+  gap: 1rem;
+}
+.ps-choice__btn {
+  min-width: 8rem;
+  border: 2px solid var(--c-input-border);
+  border-radius: 999px;
+  padding: 0.85rem 1.4rem;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--c-navy);
+  background: var(--c-input-bg);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.ps-choice__btn:hover {
+  border-color: #c9bce0;
+}
+.ps-choice__btn.is-active {
+  border-color: var(--c-brand);
+  background: #ede4f8;
+  color: var(--c-brand);
+}
+
+/* ---- CTA ---- */
+.ps-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--c-btn);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 1.25rem;
+  padding: 1.1rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.ps-cta:hover {
+  background: var(--c-btn-hover);
+}
+.ps-cta:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-avatar,
+  .ps-cta,
+  .ps-choice__btn {
+    transition: none;
+  }
+}

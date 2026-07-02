@@ -1,0 +1,471 @@
+/* Sign-up + email-verification screens — branded LanguageAI purple palette,
+   sibling to auth.css (login). */
+.su-screen {
+  --c-brand: #5b1a8b;        /* logo + wordmark purple */
+  --c-btn: #3d1152;          /* deep eggplant CTA / active tab */
+  --c-btn-hover: #4c1a67;
+  --c-link: #2f5bff;         /* blue links + guardian heading */
+  --c-navy: #1e1633;         /* labels / headings */
+  --c-muted: #8a8794;        /* subtitle / placeholder */
+  --c-input-bg: #f4eefb;
+  --c-input-border: #e5ddf1;
+  --c-card-border: #ece5f4;
+  --c-icon: #9c8fb4;         /* in-field icons */
+
+  min-height: 100dvh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem 1.1rem 2.5rem;
+  background: linear-gradient(160deg, #f5eefb 0%, #f1e8fa 55%, #efe9fb 100%);
+  color: var(--c-navy);
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.su-screen :focus-visible {
+  outline: 3px solid var(--c-brand);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* ---- Card ---- */
+.su-card {
+  width: 100%;
+  max-width: 440px;
+  background: #fdfaff;
+  border-radius: 28px;
+  box-shadow: 0 22px 60px rgba(58, 15, 82, 0.14);
+  padding: 1.6rem 1.5rem 1.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+/* ---- Header (back + centered title) ---- */
+.su-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.6rem;
+}
+.su-back {
+  position: absolute;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: none;
+  border-radius: 50%;
+  background: #f2ebfa;
+  color: var(--c-brand);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.su-back:hover {
+  background: #e8ddf6;
+}
+.su-title {
+  margin: 0;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--c-brand);
+}
+
+/* ---- Patient / Therapist toggle ---- */
+.su-toggle {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.35rem;
+  background: #ece7f3;
+  border-radius: 999px;
+}
+.su-toggle__btn {
+  flex: 1;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 0.5rem;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--c-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.su-toggle__btn.is-active {
+  background: var(--c-btn);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(61, 17, 82, 0.28);
+}
+
+/* ---- Field card ---- */
+.su-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  padding: 1.2rem 1.1rem;
+  background: #fff;
+  border: 1px solid var(--c-card-border);
+  border-radius: 20px;
+}
+.su-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+/* the therapist "Title" select is narrow next to First Name */
+.su-row:has(.su-field--title) {
+  grid-template-columns: 0.55fr 1fr;
+}
+
+.su-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.su-field > span {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--c-navy);
+}
+
+/* ---- Inputs & selects ---- */
+.su-field input,
+.su-field select,
+.su-input input {
+  width: 100%;
+  border: 1.5px solid var(--c-input-border);
+  border-radius: 999px;
+  padding: 0.85rem 1.1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--c-navy);
+  background: var(--c-input-bg);
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.su-field input::placeholder,
+.su-input input::placeholder {
+  color: var(--c-muted);
+}
+.su-field input:focus,
+.su-field select:focus,
+.su-input input:focus {
+  border-color: var(--c-brand);
+  background: #fff;
+}
+.su-field input[type='date'] {
+  color: var(--c-navy);
+  min-height: 3rem; /* keep pill height consistent with text inputs */
+}
+
+/* native select → custom chevron for a consistent look */
+.su-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.6rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239c8fb4' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.05rem center;
+  cursor: pointer;
+}
+.su-field select.is-placeholder {
+  color: var(--c-muted);
+}
+
+/* icon / password inputs */
+.su-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.su-input__icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--c-icon);
+  pointer-events: none;
+}
+.su-input--icon input {
+  padding-left: 2.8rem;
+}
+.su-input input {
+  padding-right: 2.9rem; /* room for the eye toggle */
+}
+.su-eye {
+  position: absolute;
+  right: 0.7rem;
+  background: none;
+  border: none;
+  color: var(--c-icon);
+  cursor: pointer;
+  padding: 0.35rem;
+  display: grid;
+  place-items: center;
+}
+
+/* phone: dialling-code select + number */
+.su-phone {
+  display: grid;
+  grid-template-columns: 5.2rem 1fr;
+  gap: 0.6rem;
+}
+.su-phone__code {
+  padding-left: 0.9rem !important;
+  padding-right: 1.9rem !important;
+  background-position: right 0.65rem center !important;
+  text-align: left;
+}
+
+/* ---- Guardian details ---- */
+.su-guardian {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.2rem 1.1rem;
+  background: #fff;
+  border: 1px solid var(--c-card-border);
+  border-radius: 20px;
+}
+.su-guardian__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--c-link);
+}
+.su-guardian__note {
+  margin: -0.2rem 0 0.2rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--c-muted);
+}
+
+/* ---- Error ---- */
+.su-error {
+  margin: 0;
+  background: #fde8ef;
+  color: #9a2b52;
+  border-radius: 12px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---- Terms ---- */
+.su-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--c-navy);
+  cursor: pointer;
+}
+.su-terms input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.1rem;
+  accent-color: var(--c-brand);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.su-terms a {
+  color: var(--c-link);
+  font-weight: 800;
+  text-decoration: none;
+}
+.su-terms a:hover {
+  text-decoration: underline;
+}
+
+/* ---- CTA ---- */
+.su-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--c-btn);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 1.15rem;
+  padding: 1.05rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.su-submit:hover {
+  background: var(--c-btn-hover);
+}
+.su-submit:active {
+  transform: scale(0.98);
+}
+
+/* ---- Footer ---- */
+.su-foot {
+  margin: 0;
+  text-align: center;
+  color: var(--c-navy);
+  font-size: 1rem;
+  font-weight: 600;
+}
+.su-link {
+  background: none;
+  border: none;
+  color: var(--c-link);
+  font-weight: 800;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ===================================================================
+   Verify-email screen
+   =================================================================== */
+.su-screen--verify {
+  align-items: center;
+}
+.su-verify {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+.su-head--brand {
+  justify-content: flex-start;
+  gap: 0.6rem;
+  min-height: auto;
+}
+.su-head--brand .su-back {
+  position: static;
+  background: transparent;
+}
+.su-wordmark {
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 2.1rem;
+  letter-spacing: -0.01em;
+  color: var(--c-brand);
+}
+
+/* Mascot + status badge */
+.su-verify__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.su-verify__ring {
+  display: grid;
+  place-items: center;
+  padding: 0.75rem;
+  border: 2px dashed #b79bd6;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(146, 95, 197, 0.12), transparent 70%);
+}
+.su-verify__avatar {
+  display: grid;
+  place-items: center;
+  width: 8.5rem;
+  height: 8.5rem;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--c-brand);
+  font-size: 4rem;
+  line-height: 1;
+  box-shadow: 0 10px 26px rgba(58, 15, 82, 0.18);
+}
+.su-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: -0.9rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: #e0a92a;
+  color: #40300a;
+  font-weight: 800;
+  font-size: 0.95rem;
+  box-shadow: 0 6px 16px rgba(224, 169, 42, 0.4);
+}
+
+/* Message card */
+.su-verify__card {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 20px;
+  padding: 1.9rem 1.6rem 1.6rem;
+  box-shadow: 0 16px 40px rgba(58, 15, 82, 0.12);
+  text-align: center;
+}
+.su-verify__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--c-brand), var(--c-link));
+}
+.su-verify__title {
+  margin: 0 0 0.7rem;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.7rem;
+  line-height: 1.15;
+  color: var(--c-navy);
+}
+.su-verify__body {
+  margin: 0 0 1.2rem;
+  font-size: 1.08rem;
+  line-height: 1.5;
+  color: #5a5468;
+}
+.su-verify__body strong {
+  color: var(--c-navy);
+}
+.su-verify__hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  text-align: left;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--c-card-border);
+  border-radius: 16px;
+  background: #fbf9fe;
+}
+.su-verify__hint-icon {
+  color: var(--c-link);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+.su-verify__hint strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--c-navy);
+}
+.su-verify__hint p {
+  margin: 0.15rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--c-muted);
+}
+.su-verify__resend {
+  margin-top: 0.2rem;
+}
+.su-verify__continue {
+  align-self: center;
+  margin-top: -0.4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .su-submit,
+  .su-back {
+    transition: none;
+  }
+}

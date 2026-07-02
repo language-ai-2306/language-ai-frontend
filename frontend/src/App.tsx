@@ -5,8 +5,13 @@ import { DailyCompleteScreen } from './companion/DailyCompleteScreen';
 import { HomeScreen } from './companion/HomeScreen';
 import { LevelCompleteScreen } from './companion/LevelCompleteScreen';
 import { LoginScreen } from './companion/LoginScreen';
+import { OnboardingCompleteScreen } from './companion/OnboardingCompleteScreen';
+import { ProfileSetupScreen } from './companion/ProfileSetupScreen';
 import { QuickStartScreen } from './companion/QuickStartScreen';
 import { RepeatAfterMeScreen } from './companion/RepeatAfterMeScreen';
+import { SignUpScreen } from './companion/SignUpScreen';
+import { TherapistSetupScreen } from './companion/TherapistSetupScreen';
+import { VerifyEmailScreen } from './companion/VerifyEmailScreen';
 import { RewardToast } from './components/RewardToast';
 import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
@@ -21,6 +26,16 @@ function Router(): JSX.Element {
   switch (state.screen) {
     case 'login':
       return <LoginScreen />;
+    case 'signup':
+      return <SignUpScreen />;
+    case 'verifyEmail':
+      return <VerifyEmailScreen />;
+    case 'profileSetup':
+      return <ProfileSetupScreen />;
+    case 'therapistSetup':
+      return <TherapistSetupScreen />;
+    case 'onboardingComplete':
+      return <OnboardingCompleteScreen />;
     case 'quickStart':
       return <QuickStartScreen />;
     case 'repeatSelect':

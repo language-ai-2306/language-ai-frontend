@@ -17,6 +17,11 @@ import {
 
 export type Screen =
   | 'login'
+  | 'signup'
+  | 'verifyEmail'
+  | 'profileSetup'
+  | 'therapistSetup'
+  | 'onboardingComplete'
   | 'quickStart'
   | 'home'
   | 'repeatSelect'
@@ -29,6 +34,21 @@ export type Screen =
   | 'levelComplete'
   | 'dailyComplete';
 export type Exercise = 'repeat' | 'read' | 'chat' | 'breathing';
+
+/** Which kind of account the sign-up flow is creating. Patients are the
+ *  learners (often minors, who need guardian verification); therapists are the
+ *  clinicians who manage them. */
+export type UserType = 'patient' | 'therapist';
+
+/** Handoff from SignUpScreen → VerifyEmailScreen: who just signed up and where
+ *  the verification link was sent. Transient (not persisted); auth is mocked. */
+export interface PendingVerification {
+  userType: UserType;
+  email: string;
+  /** Patient under the guardian-required age → verification goes to a guardian. */
+  isMinor: boolean;
+  guardianEmail: string;
+}
 
 /** Which experience the shared game (CompanionScreen) runs: free conversation
  *  ("Talk with Ollie") or guided repeat-after-me. Both launch the same game
@@ -69,6 +89,11 @@ export interface AssessmentResult {
 export interface AppState {
   screen: Screen;
   name: string;
+  /** Chosen avatar id (see AVATARS in ProfileSetupScreen). */
+  avatar: string;
+  /** True once the patient has finished first-run profile setup. Gates whether
+   *  login lands on the setup screen or straight on the dashboard. */
+  profileComplete: boolean;
   settings: Settings;
   progress: Progress;
   session: Session;
@@ -89,6 +114,8 @@ export interface AppState {
   gameMode: GameMode;
   /** Chosen Repeat-After-Me difficulty (null for converse). */
   gameDifficulty: GameDifficulty | null;
+  /** Set on sign-up, read by the email-verification screen. Null otherwise. */
+  pendingVerification: PendingVerification | null;
 }
 
 const XP_PER_LEVEL = 100;
@@ -131,6 +158,8 @@ const emptySession = (): Session => ({
 
 interface Persisted {
   name: string;
+  avatar: string;
+  profileComplete: boolean;
   settings: Settings;
   progress: Progress;
   assessment: AssessmentResult | null;
@@ -143,6 +172,11 @@ interface Persisted {
 
 const SCREENS: Screen[] = [
   'login',
+  'signup',
+  'verifyEmail',
+  'profileSetup',
+  'therapistSetup',
+  'onboardingComplete',
   'quickStart',
   'home',
   'repeatSelect',
@@ -207,6 +241,8 @@ function makeInitialState(): AppState {
   return {
     screen: readScreenOverride() ?? 'login',
     name: p?.name ?? '',
+    avatar: p?.avatar ?? 'lion',
+    profileComplete: p?.profileComplete ?? false,
     settings: p?.settings ?? { sound: true, simpleMode: false },
     progress: p?.progress ?? { xp: 0, stars: 0, streakDays: 0, lastActiveDate: null },
     session: emptySession(),
@@ -219,6 +255,7 @@ function makeInitialState(): AppState {
     hasDoctor: readDoctorOverride() ?? p?.hasDoctor ?? true,
     gameMode: 'converse',
     gameDifficulty: null,
+    pendingVerification: null,
   };
 }
 
@@ -226,6 +263,9 @@ type Action =
   | { type: 'navigate'; screen: Screen }
   | { type: 'startGame'; mode: GameMode; difficulty?: GameDifficulty | null }
   | { type: 'setName'; name: string }
+  | { type: 'completeProfile'; name: string; avatar: string; hasDoctor: boolean }
+  | { type: 'setProfileComplete'; value: boolean }
+  | { type: 'setPendingVerification'; value: PendingVerification | null }
   | { type: 'setHasDoctor'; value: boolean }
   | { type: 'toggleSound' }
   | { type: 'toggleSimple' }
@@ -257,6 +297,18 @@ function reducer(state: AppState, action: Action): AppState {
       };
     case 'setName':
       return { ...state, name: action.name };
+    case 'completeProfile':
+      return {
+        ...state,
+        name: action.name,
+        avatar: action.avatar,
+        hasDoctor: action.hasDoctor,
+        profileComplete: true,
+      };
+    case 'setProfileComplete':
+      return { ...state, profileComplete: action.value };
+    case 'setPendingVerification':
+      return { ...state, pendingVerification: action.value };
     case 'setHasDoctor':
       return { ...state, hasDoctor: action.value };
     case 'toggleSound':
@@ -323,6 +375,12 @@ export interface AppApi {
   /** Launch the shared game (CompanionScreen) in a given mode + difficulty. */
   startGame: (mode: GameMode, difficulty?: GameDifficulty | null) => void;
   setName: (name: string) => void;
+  /** Save first-run profile setup (nickname, avatar, therapist connection). */
+  completeProfile: (input: { name: string; avatar: string; hasDoctor: boolean }) => void;
+  /** Flag first-run onboarding as done (therapist setup uses this). */
+  setProfileComplete: (value: boolean) => void;
+  /** Record who just signed up, for the email-verification screen. */
+  setPendingVerification: (value: PendingVerification | null) => void;
   /** Set whether the child has a doctor (drives the landing-page variant). */
   setHasDoctor: (value: boolean) => void;
   toggleSound: () => void;
@@ -345,6 +403,8 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
   useEffect(() => {
     const toSave: Persisted = {
       name: state.name,
+      avatar: state.avatar,
+      profileComplete: state.profileComplete,
       settings: state.settings,
       progress: state.progress,
       assessment: state.assessment,
@@ -361,6 +421,8 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     }
   }, [
     state.name,
+    state.avatar,
+    state.profileComplete,
     state.settings,
     state.progress,
     state.assessment,
@@ -377,6 +439,9 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       navigate: (screen) => dispatch({ type: 'navigate', screen }),
       startGame: (mode, difficulty) => dispatch({ type: 'startGame', mode, difficulty }),
       setName: (name) => dispatch({ type: 'setName', name }),
+      completeProfile: (input) => dispatch({ type: 'completeProfile', ...input }),
+      setProfileComplete: (value) => dispatch({ type: 'setProfileComplete', value }),
+      setPendingVerification: (value) => dispatch({ type: 'setPendingVerification', value }),
       setHasDoctor: (value) => dispatch({ type: 'setHasDoctor', value }),
       toggleSound: () => dispatch({ type: 'toggleSound' }),
       toggleSimple: () => dispatch({ type: 'toggleSimple' }),

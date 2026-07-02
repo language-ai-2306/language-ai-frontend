@@ -30,7 +30,10 @@ import {
 import type { AvatarState } from '../types';
 import { AVATAR_KIND } from './avatarConfig';
 
-const MODEL_URL = '/models/basicanimationottermodel.glb';
+// TEST(temporary): trying the HD ARKit Ollie. REVERT to the otter (uncomment the
+// line below) + delete public/models/ollie_hd_arkit_lipsync_test.glb when done.
+// const MODEL_URL = '/models/basicanimationottermodel.glb';
+const MODEL_URL = '/models/ollie_hd_arkit_lipsync_test.glb';
 /** Yaw (degrees) to turn the model toward the camera. */
 const YAW_DEG = -90;
 /** World height the model is scaled to fill (matches the camera framing). */

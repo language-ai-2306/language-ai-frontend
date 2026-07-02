@@ -22,9 +22,9 @@ export function LoginScreen(): JSX.Element {
     e.preventDefault();
     // TEMP(testing): auth is bypassed — submitting proceeds with no credentials.
     // Restore validation + a real sign-in call before launch.
-    // First-time users get the quick-start intro (→ quick check); returning
-    // users (who already have an assessment) go straight to Home.
-    navigate(state.assessment ? 'home' : 'quickStart');
+    // First-time patients go through profile setup (nickname/avatar/therapist);
+    // returning users (who've finished setup) land straight on the dashboard.
+    navigate(state.profileComplete ? 'home' : 'profileSetup');
   };
 
   return (
@@ -88,11 +88,7 @@ export function LoginScreen(): JSX.Element {
 
         <p className="auth-foot">
           Don't have an account?{' '}
-          <button
-            type="button"
-            className="auth-link"
-            onClick={() => window.alert('Create an account — coming soon')}
-          >
+          <button type="button" className="auth-link" onClick={() => navigate('signup')}>
             Sign up
           </button>
         </p>
