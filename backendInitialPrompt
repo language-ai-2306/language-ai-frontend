@@ -1,0 +1,838 @@
+Language AI — Backend API
+ 1.0.0
+OAS 3.1
+/openapi.json
+Backend service for the Language AI stuttering practice app.
+
+Authentication
+Most endpoints require a Bearer token. Call POST /auth/login to get one, then click Authorize (top-right) and paste the token.
+
+Roles
+Role    Can do
+PATIENT    Play the game, take proficiency tests, analyse audio
+DOCTOR    Everything above + manage phrases and read all users
+Contact Rahul Bhatt
+
+Authorize
+auth
+Sign up, log in, and inspect the current session. Login returns a Bearer token — pass it as Authorization: Bearer <token> on all protected endpoints.
+
+
+
+POST
+/auth/signup
+Create a new account
+
+
+POST
+/auth/login
+Log in and get a Bearer token
+
+
+GET
+/auth/me
+Get the current user
+
+
+users
+Read, update, and delete user accounts. A user can always act on their own account; doctors may act on any account.
+
+
+
+GET
+/users
+List all users
+
+
+
+GET
+/users/{user_id}
+Get a user by ID
+
+
+
+PATCH
+/users/{user_id}
+Update a user
+
+
+
+DELETE
+/users/{user_id}
+Delete a user
+
+
+phrases
+Manage practice sentences (disfluency phrases). Creating, editing, and deleting phrases is restricted to doctors.
+
+
+
+POST
+/phrases
+Create a practice phrase
+
+
+
+GET
+/phrases
+List practice phrases
+
+
+
+GET
+/phrases/{phrase_id}
+Get a phrase by ID
+
+
+
+PATCH
+/phrases/{phrase_id}
+Update a phrase
+
+
+
+DELETE
+/phrases/{phrase_id}
+Delete a phrase
+
+
+game
+Patient-facing game endpoints. Returns a randomised batch of unseen phrases for the current difficulty level and records that they were shown.
+
+
+
+GET
+/game/phrases
+Get game phrases for this session
+
+
+
+GET
+/game/targeted-phrases
+Get a personalised, adaptive batch of practice phrases
+
+
+proficiency
+Proficiency test flow: start a 40-phrase assessment, then submit answers to receive an assigned starting difficulty.
+
+
+
+POST
+/proficiency-test/start
+Start Test
+
+
+
+POST
+/proficiency-test/{test_id}/submit
+Submit Test
+
+
+audio
+Audio analysis pipeline. Upload a WAV/MP3 recording and receive a full disfluency breakdown, fluency score, coverage score, and retry flag.
+
+
+
+GET
+/v1/audio/defaults
+Get Defaults
+
+
+POST
+/v1/audio/analyze
+Analyse a recording (stateless, no DB)
+
+
+GET
+/v1/audio/patients/{user_id}/practice-skill
+Get a patient's per-sound practice mastery matrix
+
+
+conversation
+Conversational AI sessions. Start a session, submit audio turns, and receive AI-generated replies with synthesised voice. Doctors can retrieve full session transcripts.
+
+
+
+POST
+/v1/conversation/session/start
+Start a new conversation session (Ollie greets first)
+
+
+
+POST
+/v1/conversation/session/{session_id}/reply
+Submit child audio and get the AI reply
+
+
+
+POST
+/v1/conversation/session/{session_id}/end
+End a conversation session and get a disfluency breakdown
+
+
+
+GET
+/v1/conversation/session
+List all sessions for the current patient
+
+
+
+GET
+/v1/conversation/session/{session_id}
+Get full turn-by-turn session report
+
+
+
+GET
+/v1/conversation/patients/{user_id}/progress
+Get disfluency trend across all sessions for a patient
+
+
+
+GET
+/v1/conversation/patients/{user_id}/disfluency-profile
+Get a patient's disfluency profile (top problem sounds / types / words)
+
+
+admin
+Runtime configuration management. Doctor role required. Read and update business rules (phrase cooldown days, test size, etc.) without a code deploy.
+
+
+
+GET
+/v1/admin/config
+List all runtime configuration entries
+
+
+
+GET
+/v1/admin/config/{key}
+Get a single config entry by key
+
+
+
+PUT
+/v1/admin/config/{key}
+Update a config value
+
+
+repeat-after-me
+
+
+GET
+/v1/repeat-after-me/start
+Start the game — the AI's spoken introduction (by name)
+
+
+
+GET
+/v1/repeat-after-me/next-phrase
+Get the next phrase to practise (with AI-voiced audio)
+
+
+
+POST
+/v1/repeat-after-me/attempt
+Analyse a practice attempt and store the result
+
+
+health
+
+
+GET
+/health
+Health check
+
+
+Schemas
+AppConfigEntryCollapse allobject
+keystring
+valuestring
+value_typestring
+descriptionCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+is_editableboolean
+AppConfigUpdateCollapse allobject
+valuestring
+Body_analyze_upload_v1_audio_analyze_postCollapse allobject
+audiostringmedia type: application/octet-stream
+reference_phraseCollapse allstring
+Default"sometimes I find it hard to say what I mean"
+child_ageCollapse allinteger[5, 15]
+Default8
+use_mockCollapse allboolean
+Defaultfalse
+Body_login_auth_login_postCollapse allobject
+grant_typeCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0stringmatches ^password$
+#1null
+usernamestring
+passwordstringpassword
+scopeCollapse allstring
+Default""
+client_idCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+client_secretCollapse allstring | (string | null)password
+Any ofCollapse all(string | null)
+#0string
+#1null
+Body_submit_attempt_v1_repeat_after_me_attempt_postCollapse allobject
+audioCollapse allstringmedia type: application/octet-stream
+The patient's recording (WAV/M4A)
+
+textCollapse allstring
+The phrase the child was asked to repeat
+
+use_mockCollapse allboolean
+Defaultfalse
+Body_submit_reply_v1_conversation_session__session_id__reply_postCollapse allobject
+audioCollapse allstringmedia type: application/octet-stream
+Child's audio recording (WAV or M4A)
+
+DifficultyCollapse allstring
+EnumCollapse allarray
+#0"EASY"
+#1"MEDIUM"
+#2"HARD"
+#3"TONGUE_TWISTER"
+DisfluencyEventOutCollapse allobject
+typestring
+wordCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+timestamp_startCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+timestamp_endCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+severityCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+DisfluencyProfileResponseCollapse allobject
+user_idinteger
+window_daysinteger
+total_occurrencesinteger
+last_seenCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0stringdate-time
+#1null
+by_soundCollapse allarray<object>
+ItemsCollapse allobject
+One ranked entry in a disfluency profile (a sound, type, or word).
+
+valuestring
+countinteger
+severity_scoreinteger
+by_typeCollapse allarray<object>
+ItemsCollapse allobject
+One ranked entry in a disfluency profile (a sound, type, or word).
+
+valuestring
+countinteger
+severity_scoreinteger
+by_wordCollapse allarray<object>
+ItemsCollapse allobject
+One ranked entry in a disfluency profile (a sound, type, or word).
+
+valuestring
+countinteger
+severity_scoreinteger
+DoctorSignupCollapse allobject
+emailstringemail
+first_namestring[1, 100] characters
+last_namestring[1, 100] characters
+dobstringdate
+genderstring1 characters
+phone_numberCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string≤ 20 characters
+#1null
+roleCollapse allstring
+Const"DOCTOR"
+passwordstring[8, 128] characters
+qualificationstring[1, 255] characters
+biostring≥ 1 characters
+addressCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string≤ 500 characters
+#1null
+photo_urlCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string≤ 500 characters
+#1null
+HTTPValidationErrorCollapse allobject
+detailCollapse allarray<object>
+ItemsCollapse allobject
+locCollapse allarray<(string | integer)>
+ItemsCollapse all(string | integer)
+Any ofCollapse all(string | integer)
+#0string
+#1integer
+msgstring
+typestring
+inputany
+ctxobject
+NextPhraseResponseCollapse allobject
+One phrase to practise, at the chosen difficulty, with its spoken audio.
+
+phraseCollapse allobject
+idinteger
+sentencestring
+ailment_idinteger
+difficultyCollapse allstring
+EnumCollapse allarray
+#0"EASY"
+#1"MEDIUM"
+#2"HARD"
+#3"TONGUE_TWISTER"
+target_phonemeCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+reasonstring
+audiostring
+PatientProgressResponseCollapse allobject
+user_idinteger
+sessions_analysedinteger
+trendCollapse allarray<object>
+ItemsCollapse allobject
+One session in a patient's disfluency trend.
+
+session_idstringuuid
+datestringdate-time
+total_turnsinteger
+total_disfluenciesinteger
+disfluencies_per_turnnumber
+by_typeCollapse allobject
+Additional propertiesinteger
+PatientSignupCollapse allobject
+emailstringemail
+first_namestring[1, 100] characters
+last_namestring[1, 100] characters
+dobstringdate
+genderstring1 characters
+phone_numberCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string≤ 20 characters
+#1null
+roleCollapse allstring
+Const"PATIENT"
+passwordstring[8, 128] characters
+nicknamestring[1, 100] characters
+avatar_idCollapse all(integer | null)
+Any ofCollapse all(integer | null)
+#0integer
+#1null
+ailment_idsCollapse allarray<integer>
+Itemsinteger
+PhraseCreateCollapse allobject
+sentencestring≥ 1 characters
+ailment_idinteger
+difficultyCollapse allstring
+EnumCollapse allarray
+#0"EASY"
+#1"MEDIUM"
+#2"HARD"
+#3"TONGUE_TWISTER"
+Default"EASY"
+PhraseReadCollapse allobject
+idinteger
+sentencestring
+ailment_idinteger
+difficultyCollapse allstring
+EnumCollapse allarray
+#0"EASY"
+#1"MEDIUM"
+#2"HARD"
+#3"TONGUE_TWISTER"
+target_phonemeCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+PhraseUpdateCollapse allobject
+sentenceCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string≥ 1 characters
+#1null
+ailment_idCollapse all(integer | null)
+Any ofCollapse all(integer | null)
+#0integer
+#1null
+difficultyCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0 DifficultyExpand allstring
+#1null
+PracticeSkillResponseCollapse allobject
+user_idinteger
+soundsCollapse allarray<object>
+ItemsCollapse allobject
+target_phonemestring
+current_difficultystring
+mastery_levelstring
+attemptsinteger
+rolling_ssCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+last_practiced_atCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0stringdate-time
+#1null
+ProficiencyResponseItemCollapse allobject
+The patient's result on a single phrase of the test.
+
+phrase_idinteger
+scoreCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number[0, 1]
+#1null
+is_correctCollapse all(boolean | null)
+Any ofCollapse all(boolean | null)
+#0boolean
+#1null
+disfluenciesCollapse all(array<object> | null)
+Any ofCollapse all(array<object> | null)
+#0Collapse allarray<object>
+ItemsCollapse allobject
+Additional propertiesallowed
+#1null
+ProficiencyResultCollapse allobject
+test_idinteger
+scoreCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+assigned_difficultyCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0 DifficultyExpand allstring
+#1null
+is_completedboolean
+ProficiencyStartResponseCollapse allobject
+Returned when a patient starts the test: the test id + the phrases to read.
+
+test_idinteger
+phrasesCollapse allarray<object>
+ItemsCollapse allobject
+idinteger
+sentencestring
+ailment_idinteger
+difficultyCollapse allstring
+EnumCollapse allarray
+#0"EASY"
+#1"MEDIUM"
+#2"HARD"
+#3"TONGUE_TWISTER"
+target_phonemeCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+ProficiencySubmitCollapse allobject
+The full set of answers the patient submits at the end of the test.
+
+responsesCollapse allarray<object>
+ItemsCollapse allobject
+The patient's result on a single phrase of the test.
+
+phrase_idinteger
+scoreCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number[0, 1]
+#1null
+is_correctCollapse all(boolean | null)
+Any ofCollapse all(boolean | null)
+#0boolean
+#1null
+disfluenciesCollapse all(array<object> | null)
+Any ofCollapse all(array<object> | null)
+#0Collapse allarray<object>
+ItemsCollapse allobject
+Additional propertiesallowed
+#1null
+ProfileBucketCollapse allobject
+One ranked entry in a disfluency profile (a sound, type, or word).
+
+valuestring
+countinteger
+severity_scoreinteger
+ProgressPointCollapse allobject
+One session in a patient's disfluency trend.
+
+session_idstringuuid
+datestringdate-time
+total_turnsinteger
+total_disfluenciesinteger
+disfluencies_per_turnnumber
+by_typeCollapse allobject
+Additional propertiesinteger
+SessionEndResponseCollapse allobject
+Returned when a patient explicitly ends a session.
+
+session_idstringuuid
+total_turnsinteger
+total_disfluenciesinteger
+disfluency_breakdownCollapse allobject
+Additional propertiesinteger
+started_atstringdate-time
+ended_atstringdate-time
+SessionListResponseCollapse allobject
+sessionsCollapse allarray<object>
+ItemsCollapse allobject
+One row in the patient's session list — aggregate stats, no turn detail.
+
+session_idstringuuid
+started_atstringdate-time
+last_active_atstringdate-time
+total_turnsinteger
+total_disfluenciesinteger
+disfluency_ratenumber
+totalinteger
+SessionReportResponseCollapse allobject
+session_idstringuuid
+total_turnsinteger
+turnsCollapse allarray<object>
+ItemsCollapse allobject
+turn_numberinteger
+child_transcriptCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+ai_textCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+child_audio_urlCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+disfluency_countinteger
+disfluenciesCollapse allarray<object>
+ItemsCollapse allobject
+typestring
+wordCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+timestamp_startCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+timestamp_endCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+severityCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+SessionSummaryCollapse allobject
+One row in the patient's session list — aggregate stats, no turn detail.
+
+session_idstringuuid
+started_atstringdate-time
+last_active_atstringdate-time
+total_turnsinteger
+total_disfluenciesinteger
+disfluency_ratenumber
+SkillRowCollapse allobject
+target_phonemestring
+current_difficultystring
+mastery_levelstring
+attemptsinteger
+rolling_ssCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+last_practiced_atCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0stringdate-time
+#1null
+StartIntroResponseCollapse allobject
+The AI's spoken introduction to the Repeat-After-Me game, by name.
+
+textstring
+audiostring
+StartSessionResponseCollapse allobject
+session_idstringuuid
+turn_numberinteger
+textstring
+audiostring
+TargetedPhraseItemCollapse allobject
+phraseCollapse allobject
+idinteger
+sentencestring
+ailment_idinteger
+difficultyCollapse allstring
+EnumCollapse allarray
+#0"EASY"
+#1"MEDIUM"
+#2"HARD"
+#3"TONGUE_TWISTER"
+target_phonemeCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+reasonstring
+TargetedPhrasesResponseCollapse allobject
+user_idinteger
+targeted_soundsCollapse allarray<string>
+Itemsstring
+countinteger
+itemsCollapse allarray<object>
+ItemsCollapse allobject
+phraseCollapse allobject
+idinteger
+sentencestring
+ailment_idinteger
+difficultyCollapse allstring
+EnumCollapse allarray
+#0"EASY"
+#1"MEDIUM"
+#2"HARD"
+#3"TONGUE_TWISTER"
+target_phonemeCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+reasonstring
+TokenCollapse allobject
+What the login endpoint returns.
+
+access_tokenstring
+token_typeCollapse allstring
+Default"bearer"
+TurnResponseCollapse allobject
+turn_idinteger
+session_idstringuuid
+turn_numberinteger
+child_transcriptstring
+child_audio_urlstring
+textstring
+audiostring
+disfluency_countinteger
+disfluenciesCollapse allarray<object>
+ItemsCollapse allobject
+typestring
+wordCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+timestamp_startCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+timestamp_endCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+severityCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+TurnSummaryCollapse allobject
+turn_numberinteger
+child_transcriptCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+ai_textCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+child_audio_urlCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+disfluency_countinteger
+disfluenciesCollapse allarray<object>
+ItemsCollapse allobject
+typestring
+wordCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+timestamp_startCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+timestamp_endCollapse all(number | null)
+Any ofCollapse all(number | null)
+#0number
+#1null
+severityCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+UserReadCollapse allobject
+What we send BACK about a user. No password, ever.
+
+idinteger
+emailstringemail
+roleCollapse allstring
+Which kind of account this is. Decides which profile table holds the role-specific data (patient_detail vs doctor).
+
+EnumCollapse allarray
+#0"PATIENT"
+#1"DOCTOR"
+first_namestring
+last_namestring
+dobstringdate
+genderstring
+phone_numberCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string
+#1null
+created_atstringdate-time
+UserRoleCollapse allstring
+Which kind of account this is. Decides which profile table holds the role-specific data (patient_detail vs doctor).
+
+EnumCollapse allarray
+#0"PATIENT"
+#1"DOCTOR"
+UserUpdateCollapse allobject
+Fields a user is allowed to change. All optional — only send what changes.
+
+first_nameCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string[1, 100] characters
+#1null
+last_nameCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string[1, 100] characters
+#1null
+dobCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0stringdate
+#1null
+genderCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string1 characters
+#1null
+phone_numberCollapse all(string | null)
+Any ofCollapse all(string | null)
+#0string≤ 20 characters
+#1null
+ValidationErrorCollapse allobject
+locCollapse allarray<(string | integer)>
+ItemsCollapse all(string | integer)
+Any ofCollapse all(string | integer)
+#0string
+#1integer
+msgstring
+typestring
+inputany
+ctxobject
+
+---
+
+This is the api documentation i want you to integrate the api. First create a plan based on your interpretition of the document after that i will make changes if required in the plan then you implement the api integration.
+> do not execute this prompt i want you to save this prompt to a file in the current directory. call the file backendInitialPrompt
