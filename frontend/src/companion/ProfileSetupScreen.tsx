@@ -39,12 +39,10 @@ export function ProfileSetupScreen(): JSX.Element {
   const [avatar, setAvatar] = useState(state.avatar || 'lion');
   const [seeingTherapist, setSeeingTherapist] = useState<boolean | null>(null);
 
+  // The account is already created on "Complete Sign Up"; this screen just saves
+  // the nickname/avatar/therapist choice locally and lands on the dashboard.
   const submit = (): void => {
-    completeProfile({
-      name: nickname.trim(),
-      avatar,
-      hasDoctor: seeingTherapist ?? false,
-    });
+    completeProfile({ name: nickname.trim(), avatar, hasDoctor: seeingTherapist ?? false });
     navigate('home');
   };
 

@@ -1,10 +1,11 @@
 /** App — screen router + global reward toast, wrapped in the app store. */
 import { AssessmentScreen } from './companion/AssessmentScreen';
-import { CompanionScreen } from './companion/CompanionScreen';
 import { DailyCompleteScreen } from './companion/DailyCompleteScreen';
+import { ExerciseScreen } from './companion/ExerciseScreen';
 import { HomeScreen } from './companion/HomeScreen';
 import { LevelCompleteScreen } from './companion/LevelCompleteScreen';
 import { LoginScreen } from './companion/LoginScreen';
+import { OllieScreen } from './companion/OllieScreen';
 import { OnboardingCompleteScreen } from './companion/OnboardingCompleteScreen';
 import { ProfileSetupScreen } from './companion/ProfileSetupScreen';
 import { QuickStartScreen } from './companion/QuickStartScreen';
@@ -51,7 +52,9 @@ function Router(): JSX.Element {
     case 'summary':
       return <SummaryScreen />;
     case 'companion':
-      return <CompanionScreen />;
+      // Talk with Ollie runs the live conversation; the other four run the shared
+      // single-shot exercise flow (/v1/exercises/{game}).
+      return state.currentGame === 'TALK_WITH_OLLIE' ? <OllieScreen /> : <ExerciseScreen />;
     case 'levelComplete':
       return <LevelCompleteScreen />;
     case 'dailyComplete':

@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// In dev, proxy /api to the FastAPI backend so the frontend can use relative
-// URLs (no CORS surprises). Override the target with VITE_API_PROXY if needed.
-const apiTarget = process.env.VITE_API_PROXY ?? 'http://localhost:8000';
+// In dev, proxy the real backend's route prefixes to FastAPI so the frontend can
+// use relative URLs (no CORS surprises). Override the target with VITE_API_PROXY.
+const apiTarget = process.env.VITE_API_PROXY ?? 'http://localhost:8080';
 
 export default defineConfig({
   plugins: [react()],
@@ -15,11 +15,12 @@ export default defineConfig({
     // Accept any Host header (LAN IP, *.trycloudflare.com, *.ngrok-free.app …).
     allowedHosts: true,
     proxy: {
-      '/api': {
+      // The backend's top-level prefixes → :8080. Keep in sync as new endpoints
+      // are integrated. A leading `^` makes the key a RegExp.
+      '^/(auth|users|phrases|game|proficiency-test|v1|doctors|patient|health|admin)(/|$)': {
         target: apiTarget,
         changeOrigin: true,
-        // Proxy the WebSocket upgrade too (used by /api/attempts/ws for audio).
-        ws: true,
+        ws: true, // proxy WS upgrades too (audio streaming, later)
       },
     },
   },

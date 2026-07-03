@@ -10,21 +10,37 @@ import { useState, type FormEvent } from 'react';
 import { ArrowRight, Eye, EyeOff, Lock, Mail, MessagesSquare } from 'lucide-react';
 
 import { useApp } from '../store/AppStore';
+import { login } from '../api/auth';
+import { ApiError } from '../api/client';
+import { getToken } from '../api/token';
 import './auth.css';
 
 export function LoginScreen(): JSX.Element {
-  const { state, navigate } = useApp();
+  const { navigate, setAuthToken, setName } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
-    // TEMP(testing): auth is bypassed — submitting proceeds with no credentials.
-    // Restore validation + a real sign-in call before launch.
-    // First-time patients go through profile setup (nickname/avatar/therapist);
-    // returning users (who've finished setup) land straight on the dashboard.
-    navigate(state.profileComplete ? 'home' : 'profileSetup');
+    setError('');
+    if (!email.trim() || !password) {
+      setError('Please enter your email and password.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const user = await login(email.trim(), password); // stores token + returns /auth/me
+      setAuthToken(getToken()); // mirror into the store
+      setName(user.first_name);
+      navigate('home');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Login failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -80,8 +96,11 @@ export function LoginScreen(): JSX.Element {
           Forgot Password?
         </button>
 
-        <button type="submit" className="auth-submit">
-          Login <ArrowRight size={22} aria-hidden="true" />
+        {error && <p className="auth-error" role="alert">{error}</p>}
+
+        <button type="submit" className="auth-submit" disabled={submitting}>
+          {submitting ? 'Logging in…' : 'Login'}
+          {!submitting && <ArrowRight size={22} aria-hidden="true" />}
         </button>
 
         <hr className="auth-divider" />

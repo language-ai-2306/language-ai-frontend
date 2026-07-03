@@ -15,6 +15,9 @@ import {
   type ReactNode,
 } from 'react';
 
+import { UNAUTHORIZED_EVENT } from '../api/client';
+import { clearToken, getToken } from '../api/token';
+
 export type Screen =
   | 'login'
   | 'signup'
@@ -50,6 +53,20 @@ export interface PendingVerification {
   guardianEmail: string;
 }
 
+/** Identity captured on SignUpScreen, carried to the completion screen where the
+ *  real POST /auth/signup fires (patient needs nickname, doctor needs
+ *  qualification/bio, gathered later). Transient — never persisted. */
+export interface SignupDraft {
+  userType: UserType;
+  firstName: string;
+  lastName: string;
+  email: string;
+  dob: string; // YYYY-MM-DD
+  gender: string; // UI label ('Female' / 'Male' / …)
+  phone: string; // full number incl. dial code, or ''
+  password: string;
+}
+
 /** Which experience the shared game (CompanionScreen) runs: free conversation
  *  ("Talk with Ollie") or guided repeat-after-me. Both launch the same game
  *  screen but differ in UI details and which APIs they call. */
@@ -58,6 +75,24 @@ export type GameMode = 'converse' | 'repeat';
 /** Difficulty chosen on the Repeat-After-Me picker. Drives which set of
  *  questions the game fetches (from the API, later). Null for converse mode. */
 export type GameDifficulty = 'easy' | 'medium' | 'hard' | 'twister';
+
+/** The five practice games (matches the backend `exercise_type`). Repeat After Me,
+ *  Read It Loud and Story Teller run through the difficulty picker; Picture Talk and
+ *  Talk with Ollie run the free-conversation screen. */
+export type ExerciseKind =
+  | 'REPEAT_AFTER_ME'
+  | 'READ_IT_LOUD'
+  | 'STORY_TELLER'
+  | 'PICTURE_TALK'
+  | 'TALK_WITH_OLLIE';
+
+export const EXERCISE_LABELS: Record<ExerciseKind, string> = {
+  REPEAT_AFTER_ME: 'Repeat After Me',
+  READ_IT_LOUD: 'Read It Loud',
+  STORY_TELLER: 'Story Teller',
+  PICTURE_TALK: 'Picture Talk',
+  TALK_WITH_OLLIE: 'Talk with Ollie',
+};
 
 export interface Settings {
   sound: boolean;
@@ -114,8 +149,18 @@ export interface AppState {
   gameMode: GameMode;
   /** Chosen Repeat-After-Me difficulty (null for converse). */
   gameDifficulty: GameDifficulty | null;
+  /** Which of the five games is currently active (for titles + which API to call). */
+  currentGame: ExerciseKind;
+  /** Plan item GUID when launched from the dashboard (planned exercise); null for
+   *  free play. Threaded into the exercise start/content/attempt/end calls. */
+  planItemId: string | null;
   /** Set on sign-up, read by the email-verification screen. Null otherwise. */
   pendingVerification: PendingVerification | null;
+  /** Identity draft from SignUpScreen, consumed by the completion screen's real
+   *  POST /auth/signup. Null otherwise. */
+  signupDraft: SignupDraft | null;
+  /** Bearer token (mirrors localStorage via api/token). Null when logged out. */
+  authToken: string | null;
 }
 
 const XP_PER_LEVEL = 100;
@@ -238,8 +283,11 @@ function loadPersisted(): Persisted | null {
 
 function makeInitialState(): AppState {
   const p = loadPersisted();
+  const token = getToken();
   return {
-    screen: readScreenOverride() ?? 'login',
+    // A saved token means "stay logged in" — boot to the dashboard. A stale token
+    // will 401 on the first call and route back to login automatically.
+    screen: readScreenOverride() ?? (token ? 'home' : 'login'),
     name: p?.name ?? '',
     avatar: p?.avatar ?? 'lion',
     profileComplete: p?.profileComplete ?? false,
@@ -255,17 +303,30 @@ function makeInitialState(): AppState {
     hasDoctor: readDoctorOverride() ?? p?.hasDoctor ?? true,
     gameMode: 'converse',
     gameDifficulty: null,
+    currentGame: 'TALK_WITH_OLLIE',
+    planItemId: null,
     pendingVerification: null,
+    signupDraft: null,
+    authToken: token,
   };
 }
 
 type Action =
   | { type: 'navigate'; screen: Screen }
-  | { type: 'startGame'; mode: GameMode; difficulty?: GameDifficulty | null }
+  | {
+      type: 'startGame';
+      mode: GameMode;
+      difficulty?: GameDifficulty | null;
+      game?: ExerciseKind;
+      planItemId?: string | null;
+    }
+  | { type: 'setCurrentGame'; game: ExerciseKind }
   | { type: 'setName'; name: string }
   | { type: 'completeProfile'; name: string; avatar: string; hasDoctor: boolean }
   | { type: 'setProfileComplete'; value: boolean }
   | { type: 'setPendingVerification'; value: PendingVerification | null }
+  | { type: 'setSignupDraft'; value: SignupDraft | null }
+  | { type: 'setAuthToken'; value: string | null }
   | { type: 'setHasDoctor'; value: boolean }
   | { type: 'toggleSound' }
   | { type: 'toggleSimple' }
@@ -293,8 +354,12 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         gameMode: action.mode,
         gameDifficulty: action.difficulty ?? null,
+        currentGame: action.game ?? state.currentGame,
+        planItemId: action.planItemId ?? null, // null unless launched from a plan
         screen: 'companion',
       };
+    case 'setCurrentGame':
+      return { ...state, currentGame: action.game };
     case 'setName':
       return { ...state, name: action.name };
     case 'completeProfile':
@@ -309,6 +374,10 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, profileComplete: action.value };
     case 'setPendingVerification':
       return { ...state, pendingVerification: action.value };
+    case 'setSignupDraft':
+      return { ...state, signupDraft: action.value };
+    case 'setAuthToken':
+      return { ...state, authToken: action.value };
     case 'setHasDoctor':
       return { ...state, hasDoctor: action.value };
     case 'toggleSound':
@@ -372,8 +441,16 @@ function reducer(state: AppState, action: Action): AppState {
 export interface AppApi {
   state: AppState;
   navigate: (screen: Screen) => void;
-  /** Launch the shared game (CompanionScreen) in a given mode + difficulty. */
-  startGame: (mode: GameMode, difficulty?: GameDifficulty | null) => void;
+  /** Launch the shared game in a given mode + difficulty, optionally setting which
+   *  game it is and (for planned play) the plan item GUID. */
+  startGame: (
+    mode: GameMode,
+    difficulty?: GameDifficulty | null,
+    game?: ExerciseKind,
+    planItemId?: string | null,
+  ) => void;
+  /** Set the active game (e.g. before navigating to the difficulty picker). */
+  setCurrentGame: (game: ExerciseKind) => void;
   setName: (name: string) => void;
   /** Save first-run profile setup (nickname, avatar, therapist connection). */
   completeProfile: (input: { name: string; avatar: string; hasDoctor: boolean }) => void;
@@ -381,6 +458,12 @@ export interface AppApi {
   setProfileComplete: (value: boolean) => void;
   /** Record who just signed up, for the email-verification screen. */
   setPendingVerification: (value: PendingVerification | null) => void;
+  /** Stash the SignUpScreen identity draft for the completion-screen signup. */
+  setSignupDraft: (value: SignupDraft | null) => void;
+  /** Mirror the stored bearer token into state (call after login). */
+  setAuthToken: (value: string | null) => void;
+  /** Clear the token and return to the login screen. */
+  logout: () => void;
   /** Set whether the child has a doctor (drives the landing-page variant). */
   setHasDoctor: (value: boolean) => void;
   toggleSound: () => void;
@@ -398,6 +481,16 @@ const AppContext = createContext<AppApi | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }): JSX.Element {
   const [state, dispatch] = useReducer(reducer, undefined, makeInitialState);
+
+  // A 401 anywhere (expired/invalid token) → clear auth state and go to login.
+  useEffect(() => {
+    const onUnauthorized = (): void => {
+      dispatch({ type: 'setAuthToken', value: null });
+      dispatch({ type: 'navigate', screen: 'login' });
+    };
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+  }, []);
 
   // Persist the durable slice whenever it changes.
   useEffect(() => {
@@ -437,11 +530,20 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     () => ({
       state,
       navigate: (screen) => dispatch({ type: 'navigate', screen }),
-      startGame: (mode, difficulty) => dispatch({ type: 'startGame', mode, difficulty }),
+      startGame: (mode, difficulty, game, planItemId) =>
+        dispatch({ type: 'startGame', mode, difficulty, game, planItemId }),
+      setCurrentGame: (game) => dispatch({ type: 'setCurrentGame', game }),
       setName: (name) => dispatch({ type: 'setName', name }),
       completeProfile: (input) => dispatch({ type: 'completeProfile', ...input }),
       setProfileComplete: (value) => dispatch({ type: 'setProfileComplete', value }),
       setPendingVerification: (value) => dispatch({ type: 'setPendingVerification', value }),
+      setSignupDraft: (value) => dispatch({ type: 'setSignupDraft', value }),
+      setAuthToken: (value) => dispatch({ type: 'setAuthToken', value }),
+      logout: () => {
+        clearToken();
+        dispatch({ type: 'setAuthToken', value: null });
+        dispatch({ type: 'navigate', screen: 'login' });
+      },
       setHasDoctor: (value) => dispatch({ type: 'setHasDoctor', value }),
       toggleSound: () => dispatch({ type: 'toggleSound' }),
       toggleSimple: () => dispatch({ type: 'toggleSimple' }),

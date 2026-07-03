@@ -326,6 +326,18 @@
   background: var(--lq-blue);
   border-color: var(--lq-blue-ring);
 }
+.lq-action--orange {
+  background: #f5a03c;
+  border-color: #ffd39a;
+}
+.lq-action--pink {
+  background: #ef6fb0;
+  border-color: #ffbcdf;
+}
+.lq-action--violet {
+  background: #a06ee8;
+  border-color: #cdb2f5;
+}
 .lq-action:hover {
   transform: translateY(-2px);
   box-shadow: 0 14px 26px rgba(20, 8, 50, 0.22);
@@ -491,4 +503,10 @@
   .lq-level {
     transition: none;
   }
+}
+
+/* Planned "Today's Practice" task (gold, distinct from free-play games). */
+.lq-action--gold {
+  background: #f2c94c;
+  border-color: #ffe38a;
 }

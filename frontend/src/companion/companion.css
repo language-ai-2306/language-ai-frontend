@@ -489,3 +489,47 @@
     animation: none !important;
   }
 }
+
+/* The child's transcribed reply, shown under Ollie's line (Talk with Ollie). */
+.overlay-phrase__you {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* Picture Talk prompt image. */
+.exercise-image {
+  display: block;
+  max-width: min(80vw, 340px);
+  max-height: 34vh;
+  margin: 0 auto 0.6rem;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+
+/* "Next" button shown after an attempt is scored (replaces the mic). */
+.exercise-next {
+  min-width: 92px;
+  height: 64px;
+  padding: 0 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: #8ecf3c;
+  color: #14202a;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(20, 8, 50, 0.22);
+}
+.exercise-next:active {
+  transform: scale(0.98);
+}
+
+/* Success tint for the status line (feedback). */
+.overlay-phrase__status--success {
+  color: #b6e57a;
+}

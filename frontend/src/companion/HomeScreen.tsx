@@ -9,10 +9,16 @@
  * menu), with a lavender content sheet below holding the missions/actions. The
  * character is reused (idle) so it preloads and the practice screens open fast.
  */
-import { Suspense } from 'react';
-import { Palette, PawPrint, User } from 'lucide-react';
+import { Suspense, useEffect, useState } from 'react';
+import { BookOpen, Image, Palette, PawPrint, ScrollText, Star, User } from 'lucide-react';
 
-import { useApp } from '../store/AppStore';
+import { getDashboard, type DashboardItem } from '../api/dashboard';
+import {
+  EXERCISE_LABELS,
+  useApp,
+  type ExerciseKind,
+  type GameMode,
+} from '../store/AppStore';
 import { AvatarStage } from './components/AvatarStage';
 import { BirdLoader } from './components/BirdLoader';
 import { HOME_CAMERA } from './three/avatarConfig';
@@ -68,8 +74,37 @@ function MissionCard({ label, value, total, caption, dots }: Mission): JSX.Eleme
 }
 
 export function HomeScreen(): JSX.Element {
-  const { state, navigate, startGame } = useApp();
+  const { state, navigate, startGame, setCurrentGame } = useApp();
   const firstName = state.name.trim() || 'friend';
+
+  // Repeat After Me / Read It Loud / Story Teller share the difficulty picker;
+  // set which game is active first, then open it.
+  const openPicker = (game: 'REPEAT_AFTER_ME' | 'READ_IT_LOUD' | 'STORY_TELLER'): void => {
+    setCurrentGame(game);
+    navigate('repeatSelect');
+  };
+
+  // Today's assigned plan tasks (from the SLP's plan).
+  const [today, setToday] = useState<DashboardItem[]>([]);
+  useEffect(() => {
+    let alive = true;
+    getDashboard()
+      .then((d) => {
+        if (alive) setToday(d.today);
+      })
+      .catch(() => undefined); // no plan / not a patient → just hide the section
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Launch a planned exercise: the plan supplies difficulty/phoneme, so it skips
+  // the picker and runs with plan_item_id (session + /end on close).
+  const launchPlanned = (item: DashboardItem): void => {
+    const game = item.exercise_type as ExerciseKind;
+    const mode: GameMode = game === 'TALK_WITH_OLLIE' || game === 'PICTURE_TALK' ? 'converse' : 'repeat';
+    startGame(mode, null, game, item.item_id);
+  };
 
   return (
     <div className="lq-screen">
@@ -132,12 +167,35 @@ export function HomeScreen(): JSX.Element {
             </div>
           )}
 
+          {today.length > 0 && (
+            <>
+              <h2 className="lq-journey__heading">Today&apos;s Practice</h2>
+              <div className="lq-journey">
+                {today.map((item) => (
+                  <button
+                    key={item.item_id}
+                    type="button"
+                    className="lq-action lq-action--gold"
+                    onClick={() => launchPlanned(item)}
+                  >
+                    <span className="lq-action__icon" aria-hidden="true">
+                      <Star size={26} />
+                    </span>
+                    <span className="lq-action__label">
+                      {EXERCISE_LABELS[item.exercise_type as ExerciseKind] ?? item.exercise_type}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
           <h2 className="lq-journey__heading">Continue Journey</h2>
           <div className="lq-journey">
             <button
               type="button"
               className="lq-action lq-action--green"
-              onClick={() => startGame('converse')}
+              onClick={() => startGame('converse', null, 'TALK_WITH_OLLIE')}
             >
               <span className="lq-action__icon" aria-hidden="true">
                 <PawPrint size={26} />
@@ -147,12 +205,42 @@ export function HomeScreen(): JSX.Element {
             <button
               type="button"
               className="lq-action lq-action--blue"
-              onClick={() => navigate('repeatSelect')}
+              onClick={() => openPicker('REPEAT_AFTER_ME')}
             >
               <span className="lq-action__icon" aria-hidden="true">
                 <Palette size={26} />
               </span>
               <span className="lq-action__label">Repeat After Me</span>
+            </button>
+            <button
+              type="button"
+              className="lq-action lq-action--orange"
+              onClick={() => openPicker('READ_IT_LOUD')}
+            >
+              <span className="lq-action__icon" aria-hidden="true">
+                <BookOpen size={26} />
+              </span>
+              <span className="lq-action__label">Read It Loud</span>
+            </button>
+            <button
+              type="button"
+              className="lq-action lq-action--pink"
+              onClick={() => startGame('converse', null, 'PICTURE_TALK')}
+            >
+              <span className="lq-action__icon" aria-hidden="true">
+                <Image size={26} />
+              </span>
+              <span className="lq-action__label">Picture Talk</span>
+            </button>
+            <button
+              type="button"
+              className="lq-action lq-action--violet"
+              onClick={() => openPicker('STORY_TELLER')}
+            >
+              <span className="lq-action__icon" aria-hidden="true">
+                <ScrollText size={26} />
+              </span>
+              <span className="lq-action__label">Story Teller</span>
             </button>
           </div>
 

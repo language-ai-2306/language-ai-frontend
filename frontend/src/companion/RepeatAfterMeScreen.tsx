@@ -8,9 +8,9 @@
  * difficulty-specific question set from the API later.
  */
 import { Suspense } from 'react';
-import { Lock, Play, Speech, User, type LucideIcon } from 'lucide-react';
+import { Play, Speech, User, type LucideIcon } from 'lucide-react';
 
-import { useApp, type GameDifficulty } from '../store/AppStore';
+import { EXERCISE_LABELS, useApp, type GameDifficulty } from '../store/AppStore';
 import { AvatarStage } from './components/AvatarStage';
 import { BirdLoader } from './components/BirdLoader';
 import { HOME_CAMERA } from './three/avatarConfig';
@@ -27,13 +27,18 @@ interface Level {
 
 const LEVELS: Level[] = [
   { key: 'easy', title: 'Easy', tagline: 'Start here!', unlocked: true, variant: 'lq-level--easy', Icon: Play },
-  { key: 'medium', title: 'Medium', tagline: 'Complete previous quests', unlocked: false, variant: 'lq-level--medium', Icon: Lock },
-  { key: 'hard', title: 'Hard', tagline: 'Complete previous quests', unlocked: false, variant: 'lq-level--hard', Icon: Lock },
-  { key: 'twister', title: 'Tongue Twister', tagline: '', unlocked: true, variant: 'lq-level--twister', Icon: Speech },
+  { key: 'medium', title: 'Medium', tagline: 'Step it up!', unlocked: true, variant: 'lq-level--medium', Icon: Play },
+  { key: 'hard', title: 'Hard', tagline: 'Challenge time!', unlocked: true, variant: 'lq-level--hard', Icon: Play },
+  { key: 'twister', title: 'Tongue Twister', tagline: 'Twist your tongue!', unlocked: true, variant: 'lq-level--twister', Icon: Speech },
 ];
 
 export function RepeatAfterMeScreen(): JSX.Element {
-  const { navigate, startGame } = useApp();
+  const { state, navigate, startGame } = useApp();
+  const label = EXERCISE_LABELS[state.currentGame];
+  // Story Teller has no Tongue Twister content — don't offer it there.
+  const levels = LEVELS.filter(
+    (l) => !(state.currentGame === 'STORY_TELLER' && l.key === 'twister'),
+  );
 
   return (
     <div className="lq-screen lq-screen--repeat">
@@ -59,7 +64,7 @@ export function RepeatAfterMeScreen(): JSX.Element {
         {/* Hero — same companion + room as Home, with a "Let's play" bubble. */}
         <section className="lq-hero">
           <div className="lq-bubble">
-            <span className="lq-bubble__text">🎉 Let&apos;s play &quot;Repeat after me&quot;</span>
+            <span className="lq-bubble__text">🎉 Let&apos;s play &quot;{label}&quot;</span>
           </div>
           <div className="lq-hero__stage">
             <Suspense fallback={<BirdLoader />}>
@@ -78,7 +83,7 @@ export function RepeatAfterMeScreen(): JSX.Element {
             mode with its difficulty (drives the question set the game fetches). */}
         <section className="lq-picker">
           <div className="lq-levels">
-            {LEVELS.map(({ key, title, tagline, unlocked, variant, Icon }) => (
+            {levels.map(({ key, title, tagline, unlocked, variant, Icon }) => (
               <button
                 key={key}
                 type="button"

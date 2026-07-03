@@ -12,6 +12,8 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import { User } from 'lucide-react';
 
 import { useApp } from '../store/AppStore';
+import { signup, toGenderCode } from '../api/auth';
+import { ApiError } from '../api/client';
 import './therapistsetup.css';
 
 const BIO_MAX = 500;
@@ -27,7 +29,9 @@ const COUNTRIES = [
 ];
 
 export function TherapistSetupScreen(): JSX.Element {
-  const { navigate, setProfileComplete } = useApp();
+  const { state, navigate, setProfileComplete } = useApp();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [qualification, setQualification] = useState('');
   const [bio, setBio] = useState('');
   const [street, setStreet] = useState('');
@@ -44,11 +48,45 @@ export function TherapistSetupScreen(): JSX.Element {
     if (file) setPhoto(URL.createObjectURL(file)); // client-side preview only
   };
 
-  const completeSetup = (): void => {
-    // MVP: nothing is persisted server-side — just mark onboarding done and
-    // show the confirmation screen.
+  const finish = (): void => {
     setProfileComplete(true);
     navigate('onboardingComplete');
+  };
+
+  const completeSetup = async (): Promise<void> => {
+    setError('');
+    const draft = state.signupDraft;
+    // No draft (e.g. deep-linked here) → keep the old local-only behaviour.
+    if (!draft) {
+      finish();
+      return;
+    }
+    if (!qualification.trim() || !bio.trim()) {
+      setError('Qualification and professional bio are required.');
+      return;
+    }
+    const address = [street, unit, city, region, postal, country].filter(Boolean).join(', ');
+    setSubmitting(true);
+    try {
+      await signup({
+        role: 'DOCTOR',
+        email: draft.email,
+        first_name: draft.firstName,
+        last_name: draft.lastName,
+        dob: draft.dob,
+        gender: toGenderCode(draft.gender),
+        password: draft.password,
+        phone_number: draft.phone || null,
+        qualification: qualification.trim(),
+        bio: bio.trim(),
+        address: address || null,
+      });
+      finish();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Setup failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -137,8 +175,10 @@ export function TherapistSetupScreen(): JSX.Element {
           />
         </div>
 
-        <button type="button" className="ts-cta" onClick={completeSetup}>
-          Complete Setup
+        {error && <p className="ts-error" role="alert">{error}</p>}
+
+        <button type="button" className="ts-cta" onClick={completeSetup} disabled={submitting}>
+          {submitting ? 'Creating your account…' : 'Complete Setup'}
         </button>
       </div>
     </div>

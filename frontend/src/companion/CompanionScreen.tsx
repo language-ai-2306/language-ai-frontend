@@ -61,6 +61,15 @@ export function CompanionScreen(): JSX.Element {
   // 'repeat' (Repeat After Me). Both run on this one screen; the mode tweaks the
   // UI copy and — in future — which backend APIs the practice session calls.
   const mode = state.gameMode;
+  // Prompt label per game (falls back to the mode default).
+  const PROMPT_EYEBROW: Record<string, string> = {
+    REPEAT_AFTER_ME: 'Repeat after me',
+    READ_IT_LOUD: 'Read this out loud',
+    STORY_TELLER: 'Tell the story',
+    PICTURE_TALK: 'Tell me about this',
+    TALK_WITH_OLLIE: 'Say this',
+  };
+  const promptEyebrow = PROMPT_EYEBROW[state.currentGame] ?? (mode === 'repeat' ? 'Repeat after me' : 'Say this');
   // Indirection so the level-complete handler can use hooks declared below.
   const completeRef = useRef<() => void>(() => {});
   const session = usePracticeSession({ onLevelComplete: () => completeRef.current() });
@@ -194,9 +203,7 @@ export function CompanionScreen(): JSX.Element {
 
         {/* Overlay element 1 — the phrase text (with status/feedback subline) */}
         <div className="overlay-phrase">
-          <span className="overlay-phrase__eyebrow">
-            {mode === 'repeat' ? 'Repeat after me' : 'Say this'}
-          </span>
+          <span className="overlay-phrase__eyebrow">{promptEyebrow}</span>
           <p className="overlay-phrase__text">
             {words.map((w, i) => (
               <span

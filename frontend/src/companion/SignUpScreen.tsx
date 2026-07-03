@@ -13,6 +13,8 @@ import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
 import { useApp, type UserType } from '../store/AppStore';
+import { signup, toGenderCode } from '../api/auth';
+import { ApiError } from '../api/client';
 import './signup.css';
 
 /** Age at or below which a patient must supply guardian details. */
@@ -73,13 +75,14 @@ function ageFromDob(dob: string): number | null {
 }
 
 export function SignUpScreen(): JSX.Element {
-  const { navigate, setName, setPendingVerification } = useApp();
+  const { navigate, setName, setPendingVerification, setSignupDraft } = useApp();
   const [userType, setUserType] = useState<UserType>('patient');
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [agree, setAgree] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const set =
     (key: keyof FormState) =>
@@ -91,18 +94,18 @@ export function SignUpScreen(): JSX.Element {
   // section hides only once an adult date of birth is entered.
   const needsGuardian = userType === 'patient' && (age === null || age < GUARDIAN_AGE);
 
-  const submit = (e: FormEvent): void => {
+  const submit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
-    // TEMP(testing): no real registration call yet. Validate the essentials,
-    // then hand off to the verification screen. Swap for POST /auth/register.
     const required =
       form.firstName.trim() &&
       form.lastName.trim() &&
       form.email.trim() &&
+      form.dob &&
+      form.gender &&
       form.password &&
       form.confirmPassword;
     if (!required) {
-      setError('Please fill in all required fields.');
+      setError('Please fill in all required fields (including date of birth and gender).');
       return;
     }
     if (userType === 'therapist' && !form.licenseNumber.trim()) {
@@ -127,12 +130,52 @@ export function SignUpScreen(): JSX.Element {
     }
 
     setName(form.firstName.trim());
+    const phone = form.phone.trim() ? `${form.dialCode}${form.phone.trim()}` : '';
+    // Carry identity forward. Doctors finish signup on TherapistSetup (which
+    // collects the required qualification/bio); patients are created right here.
+    setSignupDraft({
+      userType,
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      email: form.email.trim(),
+      dob: form.dob,
+      gender: form.gender,
+      phone,
+      password: form.password,
+    });
     setPendingVerification({
       userType,
       email: form.email.trim(),
       isMinor: needsGuardian,
       guardianEmail: form.guardianEmail.trim(),
     });
+
+    if (userType === 'patient') {
+      setSubmitting(true);
+      try {
+        await signup({
+          role: 'PATIENT',
+          email: form.email.trim(),
+          first_name: form.firstName.trim(),
+          last_name: form.lastName.trim(),
+          dob: form.dob,
+          gender: toGenderCode(form.gender),
+          password: form.password,
+          phone_number: phone || null,
+          // Refined later on ProfileSetup; the backend requires a non-empty value.
+          nickname: form.firstName.trim(),
+          guardian_name: needsGuardian ? form.guardianName.trim() : null,
+          guardian_relationship: needsGuardian ? form.guardianRelationship || null : null,
+          guardian_email: needsGuardian ? form.guardianEmail.trim() : null,
+        });
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : 'Sign up failed. Please try again.');
+        return;
+      } finally {
+        setSubmitting(false);
+      }
+    }
+
     navigate('verifyEmail');
   };
 
@@ -339,8 +382,9 @@ export function SignUpScreen(): JSX.Element {
           </span>
         </label>
 
-        <button type="submit" className="su-submit">
-          Complete Sign Up <ArrowRight size={22} aria-hidden="true" />
+        <button type="submit" className="su-submit" disabled={submitting}>
+          {submitting ? 'Creating your account…' : 'Complete Sign Up'}
+          {!submitting && <ArrowRight size={22} aria-hidden="true" />}
         </button>
 
         <p className="su-foot">
