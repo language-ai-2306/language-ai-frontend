@@ -297,3 +297,21 @@
   font-size: 1.02rem;
   cursor: pointer;
 }
+
+/* Pending-request badge. */
+.exp-pending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1.3rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: #fff3d6;
+  color: #8a5a00;
+  font-weight: 800;
+  font-size: 1rem;
+  text-align: center;
+}

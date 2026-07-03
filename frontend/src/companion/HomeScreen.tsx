@@ -332,7 +332,7 @@ export function HomeScreen(): JSX.Element {
 
         {/* Content sheet — missions (doctor users only) + Continue Journey. */}
         <section className="lq-content">
-          {(state.hasDoctor || hasTodayPlan || hasWeeklyPlan) && (
+          {state.hasDoctor && (
             <div className="lq-missions">
               {todayDone ? (
                 <MissionDone

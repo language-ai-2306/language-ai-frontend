@@ -19,7 +19,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  /* Fixed-height scroll box so the sticky top bar stays pinned while content
+     scrolls beneath it. */
+  height: 100dvh;
+  overflow: hidden auto; /* x: clip, y: scroll */
+  -webkit-overflow-scrolling: touch;
   background: var(--lq-lav);
   color: var(--lq-ink);
   font-family:
@@ -28,7 +32,6 @@
     -apple-system,
     "Segoe UI",
     sans-serif;
-  overflow-x: hidden;
 }
 .lq-screen :focus-visible {
   outline: 3px solid var(--lq-purple);

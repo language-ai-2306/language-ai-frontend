@@ -1,18 +1,16 @@
 /**
- * ExploreTherapistsScreen — two modes decided by whether the patient already has
- * an assigned therapist (GET /doctors/my):
- *   • Has one  → read-only "My Therapist" details (no request, no editing).
- *   • Has none → browse the directory, open a therapist, and ask them to take you
- *                on (POST /doctors/{id}/request).
- * Handles loading, empty, load errors, request success, and the backend guard
- * rails (already linked / already have a pending request).
+ * ExploreTherapistsScreen — driven by the patient's therapist status:
+ *   • assigned → read-only "My Therapist" (with a remove option)
+ *   • pending  → the requested therapist + a "request pending" note (no browsing)
+ *   • none     → browse the directory, open a therapist, ask them to take you on
+ * Handles loading, empty, load errors, and the backend guard rails.
  */
 import { useEffect, useState } from 'react';
-import { ArrowLeft, BadgeCheck, Check, Heart } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, Clock, Heart } from 'lucide-react';
 
 import { ApiError } from '../api/client';
 import {
-  getMyDoctor,
+  getTherapistStatus,
   listDoctors,
   removeMyDoctor,
   requestDoctor,
@@ -36,14 +34,7 @@ function Avatar({ doctor, size }: { doctor: DoctorListItem; size: 'sm' | 'lg' })
 
 const fullName = (d: DoctorListItem): string => `Dr. ${d.first_name} ${d.last_name}`;
 
-/** Detail body, reused for both the read-only assigned view and the request view. */
-function DoctorDetail({
-  doctor,
-  action,
-}: {
-  doctor: DoctorListItem;
-  action?: JSX.Element; // ask button / sent / error — omitted in read-only mode
-}): JSX.Element {
+function DoctorDetail({ doctor, action }: { doctor: DoctorListItem; action?: JSX.Element }): JSX.Element {
   return (
     <div className="exp-detail">
       <Avatar doctor={doctor} size="lg" />
@@ -58,20 +49,20 @@ function DoctorDetail({
   );
 }
 
-export function ExploreTherapistsScreen(): JSX.Element {
-  const { state, navigate, setHasDoctor } = useApp();
+type Status = 'loading' | 'assigned' | 'pending' | 'none';
 
-  const [checking, setChecking] = useState(true);
-  const [myDoctor, setMyDoctor] = useState<DoctorListItem | null>(null);
+export function ExploreTherapistsScreen(): JSX.Element {
+  const { navigate, setHasDoctor } = useApp();
+
+  const [status, setStatus] = useState<Status>('loading');
+  const [doctor, setDoctor] = useState<DoctorListItem | null>(null); // assigned or pending
 
   const [doctors, setDoctors] = useState<DoctorListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
-
   const [selected, setSelected] = useState<DoctorListItem | null>(null);
   const [requesting, setRequesting] = useState(false);
   const [requestError, setRequestError] = useState('');
-  const [sent, setSent] = useState(false);
 
   const [showRemove, setShowRemove] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -88,36 +79,19 @@ export function ExploreTherapistsScreen(): JSX.Element {
   };
 
   useEffect(() => {
-    // "Explore Therapists" → browse the directory directly (no /doctors/my).
-    if (state.therapistView === 'explore') {
-      setChecking(false);
-      loadDirectory();
-      return;
-    }
-    // "My Therapist" → assigned? read-only view; otherwise browse the directory.
-    getMyDoctor()
-      .then((d) => {
-        setChecking(false);
-        if (d) {
-          setMyDoctor(d);
-          setHasDoctor(true); // keep the app's flag in sync with the backend
-        } else {
-          setHasDoctor(false);
-          loadDirectory();
-        }
+    getTherapistStatus()
+      .then((s) => {
+        setStatus(s.state);
+        setDoctor(s.doctor);
+        setHasDoctor(s.state === 'assigned');
+        if (s.state === 'none') loadDirectory();
       })
       .catch(() => {
-        setChecking(false);
-        loadDirectory(); // if the check fails, fall back to browsing
+        setStatus('none');
+        loadDirectory();
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const openDetail = (d: DoctorListItem): void => {
-    setSelected(d);
-    setRequestError('');
-    setSent(false);
-  };
 
   const ask = async (): Promise<void> => {
     if (!selected) return;
@@ -125,7 +99,9 @@ export function ExploreTherapistsScreen(): JSX.Element {
     setRequesting(true);
     try {
       await requestDoctor(selected.doctor_id);
-      setSent(true);
+      setDoctor(selected); // → show the pending view for this therapist
+      setSelected(null);
+      setStatus('pending');
     } catch (e) {
       setRequestError(e instanceof ApiError ? e.message : 'Could not send the request. Please try again.');
     } finally {
@@ -139,9 +115,10 @@ export function ExploreTherapistsScreen(): JSX.Element {
     try {
       await removeMyDoctor();
       setShowRemove(false);
-      setMyDoctor(null);
+      setDoctor(null);
       setHasDoctor(false);
-      loadDirectory(); // now unlinked → let them browse for a new one
+      setStatus('none');
+      loadDirectory();
     } catch (e) {
       setRemoveError(e instanceof ApiError ? e.message : 'Could not remove. Please try again.');
     } finally {
@@ -149,13 +126,19 @@ export function ExploreTherapistsScreen(): JSX.Element {
     }
   };
 
-  // Back: from a selected doctor → the list; otherwise → home.
   const back = (): void => {
-    if (selected && !myDoctor) setSelected(null);
+    if (status === 'none' && selected) setSelected(null);
     else navigate('home');
   };
 
-  const title = myDoctor ? 'My Therapist' : selected ? 'Therapist' : 'Explore Therapists';
+  const title =
+    status === 'assigned'
+      ? 'My Therapist'
+      : status === 'pending'
+        ? 'Request Pending'
+        : selected
+          ? 'Therapist'
+          : 'Explore Therapists';
 
   return (
     <div className="exp-screen">
@@ -167,12 +150,12 @@ export function ExploreTherapistsScreen(): JSX.Element {
       </header>
 
       <main className="exp-main">
-        {checking && <p className="exp-msg">Loading…</p>}
+        {status === 'loading' && <p className="exp-msg">Loading…</p>}
 
-        {/* Assigned therapist — read-only, with a remove option. */}
-        {!checking && myDoctor && (
+        {/* Assigned — read-only, with remove. */}
+        {status === 'assigned' && doctor && (
           <DoctorDetail
-            doctor={myDoctor}
+            doctor={doctor}
             action={
               <>
                 <div className="exp-sent" role="status">
@@ -187,29 +170,36 @@ export function ExploreTherapistsScreen(): JSX.Element {
           />
         )}
 
-        {/* Browsing — a selected doctor's detail + request action. */}
-        {!checking && !myDoctor && selected && (
+        {/* Pending — the requested therapist, awaiting approval. No browsing. */}
+        {status === 'pending' && doctor && (
+          <DoctorDetail
+            doctor={doctor}
+            action={
+              <div className="exp-pending" role="status">
+                <Clock size={18} aria-hidden="true" /> Your request is pending — waiting for{' '}
+                {fullName(doctor)} to accept.
+              </div>
+            }
+          />
+        )}
+
+        {/* None + a selected doctor → detail with the ask action. */}
+        {status === 'none' && selected && (
           <DoctorDetail
             doctor={selected}
             action={
               <>
                 {requestError && <p className="exp-error" role="alert">{requestError}</p>}
-                {sent ? (
-                  <div className="exp-sent" role="status">
-                    <Check size={20} aria-hidden="true" /> Request sent! {fullName(selected)} will review it soon.
-                  </div>
-                ) : (
-                  <button type="button" className="exp-ask" onClick={ask} disabled={requesting}>
-                    {requesting ? 'Sending…' : `Ask ${fullName(selected)} to be my therapist`}
-                  </button>
-                )}
+                <button type="button" className="exp-ask" onClick={ask} disabled={requesting}>
+                  {requesting ? 'Sending…' : `Ask ${fullName(selected)} to be my therapist`}
+                </button>
               </>
             }
           />
         )}
 
-        {/* Browsing — the directory list. */}
-        {!checking && !myDoctor && !selected && (
+        {/* None + no selection → the directory list. */}
+        {status === 'none' && !selected && (
           <>
             {loading && <p className="exp-msg">Finding therapists…</p>}
             {!loading && loadError && <p className="exp-error" role="alert">{loadError}</p>}
@@ -218,7 +208,15 @@ export function ExploreTherapistsScreen(): JSX.Element {
             )}
             <div className="exp-list">
               {doctors.map((d) => (
-                <button key={d.doctor_id} type="button" className="exp-card" onClick={() => openDetail(d)}>
+                <button
+                  key={d.doctor_id}
+                  type="button"
+                  className="exp-card"
+                  onClick={() => {
+                    setSelected(d);
+                    setRequestError('');
+                  }}
+                >
                   <Avatar doctor={d} size="sm" />
                   <span className="exp-card__body">
                     <span className="exp-card__name">{fullName(d)}</span>
@@ -232,12 +230,12 @@ export function ExploreTherapistsScreen(): JSX.Element {
         )}
       </main>
 
-      {showRemove && myDoctor && (
+      {showRemove && doctor && (
         <div className="exp-modal" role="dialog" aria-modal="true">
           <div className="exp-modal__card">
             <h2 className="exp-modal__title">Remove your therapist?</h2>
             <p className="exp-modal__body">
-              You&apos;ll be unlinked from <strong>{fullName(myDoctor)}</strong>. You can explore and
+              You&apos;ll be unlinked from <strong>{fullName(doctor)}</strong>. You can explore and
               choose a new therapist anytime.
             </p>
             <button type="button" className="exp-modal__confirm" onClick={doRemove} disabled={removing}>

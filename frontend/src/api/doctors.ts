@@ -34,6 +34,16 @@ export function getMyDoctor(): Promise<DoctorListItem | null> {
   return request<DoctorListItem | null>('/doctors/my');
 }
 
+export interface TherapistStatus {
+  state: 'assigned' | 'pending' | 'none';
+  doctor: DoctorListItem | null;
+}
+
+/** GET /doctors/my-status — assigned / pending / none, with the doctor's details. */
+export function getTherapistStatus(): Promise<TherapistStatus> {
+  return request<TherapistStatus>('/doctors/my-status');
+}
+
 /** DELETE /doctors/my — unlink the patient from their therapist. */
 export function removeMyDoctor(): Promise<unknown> {
   return request<unknown>('/doctors/my', { method: 'DELETE' });

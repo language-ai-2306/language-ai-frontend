@@ -93,7 +93,7 @@
   font-weight: 800;
   font-size: 1.15rem;
 }
-.prof-item svg:last-child {
+.prof-item > svg:last-child {
   color: #b3a9c6;
 }
 

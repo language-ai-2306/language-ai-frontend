@@ -3,7 +3,7 @@
  * Personal Details (→ edit account), My Therapist (→ view/browse therapists), and
  * Log Out.
  */
-import { ArrowLeft, ChevronRight, HeartHandshake, LogOut, UserRound } from 'lucide-react';
+import { ArrowLeft, ChevronRight, IdCard, LogOut, Stethoscope } from 'lucide-react';
 
 import { useApp } from '../store/AppStore';
 import { AvatarImage } from './components/AvatarImage';
@@ -29,7 +29,7 @@ export function ProfileScreen(): JSX.Element {
 
         <button type="button" className="prof-item" onClick={() => navigate('account')}>
           <span className="prof-item__icon prof-item__icon--blue" aria-hidden="true">
-            <UserRound size={22} />
+            <IdCard size={22} />
           </span>
           <span className="prof-item__label">Personal Details</span>
           <ChevronRight size={20} aria-hidden="true" />
@@ -44,7 +44,7 @@ export function ProfileScreen(): JSX.Element {
           }}
         >
           <span className="prof-item__icon prof-item__icon--pink" aria-hidden="true">
-            <HeartHandshake size={22} />
+            <Stethoscope size={22} />
           </span>
           <span className="prof-item__label">My Therapist</span>
           <ChevronRight size={20} aria-hidden="true" />
