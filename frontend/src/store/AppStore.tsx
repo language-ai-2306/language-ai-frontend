@@ -35,7 +35,10 @@ export type Screen =
   | 'companion'
   | 'assessment'
   | 'levelComplete'
-  | 'dailyComplete';
+  | 'dailyComplete'
+  | 'account'
+  | 'explore'
+  | 'profile';
 export type Exercise = 'repeat' | 'read' | 'chat' | 'breathing';
 
 /** Which kind of account the sign-up flow is creating. Patients are the
@@ -154,6 +157,9 @@ export interface AppState {
   /** Plan item GUID when launched from the dashboard (planned exercise); null for
    *  free play. Threaded into the exercise start/content/attempt/end calls. */
   planItemId: string | null;
+  /** Assigned minutes for a planned exercise (drives the countdown timer); null
+   *  for free play or when no duration was set. */
+  planItemDuration: number | null;
   /** Set on sign-up, read by the email-verification screen. Null otherwise. */
   pendingVerification: PendingVerification | null;
   /** Identity draft from SignUpScreen, consumed by the completion screen's real
@@ -161,6 +167,11 @@ export interface AppState {
   signupDraft: SignupDraft | null;
   /** Bearer token (mirrors localStorage via api/token). Null when logged out. */
   authToken: string | null;
+  /** The patient's chosen avatar image URL (from /auth/me). Null for doctors / none. */
+  avatarUrl: string | null;
+  /** How the therapist screen was opened: 'explore' = browse the directory
+   *  directly; 'mine' = show the assigned therapist (or browse if none). */
+  therapistView: 'explore' | 'mine';
 }
 
 const XP_PER_LEVEL = 100;
@@ -233,6 +244,9 @@ const SCREENS: Screen[] = [
   'assessment',
   'levelComplete',
   'dailyComplete',
+  'account',
+  'explore',
+  'profile',
 ];
 
 /** Dev/QA: `?screen=home` boots straight to a given screen for previewing,
@@ -305,9 +319,12 @@ function makeInitialState(): AppState {
     gameDifficulty: null,
     currentGame: 'TALK_WITH_OLLIE',
     planItemId: null,
+    planItemDuration: null,
     pendingVerification: null,
     signupDraft: null,
     authToken: token,
+    avatarUrl: null,
+    therapistView: 'explore',
   };
 }
 
@@ -319,6 +336,7 @@ type Action =
       difficulty?: GameDifficulty | null;
       game?: ExerciseKind;
       planItemId?: string | null;
+      planItemDuration?: number | null;
     }
   | { type: 'setCurrentGame'; game: ExerciseKind }
   | { type: 'setName'; name: string }
@@ -327,6 +345,8 @@ type Action =
   | { type: 'setPendingVerification'; value: PendingVerification | null }
   | { type: 'setSignupDraft'; value: SignupDraft | null }
   | { type: 'setAuthToken'; value: string | null }
+  | { type: 'setAvatarUrl'; value: string | null }
+  | { type: 'setTherapistView'; value: 'explore' | 'mine' }
   | { type: 'setHasDoctor'; value: boolean }
   | { type: 'toggleSound' }
   | { type: 'toggleSimple' }
@@ -356,6 +376,7 @@ function reducer(state: AppState, action: Action): AppState {
         gameDifficulty: action.difficulty ?? null,
         currentGame: action.game ?? state.currentGame,
         planItemId: action.planItemId ?? null, // null unless launched from a plan
+        planItemDuration: action.planItemDuration ?? null,
         screen: 'companion',
       };
     case 'setCurrentGame':
@@ -378,6 +399,10 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, signupDraft: action.value };
     case 'setAuthToken':
       return { ...state, authToken: action.value };
+    case 'setAvatarUrl':
+      return { ...state, avatarUrl: action.value };
+    case 'setTherapistView':
+      return { ...state, therapistView: action.value };
     case 'setHasDoctor':
       return { ...state, hasDoctor: action.value };
     case 'toggleSound':
@@ -448,6 +473,7 @@ export interface AppApi {
     difficulty?: GameDifficulty | null,
     game?: ExerciseKind,
     planItemId?: string | null,
+    planItemDuration?: number | null,
   ) => void;
   /** Set the active game (e.g. before navigating to the difficulty picker). */
   setCurrentGame: (game: ExerciseKind) => void;
@@ -462,6 +488,10 @@ export interface AppApi {
   setSignupDraft: (value: SignupDraft | null) => void;
   /** Mirror the stored bearer token into state (call after login). */
   setAuthToken: (value: string | null) => void;
+  /** Set the patient's avatar image URL (from /auth/me or after editing). */
+  setAvatarUrl: (value: string | null) => void;
+  /** Set how the therapist screen opens ('explore' browse vs 'mine' assigned). */
+  setTherapistView: (value: 'explore' | 'mine') => void;
   /** Clear the token and return to the login screen. */
   logout: () => void;
   /** Set whether the child has a doctor (drives the landing-page variant). */
@@ -530,8 +560,8 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     () => ({
       state,
       navigate: (screen) => dispatch({ type: 'navigate', screen }),
-      startGame: (mode, difficulty, game, planItemId) =>
-        dispatch({ type: 'startGame', mode, difficulty, game, planItemId }),
+      startGame: (mode, difficulty, game, planItemId, planItemDuration) =>
+        dispatch({ type: 'startGame', mode, difficulty, game, planItemId, planItemDuration }),
       setCurrentGame: (game) => dispatch({ type: 'setCurrentGame', game }),
       setName: (name) => dispatch({ type: 'setName', name }),
       completeProfile: (input) => dispatch({ type: 'completeProfile', ...input }),
@@ -539,6 +569,8 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       setPendingVerification: (value) => dispatch({ type: 'setPendingVerification', value }),
       setSignupDraft: (value) => dispatch({ type: 'setSignupDraft', value }),
       setAuthToken: (value) => dispatch({ type: 'setAuthToken', value }),
+      setAvatarUrl: (value) => dispatch({ type: 'setAvatarUrl', value }),
+      setTherapistView: (value) => dispatch({ type: 'setTherapistView', value }),
       logout: () => {
         clearToken();
         dispatch({ type: 'setAuthToken', value: null });

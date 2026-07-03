@@ -1,12 +1,15 @@
 /** App — screen router + global reward toast, wrapped in the app store. */
+import { AccountScreen } from './companion/AccountScreen';
 import { AssessmentScreen } from './companion/AssessmentScreen';
 import { DailyCompleteScreen } from './companion/DailyCompleteScreen';
 import { ExerciseScreen } from './companion/ExerciseScreen';
+import { ExploreTherapistsScreen } from './companion/ExploreTherapistsScreen';
 import { HomeScreen } from './companion/HomeScreen';
 import { LevelCompleteScreen } from './companion/LevelCompleteScreen';
 import { LoginScreen } from './companion/LoginScreen';
 import { OllieScreen } from './companion/OllieScreen';
 import { OnboardingCompleteScreen } from './companion/OnboardingCompleteScreen';
+import { ProfileScreen } from './companion/ProfileScreen';
 import { ProfileSetupScreen } from './companion/ProfileSetupScreen';
 import { QuickStartScreen } from './companion/QuickStartScreen';
 import { RepeatAfterMeScreen } from './companion/RepeatAfterMeScreen';
@@ -59,6 +62,12 @@ function Router(): JSX.Element {
       return <LevelCompleteScreen />;
     case 'dailyComplete':
       return <DailyCompleteScreen />;
+    case 'account':
+      return <AccountScreen />;
+    case 'explore':
+      return <ExploreTherapistsScreen />;
+    case 'profile':
+      return <ProfileScreen />;
     case 'home':
     default:
       return <HomeScreen />;

@@ -16,8 +16,10 @@ export default defineConfig({
     allowedHosts: true,
     proxy: {
       // The backend's top-level prefixes → :8080. Keep in sync as new endpoints
-      // are integrated. A leading `^` makes the key a RegExp.
-      '^/(auth|users|phrases|game|proficiency-test|v1|doctors|patient|health|admin)(/|$)': {
+      // are integrated. A leading `^` makes the key a RegExp. The trailing
+      // ($|[/?]) matches end-of-path, a sub-path (/), OR a query string (?) — so
+      // e.g. /doctors?page=1 is proxied, not swallowed by the SPA fallback.
+      '^/(auth|users|phrases|game|proficiency-test|v1|doctors|patient|health|admin)($|[/?])': {
         target: apiTarget,
         changeOrigin: true,
         ws: true, // proxy WS upgrades too (audio streaming, later)

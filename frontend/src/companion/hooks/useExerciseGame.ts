@@ -40,8 +40,9 @@ interface UseExerciseGame {
   beginListening: () => void;
   submit: (audio: Blob) => Promise<void>;
   replay: () => void;
-  /** Stop audio and, for a planned exercise, complete today's session (/end). */
-  end: () => void;
+  /** For a planned exercise, mark today's session COMPLETED (/end). No-op for free
+   *  play. Does NOT stop audio. */
+  complete: () => void;
   stop: () => void;
 }
 
@@ -154,11 +155,10 @@ export function useExerciseGame(
 
   const stop = useCallback(() => player.stop(), [player]);
 
-  const end = useCallback(() => {
-    player.stop();
-    // Planned exercise → mark today's session COMPLETED (best-effort).
+  const complete = useCallback(() => {
+    // Planned exercise → mark today's session COMPLETED (best-effort). No-op free play.
     if (planItemId) void endExercise(game, planItemId).catch(() => undefined);
-  }, [game, planItemId, player]);
+  }, [game, planItemId]);
 
   return {
     phase,
@@ -170,7 +170,7 @@ export function useExerciseGame(
     beginListening,
     submit,
     replay,
-    end,
+    complete,
     stop,
   };
 }

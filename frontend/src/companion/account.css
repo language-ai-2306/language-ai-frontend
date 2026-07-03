@@ -1,0 +1,185 @@
+/* Account / profile page — purple top bar, lavender body, white form card. */
+.acc-screen {
+  --acc-purple: #3f1684;
+  --acc-violet: #3b2a86;
+  --acc-ink: #1f2733;
+  min-height: 100dvh;
+  background: #f2e8fa;
+  color: var(--acc-ink);
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+}
+
+.acc-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 0.7rem) 1.1rem 0.7rem;
+  background: linear-gradient(180deg, var(--acc-purple), #350f70);
+  color: #fff;
+}
+.acc-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+}
+.acc-back:active {
+  transform: scale(0.94);
+}
+.acc-title {
+  margin: 0;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.35rem;
+}
+
+.acc-main {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 1.2rem 1.1rem calc(env(safe-area-inset-bottom, 0px) + 1.6rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.acc-loading {
+  text-align: center;
+  color: var(--acc-violet);
+  font-weight: 700;
+}
+
+.acc-card {
+  background: #fff;
+  border-radius: 22px;
+  padding: 1.2rem 1.1rem;
+  box-shadow: 0 10px 26px rgba(40, 10, 80, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.acc-row {
+  display: flex;
+  gap: 0.75rem;
+}
+.acc-row .acc-field {
+  flex: 1;
+}
+.acc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.acc-field > span {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--acc-violet);
+}
+.acc-field input,
+.acc-field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.85rem;
+  border: 2px solid #e4d8f2;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--acc-ink);
+  background: #faf6ff;
+}
+.acc-field input:focus,
+.acc-field select:focus {
+  outline: none;
+  border-color: var(--acc-purple);
+}
+.acc-field input:disabled {
+  background: #f0edf5;
+  color: #8a8397;
+  cursor: not-allowed;
+}
+.acc-field select.is-placeholder {
+  color: #8a8397;
+}
+
+.acc-error {
+  margin: 0;
+  background: #fde8ef;
+  color: #9a2b52;
+  border-radius: 12px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.92rem;
+}
+.acc-saved {
+  margin: 0;
+  background: #e7f7d8;
+  color: #3f6d16;
+  border-radius: 12px;
+  padding: 0.6rem 0.85rem;
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+
+.acc-save {
+  margin-top: 0.2rem;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--acc-purple);
+  color: #fff;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(63, 22, 132, 0.28);
+}
+.acc-save:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.acc-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  border: 2px solid #f0c2d2;
+  border-radius: 999px;
+  background: #fff;
+  color: #c02b5a;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+.acc-logout:active {
+  transform: scale(0.99);
+}
+
+/* Avatar section (patients) at the top of the account form. */
+.acc-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #eee4f5;
+  margin-bottom: 0.4rem;
+}
+.acc-avatar > img,
+.acc-avatar > span:first-child {
+  border: 4px solid #efe6fb;
+  box-shadow: 0 8px 20px rgba(40, 10, 80, 0.16);
+}
+.acc-avatar__label {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--acc-violet);
+}

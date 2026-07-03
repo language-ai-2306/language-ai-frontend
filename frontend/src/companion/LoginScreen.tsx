@@ -16,7 +16,7 @@ import { getToken } from '../api/token';
 import './auth.css';
 
 export function LoginScreen(): JSX.Element {
-  const { navigate, setAuthToken, setName } = useApp();
+  const { navigate, setAuthToken, setName, setAvatarUrl } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
@@ -35,6 +35,7 @@ export function LoginScreen(): JSX.Element {
       const user = await login(email.trim(), password); // stores token + returns /auth/me
       setAuthToken(getToken()); // mirror into the store
       setName(user.first_name);
+      setAvatarUrl(user.avatar_url ?? null);
       navigate('home');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Login failed. Please try again.');

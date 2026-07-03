@@ -1,0 +1,299 @@
+/* Explore Therapists — purple top bar, lavender body, white therapist cards. */
+.exp-screen {
+  --exp-purple: #3f1684;
+  --exp-violet: #3b2a86;
+  --exp-ink: #1f2733;
+  min-height: 100dvh;
+  background: #f2e8fa;
+  color: var(--exp-ink);
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+}
+
+.exp-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 0.7rem) 1.1rem 0.7rem;
+  background: linear-gradient(180deg, var(--exp-purple), #350f70);
+  color: #fff;
+}
+.exp-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+}
+.exp-back:active {
+  transform: scale(0.94);
+}
+.exp-title {
+  margin: 0;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.35rem;
+}
+
+.exp-main {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.1rem 1.1rem calc(env(safe-area-inset-bottom, 0px) + 1.6rem);
+}
+.exp-msg {
+  text-align: center;
+  color: var(--exp-violet);
+  font-weight: 700;
+  margin: 2rem 0;
+}
+
+/* ---- Avatar (photo or initials) ---- */
+.exp-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  object-fit: cover;
+  background: linear-gradient(180deg, #7b4fd0, #4f2ba0);
+  color: #fff;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+}
+.exp-avatar--sm {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+}
+.exp-avatar--lg {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  font-size: 2.6rem;
+  border: 4px solid #fff;
+  box-shadow: 0 10px 26px rgba(40, 10, 80, 0.22);
+}
+
+/* ---- List ---- */
+.exp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.exp-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(40, 10, 80, 0.1);
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+}
+.exp-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px rgba(40, 10, 80, 0.16);
+}
+.exp-card:active {
+  transform: translateY(0) scale(0.99);
+}
+.exp-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.exp-card__name {
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--exp-ink);
+}
+.exp-card__qual {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--exp-purple);
+}
+.exp-card__bio {
+  font-size: 0.9rem;
+  color: #5c6470;
+  /* clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- Detail ---- */
+.exp-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+.exp-detail__name {
+  margin: 0.6rem 0 0;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.55rem;
+}
+.exp-detail__qual {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--exp-purple);
+  font-weight: 800;
+  font-size: 1rem;
+}
+.exp-detail__label {
+  align-self: flex-start;
+  margin: 1rem 0 0.2rem;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--exp-violet);
+}
+.exp-detail__bio {
+  align-self: flex-start;
+  margin: 0;
+  text-align: left;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #414855;
+}
+
+.exp-ask {
+  margin-top: 1.3rem;
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--exp-purple);
+  color: #fff;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(63, 22, 132, 0.3);
+}
+.exp-ask:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.exp-sent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1.3rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: #e7f7d8;
+  color: #3f6d16;
+  font-weight: 800;
+  font-size: 1rem;
+}
+.exp-error {
+  margin: 1rem 0 0;
+  background: #fde8ef;
+  color: #9a2b52;
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Remove-therapist button + confirmation modal. */
+.exp-remove {
+  margin-top: 0.9rem;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 2px solid #f0c2d2;
+  border-radius: 999px;
+  background: #fff;
+  color: #c02b5a;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.02rem;
+  cursor: pointer;
+}
+.exp-remove:active {
+  transform: scale(0.99);
+}
+
+.exp-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 1.2rem;
+  background: rgba(18, 6, 38, 0.6);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+.exp-modal__card {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  color: #1f2733;
+  border-radius: 22px;
+  padding: 1.5rem 1.35rem 1.3rem;
+  text-align: center;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.45);
+}
+.exp-modal__title {
+  margin: 0 0 0.5rem;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: #3f1684;
+}
+.exp-modal__body {
+  margin: 0 0 1.2rem;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: #414855;
+}
+.exp-modal__confirm {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: #c02b5a;
+  color: #fff;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.exp-modal__confirm:disabled {
+  opacity: 0.65;
+}
+.exp-modal__cancel {
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #3f1684;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.02rem;
+  cursor: pointer;
+}

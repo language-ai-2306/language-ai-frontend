@@ -15,6 +15,8 @@ import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useApp, type UserType } from '../store/AppStore';
 import { signup, toGenderCode } from '../api/auth';
 import { ApiError } from '../api/client';
+import { PATIENT_AVATARS } from './avatars';
+import { AvatarPicker } from './components/AvatarPicker';
 import './signup.css';
 
 /** Age at or below which a patient must supply guardian details. */
@@ -83,6 +85,7 @@ export function SignUpScreen(): JSX.Element {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [avatar, setAvatar] = useState<string>(PATIENT_AVATARS[0].url);
 
   const set =
     (key: keyof FormState) =>
@@ -164,6 +167,7 @@ export function SignUpScreen(): JSX.Element {
           phone_number: phone || null,
           // Refined later on ProfileSetup; the backend requires a non-empty value.
           nickname: form.firstName.trim(),
+          avatar_url: avatar,
           guardian_name: needsGuardian ? form.guardianName.trim() : null,
           guardian_relationship: needsGuardian ? form.guardianRelationship || null : null,
           guardian_email: needsGuardian ? form.guardianEmail.trim() : null,
@@ -269,6 +273,11 @@ export function SignUpScreen(): JSX.Element {
                 <span>Confirm Password</span>
                 <PasswordInput value={form.confirmPassword} onChange={set('confirmPassword')} show={showConfirm} onToggle={() => setShowConfirm((s) => !s)} autoComplete="new-password" />
               </label>
+
+              <div className="su-field">
+                <span>Pick your buddy</span>
+                <AvatarPicker value={avatar} onChange={setAvatar} />
+              </div>
             </>
           ) : (
             <>

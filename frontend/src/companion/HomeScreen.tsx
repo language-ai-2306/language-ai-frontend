@@ -9,10 +9,13 @@
  * menu), with a lavender content sheet below holding the missions/actions. The
  * character is reused (idle) so it preloads and the practice screens open fast.
  */
-import { Suspense, useEffect, useState } from 'react';
-import { BookOpen, Image, Palette, PawPrint, ScrollText, Star, User } from 'lucide-react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { BookOpen, Image, Palette, PawPrint, Play, ScrollText } from 'lucide-react';
 
-import { getDashboard, type DashboardItem } from '../api/dashboard';
+import { me } from '../api/auth';
+import { getDashboard, type Dashboard, type DashboardItem } from '../api/dashboard';
+import { getMyDoctor } from '../api/doctors';
+import { AvatarImage } from './components/AvatarImage';
 import {
   EXERCISE_LABELS,
   useApp,
@@ -49,32 +52,148 @@ function MissionRing({ value, total }: { value: number; total: number }): JSX.El
   );
 }
 
-interface Mission {
+const DIFF_LABEL: Record<string, string> = {
+  EASY: 'Easy',
+  MEDIUM: 'Medium',
+  HARD: 'Hard',
+  TONGUE_TWISTER: 'Tongue Twister',
+};
+const DAY_LABEL: Record<string, string> = {
+  MON: 'Monday',
+  TUE: 'Tuesday',
+  WED: 'Wednesday',
+  THU: 'Thursday',
+  FRI: 'Friday',
+  SAT: 'Saturday',
+  SUN: 'Sunday',
+};
+
+/** Playful emoji + accent colour per game (kid-friendly mission slides). */
+const EX_ICON: Record<string, string> = {
+  TALK_WITH_OLLIE: '🦊',
+  REPEAT_AFTER_ME: '🎤',
+  READ_IT_LOUD: '📖',
+  PICTURE_TALK: '🎨',
+  STORY_TELLER: '🏰',
+};
+const EX_ACCENT: Record<string, string> = {
+  TALK_WITH_OLLIE: '#8ecf3c',
+  REPEAT_AFTER_ME: '#4fbfe9',
+  READ_IT_LOUD: '#f5a03c',
+  PICTURE_TALK: '#ef6fb0',
+  STORY_TELLER: '#a06ee8',
+};
+
+/** One exercise shown on a mission slide. */
+interface MissionExercise {
+  item_id: string;
+  type: string; // raw exercise_type (for launching)
+  name: string;
+  difficulty: string | null;
+  duration: number | null; // minutes
+  days: string[] | null; // full weekday names — weekly only
+  icon: string; // playful emoji
+  accent: string; // accent colour
+}
+
+/** Celebration card shown when there's nothing left to do (all done / none due). */
+function MissionDone({ label, message }: { label: string; message: string }): JSX.Element {
+  return (
+    <article className="lq-mission">
+      <h3 className="lq-mission__label">{label}</h3>
+      <div className="lq-mission__done">
+        <span className="lq-mission__done-icon" aria-hidden="true">
+          🎉
+        </span>
+        <p className="lq-mission__done-text">{message}</p>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * A swipeable mission card: slide 0 is the progress ring, then one slide per
+ * assigned exercise (name + difficulty + duration; + scheduled day for weekly).
+ */
+function MissionCarousel({
+  label,
+  value,
+  total,
+  caption,
+  exercises,
+  onAttempt,
+}: {
   label: string;
   value: number;
   total: number;
   caption: string;
-  /** Carousel dots — presentational until missions come from the API. */
-  dots: number;
-}
+  exercises: MissionExercise[];
+  /** When provided, each exercise slide gets a "Start" button (Today's Mission). */
+  onAttempt?: (ex: MissionExercise) => void;
+}): JSX.Element {
+  const [active, setActive] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const slideCount = 1 + exercises.length;
 
-function MissionCard({ label, value, total, caption, dots }: Mission): JSX.Element {
+  const onScroll = (): void => {
+    const el = trackRef.current;
+    if (el) setActive(Math.round(el.scrollLeft / el.clientWidth));
+  };
+
   return (
     <article className="lq-mission">
       <h3 className="lq-mission__label">{label}</h3>
-      <MissionRing value={value} total={total} />
-      <p className="lq-mission__caption">{caption}</p>
-      <span className="lq-dots" aria-hidden="true">
-        {Array.from({ length: dots }).map((_, i) => (
-          <i key={i} className={i === 0 ? 'is-active' : ''} />
+      <div className="lq-mission__track" ref={trackRef} onScroll={onScroll}>
+        {/* Slide 0 — progress ring */}
+        <div className="lq-mission__slide">
+          <MissionRing value={value} total={total} />
+          <p className="lq-mission__caption">{caption}</p>
+        </div>
+        {/* One slide per assigned exercise */}
+        {exercises.map((ex) => (
+          <div className="lq-mission__slide" key={ex.item_id}>
+            <span className="lq-mission__ex-icon" style={{ background: ex.accent }}>
+              {ex.icon}
+            </span>
+            <span className="lq-mission__ex-name">{ex.name}</span>
+            <div className="lq-mission__ex-meta">
+              {ex.difficulty && (
+                <span className="lq-mission__pill lq-mission__pill--diff">{ex.difficulty}</span>
+              )}
+              {ex.duration != null && (
+                <span className="lq-mission__pill">⏱️ {ex.duration} min</span>
+              )}
+            </div>
+            {ex.days && ex.days.length > 0 && (
+              <span className="lq-mission__day">📅 {ex.days.join(', ')}</span>
+            )}
+            {onAttempt && (
+              <button
+                type="button"
+                className="lq-mission__go"
+                style={{ background: ex.accent }}
+                onClick={() => onAttempt(ex)}
+              >
+                <Play size={18} aria-hidden="true" /> Start
+              </button>
+            )}
+          </div>
         ))}
-      </span>
+      </div>
+      {slideCount > 1 && (
+        <span className="lq-dots" aria-hidden="true">
+          {Array.from({ length: slideCount }).map((_, i) => (
+            <i key={i} className={i === active ? 'is-active' : ''} />
+          ))}
+        </span>
+      )}
     </article>
   );
 }
 
 export function HomeScreen(): JSX.Element {
-  const { state, navigate, startGame, setCurrentGame } = useApp();
+  const { state, navigate, startGame, setCurrentGame, setHasDoctor, setName, setAvatarUrl, setTherapistView } =
+    useApp();
   const firstName = state.name.trim() || 'friend';
 
   // Repeat After Me / Read It Loud / Story Teller share the difficulty picker;
@@ -84,26 +203,91 @@ export function HomeScreen(): JSX.Element {
     navigate('repeatSelect');
   };
 
-  // Today's assigned plan tasks (from the SLP's plan).
-  const [today, setToday] = useState<DashboardItem[]>([]);
+  // The patient's plan dashboard (today's tasks + weekly/today counts).
+  const [dash, setDash] = useState<Dashboard | null>(null);
   useEffect(() => {
     let alive = true;
     getDashboard()
       .then((d) => {
-        if (alive) setToday(d.today);
+        if (alive) setDash(d);
       })
-      .catch(() => undefined); // no plan / not a patient → just hide the section
+      .catch(() => undefined); // no plan / not a patient → keep the default view
     return () => {
       alive = false;
     };
   }, []);
+  const today: DashboardItem[] = dash?.today ?? [];
+
+  // Reconcile the "has a therapist" flag with the backend (drives the landing
+  // variant + the Explore / View-My-Therapist button).
+  useEffect(() => {
+    let alive = true;
+    getMyDoctor()
+      .then((d) => {
+        if (alive) setHasDoctor(!!d);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Hydrate the profile (name + avatar) from the backend.
+  useEffect(() => {
+    let alive = true;
+    me()
+      .then((u) => {
+        if (!alive) return;
+        setName(u.first_name);
+        setAvatarUrl(u.avatar_url ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Missions use real plan counts when the dashboard has any; otherwise the cards
+  // keep their default (mock) values.
+  const hasTodayPlan = !!dash && dash.totalTasksToday > 0;
+  const hasWeeklyPlan = !!dash && dash.totalTasksWeekly > 0;
+  // With a loaded plan, "done today" = all today's tasks complete OR none assigned
+  // (0 >= 0). Null dashboard keeps the default ring instead.
+  const todayDone = !!dash && dash.completedTasksToday >= dash.totalTasksToday;
+
+  const exName = (t: string): string => EXERCISE_LABELS[t as ExerciseKind] ?? t;
+  const exDiff = (d?: string | null): string | null => (d ? (DIFF_LABEL[d] ?? d) : null);
+
+  // Assigned exercises shown on the swipeable mission slides.
+  const todayExercises: MissionExercise[] = today.map((it) => ({
+    item_id: it.item_id,
+    type: it.exercise_type,
+    name: exName(it.exercise_type),
+    difficulty: exDiff(it.difficulty),
+    duration: it.duration_minutes ?? null,
+    days: null, // today's mission is for today — no date shown
+    icon: EX_ICON[it.exercise_type] ?? '⭐',
+    accent: EX_ACCENT[it.exercise_type] ?? '#a06ee8',
+  }));
+  const weeklyExercises: MissionExercise[] = (dash?.weekly ?? []).map((it) => ({
+    item_id: it.item_id,
+    type: it.exercise_type,
+    name: exName(it.exercise_type),
+    difficulty: exDiff(it.difficulty),
+    duration: it.duration_minutes ?? null,
+    days: it.scheduled_days.map((d) => DAY_LABEL[d] ?? d),
+    icon: EX_ICON[it.exercise_type] ?? '⭐',
+    accent: EX_ACCENT[it.exercise_type] ?? '#a06ee8',
+  }));
 
   // Launch a planned exercise: the plan supplies difficulty/phoneme, so it skips
   // the picker and runs with plan_item_id (session + /end on close).
-  const launchPlanned = (item: DashboardItem): void => {
-    const game = item.exercise_type as ExerciseKind;
+  const launchPlanned = (ex: MissionExercise): void => {
+    const game = ex.type as ExerciseKind;
     const mode: GameMode = game === 'TALK_WITH_OLLIE' || game === 'PICTURE_TALK' ? 'converse' : 'repeat';
-    startGame(mode, null, game, item.item_id);
+    startGame(mode, null, game, ex.item_id, ex.duration);
   };
 
   return (
@@ -118,11 +302,11 @@ export function HomeScreen(): JSX.Element {
         <button
           type="button"
           className="lq-profile"
-          onClick={() => navigate('login')}
-          aria-label="Log out"
-          title="Log out"
+          onClick={() => navigate('profile')}
+          aria-label="Profile"
+          title="Profile"
         >
-          <User size={20} aria-hidden="true" />
+          <AvatarImage url={state.avatarUrl} size={38} />
         </button>
       </header>
 
@@ -148,46 +332,35 @@ export function HomeScreen(): JSX.Element {
 
         {/* Content sheet — missions (doctor users only) + Continue Journey. */}
         <section className="lq-content">
-          {state.hasDoctor && (
+          {(state.hasDoctor || hasTodayPlan || hasWeeklyPlan) && (
             <div className="lq-missions">
-              <MissionCard
-                label="Today's Mission"
-                value={0}
-                total={1}
-                caption="Ready to start?"
-                dots={2}
-              />
-              <MissionCard
+              {todayDone ? (
+                <MissionDone
+                  label="Today's Mission"
+                  message="Well done! You've completed all your work for today."
+                />
+              ) : (
+                <MissionCarousel
+                  label="Today's Mission"
+                  value={hasTodayPlan ? dash!.completedTasksToday : 0}
+                  total={hasTodayPlan ? dash!.totalTasksToday : 1}
+                  caption="Ready to start?"
+                  exercises={todayExercises}
+                  onAttempt={(ex) => launchPlanned(ex)}
+                />
+              )}
+              <MissionCarousel
                 label="Weekly Mission"
-                value={2}
-                total={5}
-                caption="Keep it up!"
-                dots={4}
+                value={hasWeeklyPlan ? dash!.completedTasksWeekly : 2}
+                total={hasWeeklyPlan ? dash!.totalTasksWeekly : 5}
+                caption={
+                  hasWeeklyPlan && dash!.completedTasksWeekly >= dash!.totalTasksWeekly
+                    ? 'All done! 🎉'
+                    : 'Keep it up!'
+                }
+                exercises={weeklyExercises}
               />
             </div>
-          )}
-
-          {today.length > 0 && (
-            <>
-              <h2 className="lq-journey__heading">Today&apos;s Practice</h2>
-              <div className="lq-journey">
-                {today.map((item) => (
-                  <button
-                    key={item.item_id}
-                    type="button"
-                    className="lq-action lq-action--gold"
-                    onClick={() => launchPlanned(item)}
-                  >
-                    <span className="lq-action__icon" aria-hidden="true">
-                      <Star size={26} />
-                    </span>
-                    <span className="lq-action__label">
-                      {EXERCISE_LABELS[item.exercise_type as ExerciseKind] ?? item.exercise_type}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </>
           )}
 
           <h2 className="lq-journey__heading">Continue Journey</h2>
@@ -248,7 +421,10 @@ export function HomeScreen(): JSX.Element {
             <button
               type="button"
               className="lq-therapists"
-              onClick={() => window.alert('Explore Therapists — coming soon')}
+              onClick={() => {
+                setTherapistView('explore');
+                navigate('explore');
+              }}
             >
               Explore Therapists
             </button>

@@ -533,3 +533,103 @@
 .overlay-phrase__status--success {
   color: #b6e57a;
 }
+
+/* ===== Planned-exercise countdown timer ================================ */
+/* When the timer is present, drop the phrase banner below it (no overlap). */
+.overlay-phrase--timer {
+  top: calc(env(safe-area-inset-top, 0px) + 3.9rem);
+}
+.ex-timer {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 0.7rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(20, 8, 50, 0.55);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 0.45rem 1.15rem;
+  font-family: "Baloo 2", "Nunito", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: 0.02em;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+.ex-timer--done {
+  background: rgba(60, 140, 30, 0.72);
+  border-color: rgba(182, 229, 122, 0.8);
+}
+
+/* ===== "Leaving early" warning modal ================================== */
+.ex-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 1.2rem;
+  background: rgba(18, 6, 38, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+.ex-modal__card {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  color: #1f2733;
+  border-radius: 22px;
+  padding: 1.6rem 1.35rem 1.35rem;
+  text-align: center;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.45);
+}
+.ex-modal__emoji {
+  font-size: 2.8rem;
+  line-height: 1;
+}
+.ex-modal__title {
+  margin: 0.5rem 0 0.6rem;
+  font-family: "Baloo 2", "Nunito", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: #3f1684;
+}
+.ex-modal__body {
+  margin: 0 0 1.3rem;
+  font-size: 1.02rem;
+  line-height: 1.45;
+  color: #414855;
+}
+.ex-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.ex-modal__stay {
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: #8ecf3c;
+  color: #14202a;
+  font-family: "Baloo 2", "Nunito", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(90, 150, 30, 0.35);
+}
+.ex-modal__leave {
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #b3305a;
+  font-family: "Baloo 2", "Nunito", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.02rem;
+  cursor: pointer;
+}

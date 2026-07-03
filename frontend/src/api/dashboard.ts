@@ -16,9 +16,21 @@ export interface DashboardItem {
   due: boolean;
 }
 
+export interface WeekItem {
+  item_id: string;
+  plan_id: string;
+  plan_title: string;
+  exercise_type: string;
+  target_phoneme?: string | null;
+  difficulty?: string | null;
+  frequency: string;
+  duration_minutes?: number | null;
+  scheduled_days: string[]; // weekdays this week, e.g. ["THU"]
+}
+
 export interface Dashboard {
   today: DashboardItem[];
-  weekly: unknown[];
+  weekly: WeekItem[];
   totalTasksToday: number;
   completedTasksToday: number;
   totalTasksWeekly: number;

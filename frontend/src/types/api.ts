@@ -20,6 +20,7 @@ export interface PatientSignup extends SignupBase {
   role: 'PATIENT';
   nickname: string; // required
   avatar_id?: number | null;
+  avatar_url?: string | null; // chosen avatar image link
   ailment_ids?: number[];
   doctor_id?: string | null; // doctor user GUID (creates a pending link request)
   // Guardian details — for minors.
@@ -52,6 +53,17 @@ export interface UserRead {
   first_name: string;
   last_name: string;
   role: Role;
+  dob?: string;
+  gender?: string;
+  phone_number?: string | null;
+  avatar_url?: string | null; // patients only
+  created_at?: string;
+}
+
+/** PATCH /users/{id} body — only the fields a user may change. */
+export interface UserUpdate {
+  first_name?: string;
+  last_name?: string;
   dob?: string;
   gender?: string;
   phone_number?: string | null;
