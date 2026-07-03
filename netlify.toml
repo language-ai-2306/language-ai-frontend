@@ -1,0 +1,85 @@
+# Netlify config for the LanguageAI frontend (Vite app in ./frontend).
+#
+# The app calls the backend with RELATIVE URLs (/auth, /v1, /doctors, …). In dev
+# these are proxied by Vite; in production Netlify proxies them to the backend
+# via the rewrites below (status = 200 = proxy, so it's same-origin → no CORS).
+#
+# 👉 Replace BACKEND_URL below with your backend's public HTTPS URL, e.g.
+#    https://api.yourdomain.com   (a raw http://IP:8080 may work but HTTPS is
+#    strongly recommended — the site is served over HTTPS).
+
+[build]
+  base = "frontend"          # package.json lives in ./frontend
+  command = "npm run build"  # runs tsc + vite build
+  publish = "dist"           # → frontend/dist
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# --- Proxy the backend's route prefixes to the API (order matters: these must
+#     come BEFORE the SPA catch-all). Query strings are forwarded automatically.
+[[redirects]]
+  from = "/auth/*"
+  to = "http://13.211.161.254:8080/auth/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/users/*"
+  to = "http://13.211.161.254:8080/users/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/doctors/*"
+  to = "http://13.211.161.254:8080/doctors/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/patient/*"
+  to = "http://13.211.161.254:8080/patient/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/v1/*"
+  to = "http://13.211.161.254:8080/v1/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/game/*"
+  to = "http://13.211.161.254:8080/game/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/phrases/*"
+  to = "http://13.211.161.254:8080/phrases/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/proficiency-test/*"
+  to = "http://13.211.161.254:8080/proficiency-test/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/admin/*"
+  to = "http://13.211.161.254:8080/admin/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/health"
+  to = "http://13.211.161.254:8080/health"
+  status = 200
+  force = true
+
+# --- SPA fallback: every other path serves the app shell. MUST be last.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
