@@ -20,61 +20,61 @@
 #     come BEFORE the SPA catch-all). Query strings are forwarded automatically.
 [[redirects]]
   from = "/auth/*"
-  to = "http://13.211.161.254:8080/auth/:splat"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/auth/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/users/*"
-  to = "http://13.211.161.254:8080/users/:splat"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/users/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/doctors/*"
-  to = "http://13.211.161.254:8080/doctors/:splat"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/doctors/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/patient/*"
-  to = "http://13.211.161.254:8080/patient/:splat"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/patient/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/v1/*"
-  to = "http://13.211.161.254:8080/v1/:splat"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/v1/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/game/*"
-  to = "http://13.211.161.254:8080/game/:splat"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/game/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/phrases/*"
-  to = "http://13.211.161.254:8080/phrases/:splat"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/phrases/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/proficiency-test/*"
-  to = "http://13.211.161.254:8080/proficiency-test/:splat"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/proficiency-test/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/admin/*"
-  to = "http://13.211.161.254:8080/admin/:splat"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/admin/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/health"
-  to = "http://13.211.161.254:8080/health"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/health"
   status = 200
   force = true
 

@@ -28,6 +28,8 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // Merge headers: default JSON (unless form), then caller overrides, then the auth
   // header (last so it always wins).
   const headers: Record<string, string> = {
+    // Skip ngrok-free's browser-warning interstitial when the backend is tunnelled.
+    'ngrok-skip-browser-warning': 'true',
     ...(isForm ? {} : { 'Content-Type': 'application/json' }),
     ...(init?.headers as Record<string, string> | undefined),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
