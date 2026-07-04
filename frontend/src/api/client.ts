@@ -4,6 +4,14 @@ import { clearToken, getToken } from './token';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
+/** True in local dev (Vite), false in production builds. Gates verbose,
+ *  developer-facing error details so they never surface in the deployed app. */
+export const IS_DEV = import.meta.env.DEV;
+
+/** Abort a request that hangs longer than this, so a slow/stuck backend surfaces
+ *  an error screen instead of an endless spinner. */
+export const REQUEST_TIMEOUT_MS = 15_000;
+
 /** Dispatched on window when a request 401s (session expired / bad token). The
  *  store listens for this and routes back to login. */
 export const UNAUTHORIZED_EVENT = 'languageai:unauthorized';
@@ -15,6 +23,9 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    /** Verbose diagnostics (method, URL, status, body). Populated in dev only and
+     *  surfaced by dev-facing error UIs; undefined in production. */
+    public readonly details?: string,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -35,11 +46,41 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
+  // Abort the request if it takes too long so a slow/stuck backend surfaces an
+  // error instead of hanging forever. A caller-supplied signal is honoured too.
+  const method = (init?.method ?? 'GET').toUpperCase();
+  const controller = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+  if (init?.signal) {
+    if (init.signal.aborted) controller.abort();
+    else init.signal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+  // Dev-only diagnostics attached to thrown errors; undefined (stripped) in prod.
+  const dev = (extra: string): string | undefined =>
+    IS_DEV ? `${method} ${BASE_URL}${path}\n${extra}` : undefined;
+
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}${path}`, { ...init, headers });
-  } catch {
-    throw new ApiError('Cannot reach the server. Is the backend running?', 0);
+    res = await fetch(`${BASE_URL}${path}`, { ...init, headers, signal: controller.signal });
+  } catch (e) {
+    if (timedOut) {
+      throw new ApiError(
+        'The server took too long to respond. Please try again.',
+        0,
+        dev(`request aborted after ${REQUEST_TIMEOUT_MS}ms (timeout)`),
+      );
+    }
+    throw new ApiError(
+      'Cannot reach the server. Is the backend running?',
+      0,
+      dev(`network error: ${e instanceof Error ? e.message : String(e)}`),
+    );
+  } finally {
+    clearTimeout(timer);
   }
 
   // Expired / invalid token → drop it and let the app route to login. A 401 from
@@ -52,13 +93,15 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) {
     // Try to surface FastAPI's error detail without leaking internals.
     let detail = `Request failed (${res.status})`;
+    let bodyText = '';
     try {
-      const body = (await res.json()) as { detail?: unknown };
+      bodyText = await res.text();
+      const body = JSON.parse(bodyText) as { detail?: unknown };
       if (typeof body.detail === 'string') detail = body.detail;
     } catch {
       /* non-JSON error body — keep the generic message */
     }
-    throw new ApiError(detail, res.status);
+    throw new ApiError(detail, res.status, dev(`${res.status} ${res.statusText}\n${bodyText.slice(0, 800)}`));
   }
 
   // 204 No Content → nothing to parse.
