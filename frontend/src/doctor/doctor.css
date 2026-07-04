@@ -130,6 +130,11 @@
   align-items: center;
   gap: 1rem;
 }
+/* Tab-less pages (e.g. Therapy Plan) have no centred nav, so keep the account
+   controls pinned to the right. */
+.doc-nav__wrap--notabs .doc-nav__right {
+  margin-left: auto;
+}
 .doc-nav__icon {
   position: relative;
   display: grid;

@@ -15,6 +15,7 @@ import {
   type PlanListItem,
   type PlanStatus,
 } from '../api/plans';
+import { useApp } from '../store/AppStore';
 import { DoctorShell } from './DoctorShell';
 import { DocError } from './DocError';
 import './plans.css';
@@ -258,6 +259,7 @@ function PlanCard({
 }
 
 export function PlansScreen(): JSX.Element {
+  const { navigate } = useApp();
   const [plans, setPlans] = useState<PlanListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
@@ -302,7 +304,11 @@ export function PlansScreen(): JSX.Element {
               Every therapy plan and its scheduled exercises, in one clinical view.
             </p>
           </div>
-          <button type="button" className="doc-btn doc-btn--primary" onClick={() => undefined}>
+          <button
+            type="button"
+            className="doc-btn doc-btn--primary"
+            onClick={() => navigate('docPlanTemplates')}
+          >
             <Plus size={18} aria-hidden="true" /> New Plan
           </button>
         </div>

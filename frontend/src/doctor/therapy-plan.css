@@ -1,0 +1,255 @@
+/* Therapy Plan — personalized weekly exercise plan (tab-less focused page). */
+.tp-page {
+  max-width: 1160px;
+}
+
+.tp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  margin-bottom: 1.2rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--doc-accent);
+  transition: opacity 0.15s ease;
+}
+.tp-back:hover {
+  opacity: 0.75;
+}
+
+.tp-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--doc-border);
+  margin-bottom: 1.6rem;
+}
+.tp-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 2.6rem;
+  letter-spacing: -0.02em;
+  color: var(--doc-ink);
+}
+.tp-sub {
+  margin: 0.35rem 0 0;
+  color: var(--doc-muted);
+  font-size: 1.05rem;
+}
+.tp-head__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex: none;
+}
+
+/* ---- Summary stat cards -------------------------------------------------- */
+.tp-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.3rem;
+  margin-bottom: 1.6rem;
+}
+@media (max-width: 820px) {
+  .tp-stats {
+    grid-template-columns: 1fr;
+  }
+}
+.tp-stat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+  border-radius: 14px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 4px 14px rgba(20, 20, 43, 0.04);
+}
+.tp-stat__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+}
+.tp-stat__icon--purple {
+  background: #ece4fb;
+  color: var(--doc-accent);
+}
+.tp-stat__icon--green {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.tp-stat__label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--doc-muted);
+}
+.tp-stat__value {
+  display: block;
+  margin-top: 0.15rem;
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--doc-ink);
+}
+.tp-stat__value small {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--doc-muted);
+}
+.tp-stat__value--green {
+  color: #16a34a;
+}
+
+/* ---- Exercise table ------------------------------------------------------ */
+.tp-table-wrap {
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(20, 20, 43, 0.04);
+}
+.tp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tp-table thead th {
+  text-align: left;
+  padding: 0.95rem 1.3rem;
+  background: #f6f6fb;
+  border-bottom: 1px solid var(--doc-border);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--doc-muted);
+}
+.tp-table tbody td {
+  padding: 1.05rem 1.3rem;
+  border-bottom: 1px solid var(--doc-border);
+  vertical-align: middle;
+  font-size: 0.98rem;
+}
+.tp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tp-exname {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.tp-exicon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+.tp-exicon--purple {
+  background: #ddd2f7;
+  color: var(--doc-accent);
+}
+.tp-exicon--lilac {
+  background: #efe9fb;
+  color: var(--doc-violet);
+}
+.tp-exicon--peach {
+  background: #fde5cf;
+  color: #d97706;
+}
+.tp-exname__label {
+  font-weight: 700;
+  color: var(--doc-ink);
+}
+.tp-aibadge {
+  display: inline-grid;
+  place-items: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  background: #ece4fb;
+  color: var(--doc-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+.tp-days {
+  font-weight: 700;
+  color: var(--doc-ink);
+}
+.tp-dur {
+  color: var(--doc-muted);
+  font-weight: 600;
+}
+
+/* ---- Difficulty pills ---------------------------------------------------- */
+.tp-diff {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.tp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.8rem;
+  border: 1.5px solid var(--doc-border-strong);
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--doc-muted);
+  background: #fff;
+}
+.tp-pill--on {
+  background: var(--doc-accent);
+  border-color: var(--doc-accent);
+  color: #fff;
+}
+.tp-adaptive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: #efe9fb;
+  color: var(--doc-violet);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.tp-nolevels {
+  color: var(--doc-faint);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* ---- Personalization note ------------------------------------------------ */
+.tp-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 1.5rem 0 0;
+  padding: 1rem 1.2rem;
+  background: #f1f0f9;
+  border: 1px solid var(--doc-border);
+  border-radius: 12px;
+  color: var(--doc-muted);
+  font-size: 0.96rem;
+  line-height: 1.5;
+}
+.tp-note svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--doc-accent);
+}

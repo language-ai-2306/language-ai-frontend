@@ -15,6 +15,7 @@ import {
   Download,
   History,
   Pencil,
+  Plus,
   Sparkles,
   TrendingDown,
   TrendingUp,
@@ -28,6 +29,7 @@ import {
   type PatientDetail,
 } from '../api/doctorDashboard';
 import { useApp } from '../store/AppStore';
+import { AddNewPlanModal } from './AddNewPlanModal';
 import { DoctorShell } from './DoctorShell';
 import { DocError } from './DocError';
 import './patient-overview.css';
@@ -363,12 +365,13 @@ function OverviewBody({
 }
 
 export function PatientOverviewScreen(): JSX.Element {
-  const { state, navigate } = useApp();
+  const { state, navigate, setPlanEditorMode } = useApp();
   const selected = state.docPatient;
   const [detail, setDetail] = useState<PatientDetail | null>(null);
   const [attempts, setAttempts] = useState<AttemptSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
+  const [showAddPlan, setShowAddPlan] = useState(false);
 
   const load = useCallback(async (id: string): Promise<void> => {
     setLoading(true);
@@ -426,8 +429,15 @@ export function PatientOverviewScreen(): JSX.Element {
             <button type="button" className="doc-btn doc-btn--ghost" onClick={() => undefined}>
               <Pencil size={16} aria-hidden="true" /> Edit Profile
             </button>
-            <button type="button" className="doc-btn doc-btn--primary" onClick={() => undefined}>
+            <button type="button" className="doc-btn doc-btn--ghost" onClick={() => undefined}>
               <Download size={16} aria-hidden="true" /> Export Report
+            </button>
+            <button
+              type="button"
+              className="doc-btn doc-btn--primary"
+              onClick={() => setShowAddPlan(true)}
+            >
+              <Plus size={16} aria-hidden="true" /> Add New Plan
             </button>
           </div>
         </div>
@@ -446,6 +456,17 @@ export function PatientOverviewScreen(): JSX.Element {
         ) : detail ? (
           <OverviewBody detail={detail} attempts={attempts} />
         ) : null}
+
+        {showAddPlan && (
+          <AddNewPlanModal
+            onClose={() => setShowAddPlan(false)}
+            onChooseExisting={() => navigate('docPlanTemplates')}
+            onCustomize={() => {
+              setPlanEditorMode('create');
+              navigate('docEditTherapyPlan');
+            }}
+          />
+        )}
       </div>
     </DoctorShell>
   );

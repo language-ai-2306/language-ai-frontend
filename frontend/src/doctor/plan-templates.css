@@ -1,0 +1,105 @@
+/* Therapy Plan Templates — foundational-plan library grid. */
+.tpl-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  margin-bottom: 1.4rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--doc-ink);
+  transition: color 0.15s ease;
+}
+.tpl-back:hover {
+  color: var(--doc-accent);
+}
+
+.tpl-title {
+  font-size: 2.7rem;
+}
+.tpl-sub {
+  max-width: 42rem;
+  margin-bottom: 2rem;
+  font-size: 1.05rem;
+}
+
+.tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+@media (max-width: 900px) {
+  .tpl-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .tpl-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tpl-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+  border-top: 4px solid var(--doc-accent);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(20, 20, 43, 0.05);
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+.tpl-card:hover {
+  box-shadow: 0 14px 30px rgba(20, 20, 43, 0.1);
+  transform: translateY(-2px);
+}
+.tpl-card__body {
+  flex: 1;
+  padding: 1.4rem 1.4rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+}
+.tpl-card__icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #f1f1f7;
+  color: var(--doc-accent);
+  margin-bottom: 1.1rem;
+}
+.tpl-card__title {
+  margin: 0 0 0.5rem;
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--doc-ink);
+}
+.tpl-card__desc {
+  margin: 0;
+  color: var(--doc-muted);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+.tpl-card__link {
+  border: none;
+  border-top: 1px solid var(--doc-border);
+  background: none;
+  text-align: left;
+  padding: 0.95rem 1.4rem;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--doc-indigo);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.tpl-card__link:hover {
+  color: var(--doc-accent);
+}

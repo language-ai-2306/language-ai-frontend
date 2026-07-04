@@ -38,10 +38,13 @@ interface DoctorShellProps {
   active?: DoctorTab;
   /** Show the page footer (default true). */
   footer?: boolean;
+  /** Show the section tabs (default true). Hidden on focused sub-pages like the
+   *  Therapy Plan detail, which stand alone with just the brand + account. */
+  showTabs?: boolean;
   children: ReactNode;
 }
 
-export function DoctorShell({ active, footer = true, children }: DoctorShellProps): JSX.Element {
+export function DoctorShell({ active, footer = true, showTabs = true, children }: DoctorShellProps): JSX.Element {
   const { state, navigate } = useApp();
   const doctorName = state.name.trim() || 'Dr. Vance';
 
@@ -59,7 +62,7 @@ export function DoctorShell({ active, footer = true, children }: DoctorShellProp
 
       <div className="doc-portal__inner">
         <header className="doc-nav">
-          <div className="doc-nav__wrap">
+          <div className={`doc-nav__wrap${showTabs ? '' : ' doc-nav__wrap--notabs'}`}>
             <button
               type="button"
               className="doc-nav__brand"
@@ -68,6 +71,7 @@ export function DoctorShell({ active, footer = true, children }: DoctorShellProp
               LanguageAI
             </button>
 
+            {showTabs && (
             <nav className="doc-nav__tabs" aria-label="Portal sections">
               {TABS.map((t) => (
                 <button
@@ -83,6 +87,7 @@ export function DoctorShell({ active, footer = true, children }: DoctorShellProp
                 </button>
               ))}
             </nav>
+            )}
 
             <div className="doc-nav__right">
               <button type="button" className="doc-nav__icon" aria-label="Notifications">

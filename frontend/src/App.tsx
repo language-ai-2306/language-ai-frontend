@@ -22,7 +22,10 @@ import { DoctorProfileScreen } from './doctor/DoctorProfileScreen';
 import { NewRequestsScreen } from './doctor/NewRequestsScreen';
 import { PatientDashboardScreen } from './doctor/PatientDashboardScreen';
 import { PlansScreen } from './doctor/PlansScreen';
+import { PlanTemplatesScreen } from './doctor/PlanTemplatesScreen';
 import { PatientOverviewScreen } from './doctor/PatientOverviewScreen';
+import { TherapyPlanScreen } from './doctor/TherapyPlanScreen';
+import { EditTherapyPlanScreen } from './doctor/EditTherapyPlanScreen';
 import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
 import { ReadAloudScreen } from './screens/ReadAloudScreen';
@@ -86,6 +89,12 @@ function Router(): JSX.Element {
       return <DoctorProfileScreen />;
     case 'docPlans':
       return <PlansScreen />;
+    case 'docPlanTemplates':
+      return <PlanTemplatesScreen />;
+    case 'docTherapyPlan':
+      return <TherapyPlanScreen />;
+    case 'docEditTherapyPlan':
+      return <EditTherapyPlanScreen />;
     case 'home':
     default:
       return <HomeScreen />;

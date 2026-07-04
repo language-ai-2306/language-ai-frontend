@@ -45,7 +45,10 @@ export type Screen =
   | 'docPatientDetail'
   | 'docRequests'
   | 'docProfile'
-  | 'docPlans';
+  | 'docPlans'
+  | 'docPlanTemplates'
+  | 'docTherapyPlan'
+  | 'docEditTherapyPlan';
 export type Exercise = 'repeat' | 'read' | 'chat' | 'breathing';
 
 /** Which kind of account the sign-up flow is creating. Patients are the
@@ -185,6 +188,9 @@ export interface AppState {
   /** Doctor portal: the patient whose overview is open (id + name for an instant
    *  header while the full clinical detail loads). Null when none is selected. */
   docPatient: { id: string; name: string } | null;
+  /** How the Therapy Plan editor opens: 'edit' an existing plan (pre-filled) or
+   *  'create' a brand-new one (blank, name editable). */
+  planEditorMode: 'create' | 'edit';
 }
 
 const XP_PER_LEVEL = 100;
@@ -267,6 +273,9 @@ const SCREENS: Screen[] = [
   'docRequests',
   'docProfile',
   'docPlans',
+  'docPlanTemplates',
+  'docTherapyPlan',
+  'docEditTherapyPlan',
 ];
 
 /** Dev/QA: `?screen=home` boots straight to a given screen for previewing,
@@ -351,6 +360,7 @@ function makeInitialState(): AppState {
     avatarUrl: null,
     therapistView: 'explore',
     docPatient: null,
+    planEditorMode: 'edit',
   };
 }
 
@@ -375,6 +385,7 @@ type Action =
   | { type: 'setAvatarUrl'; value: string | null }
   | { type: 'setTherapistView'; value: 'explore' | 'mine' }
   | { type: 'setDocPatient'; value: { id: string; name: string } | null }
+  | { type: 'setPlanEditorMode'; value: 'create' | 'edit' }
   | { type: 'setHasDoctor'; value: boolean }
   | { type: 'toggleSound' }
   | { type: 'toggleSimple' }
@@ -435,6 +446,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, therapistView: action.value };
     case 'setDocPatient':
       return { ...state, docPatient: action.value };
+    case 'setPlanEditorMode':
+      return { ...state, planEditorMode: action.value };
     case 'setHasDoctor':
       return { ...state, hasDoctor: action.value };
     case 'toggleSound':
@@ -528,6 +541,8 @@ export interface AppApi {
   setTherapistView: (value: 'explore' | 'mine') => void;
   /** Doctor portal: select which patient's overview to open (id + name). */
   setDocPatient: (value: { id: string; name: string } | null) => void;
+  /** Set how the Therapy Plan editor opens ('create' blank vs 'edit' pre-filled). */
+  setPlanEditorMode: (value: 'create' | 'edit') => void;
   /** Clear the token and return to the login screen. */
   logout: () => void;
   /** Set whether the child has a doctor (drives the landing-page variant). */
@@ -612,6 +627,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       setAvatarUrl: (value) => dispatch({ type: 'setAvatarUrl', value }),
       setTherapistView: (value) => dispatch({ type: 'setTherapistView', value }),
       setDocPatient: (value) => dispatch({ type: 'setDocPatient', value }),
+      setPlanEditorMode: (value) => dispatch({ type: 'setPlanEditorMode', value }),
       logout: () => {
         clearToken();
         dispatch({ type: 'setAuthToken', value: null });

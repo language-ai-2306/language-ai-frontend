@@ -1,0 +1,389 @@
+/* Edit Therapy Plan — the editable plan builder (tab-less focused page). */
+.etp-page {
+  max-width: 1160px;
+}
+
+.etp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  margin-bottom: 1.2rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--doc-accent);
+  transition: opacity 0.15s ease;
+}
+.etp-back:hover {
+  opacity: 0.75;
+}
+
+.etp-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.6rem;
+}
+.etp-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-weight: 800;
+  font-size: 2.4rem;
+  letter-spacing: -0.02em;
+  color: var(--doc-ink);
+}
+.etp-nameedit {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--doc-muted);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.etp-nameedit:hover {
+  background: #efe9fb;
+  color: var(--doc-accent);
+}
+.etp-nameinput {
+  width: min(420px, 70vw);
+  border: 2px solid var(--doc-accent);
+  border-radius: 10px;
+  padding: 0.3rem 0.6rem;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+  color: var(--doc-ink);
+  outline: none;
+}
+.etp-sub {
+  margin: 0.35rem 0 0;
+  color: var(--doc-muted);
+  font-size: 1.05rem;
+}
+.etp-head__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex: none;
+}
+
+/* ---- Card + table -------------------------------------------------------- */
+.etp-card {
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(20, 20, 43, 0.04);
+  overflow: hidden;
+}
+.etp-table-wrap {
+  overflow-x: auto;
+}
+.etp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.etp-table thead th {
+  text-align: left;
+  padding: 0.9rem 1.3rem;
+  background: #f6f6fb;
+  border-bottom: 1px solid var(--doc-border);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--doc-muted);
+  white-space: nowrap;
+}
+.etp-th-remove,
+.etp-td-remove {
+  text-align: right;
+}
+.etp-table tbody td {
+  padding: 1rem 1.3rem;
+  border-bottom: 1px solid var(--doc-border);
+  vertical-align: middle;
+  font-size: 0.98rem;
+}
+.etp-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.etp-exname {
+  font-weight: 700;
+  color: var(--doc-ink);
+  white-space: nowrap;
+}
+.etp-empty {
+  text-align: center !important;
+  color: var(--doc-muted);
+  font-weight: 600;
+  padding: 2.2rem 0 !important;
+}
+
+/* ---- Recommended-days chips + picker ------------------------------------- */
+.etp-days {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.etp-daychip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.28rem 0.4rem 0.28rem 0.6rem;
+  border-radius: 999px;
+  background: #f1f1f7;
+  border: 1px solid var(--doc-border);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--doc-ink);
+}
+.etp-daychip__x {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--doc-muted);
+  cursor: pointer;
+}
+.etp-daychip__x:hover {
+  background: rgba(20, 20, 43, 0.12);
+  color: var(--doc-ink);
+}
+.etp-daypick {
+  position: relative;
+  display: inline-flex;
+}
+.etp-addday {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.28rem 0.55rem;
+  border: 1px dashed var(--doc-border-strong);
+  border-radius: 999px;
+  background: none;
+  font-family: inherit;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--doc-accent);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.etp-addday:hover:not(:disabled) {
+  background: #efe9fb;
+}
+.etp-addday:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.etp-daymenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 45;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+  padding: 6px;
+  min-width: 150px;
+  background: #fff;
+  border: 1px solid var(--doc-border-strong);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(20, 20, 43, 0.16);
+}
+.etp-daymenu__item {
+  border: none;
+  border-radius: 7px;
+  padding: 0.4rem 0.6rem;
+  background: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--doc-ink);
+  cursor: pointer;
+  text-align: left;
+}
+.etp-daymenu__item:hover {
+  background: #efe9fb;
+  color: var(--doc-accent);
+}
+
+/* ---- Duration ------------------------------------------------------------ */
+.etp-dur {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.etp-durinput {
+  width: 62px;
+  border: 1px solid var(--doc-border-strong);
+  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--doc-ink);
+  background: #fff;
+}
+.etp-durinput:focus {
+  outline: none;
+  border-color: var(--doc-accent);
+}
+.etp-dur__unit {
+  color: var(--doc-muted);
+  font-size: 0.92rem;
+}
+
+/* ---- Difficulty ---------------------------------------------------------- */
+.etp-levels {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.etp-pill {
+  padding: 0.35rem 0.85rem;
+  border: 1.5px solid var(--doc-border-strong);
+  border-radius: 999px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--doc-muted);
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+}
+.etp-pill:hover {
+  border-color: var(--doc-accent);
+  color: var(--doc-accent);
+}
+.etp-pill--on {
+  background: var(--doc-accent);
+  border-color: var(--doc-accent);
+  color: #fff;
+}
+.etp-pill--on:hover {
+  color: #fff;
+}
+.etp-adaptive {
+  display: inline-flex;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: #efe9fb;
+  color: var(--doc-violet);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+/* ---- Remove -------------------------------------------------------------- */
+.etp-remove {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--doc-faint);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.etp-remove:hover {
+  background: #fdeaea;
+  color: #dc2626;
+}
+
+/* ---- Card footer (note + add exercise) ----------------------------------- */
+.etp-cardfoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.3rem 1.2rem;
+  border-top: 1px solid var(--doc-border);
+}
+.etp-note {
+  margin: 0;
+  color: var(--doc-muted);
+  font-size: 0.92rem;
+  font-style: italic;
+}
+.etp-addwrap {
+  position: relative;
+  flex: none;
+}
+.etp-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--doc-border-strong);
+  border-radius: 10px;
+  background: #fff;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--doc-ink);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.etp-add:hover {
+  background: #f3f2f8;
+}
+.etp-addmenu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--doc-border-strong);
+  border-radius: 10px;
+  box-shadow: 0 14px 30px rgba(20, 20, 43, 0.18);
+}
+.etp-addmenu__item {
+  border: none;
+  border-radius: 7px;
+  padding: 0.55rem 0.7rem;
+  background: none;
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--doc-ink);
+  cursor: pointer;
+  text-align: left;
+}
+.etp-addmenu__item:hover {
+  background: #efe9fb;
+  color: var(--doc-accent);
+}
+
+.etp-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
