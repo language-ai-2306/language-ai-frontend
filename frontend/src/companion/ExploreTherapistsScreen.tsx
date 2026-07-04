@@ -71,7 +71,7 @@ export function ExploreTherapistsScreen(): JSX.Element {
   const loadDirectory = (): void => {
     setLoading(true);
     listDoctors()
-      .then((p) => setDoctors(p.items))
+      .then((p) => setDoctors(p.items ?? []))
       .catch((e) =>
         setLoadError(e instanceof ApiError ? e.message : 'Could not load therapists. Please try again.'),
       )

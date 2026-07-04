@@ -61,9 +61,15 @@ export function useAudioPlayer(): UseAudioPlayer {
         onEnded?.();
         return;
       }
-      const ctx = ctxRef.current ?? new Ctx();
-      ctxRef.current = ctx;
-      if (ctx.state === 'suspended') await ctx.resume();
+      let ctx: AudioContext;
+      try {
+        ctx = ctxRef.current ?? new Ctx();
+        ctxRef.current = ctx;
+        if (ctx.state === 'suspended') await ctx.resume();
+      } catch {
+        onEnded?.(); // autoplay blocked / context failed — don't stall the flow
+        return;
+      }
 
       let buffer: AudioBuffer;
       try {

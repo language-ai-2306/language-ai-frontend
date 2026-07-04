@@ -174,6 +174,10 @@ export function SignUpScreen(): JSX.Element {
         });
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Sign up failed. Please try again.');
+        // Roll back the optimistic state so a failed signup can't leave the app
+        // pointing at email-verification for an account that was never created.
+        setPendingVerification(null);
+        setSignupDraft(null);
         return;
       } finally {
         setSubmitting(false);

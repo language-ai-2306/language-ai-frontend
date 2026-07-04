@@ -156,6 +156,23 @@
 .overlay-phrase__status--retry {
   color: #b8860b;
 }
+/* Retry action shown when a prompt/greeting fails to load (error phase). */
+.overlay-retry {
+  margin-top: 0.7rem;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  color: #3f1684;
+  font-family: 'Baloo 2', 'Nunito', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+.overlay-retry:active {
+  transform: scale(0.98);
+}
 
 /* ---- Articulation mouth chart (during lip-sync playback) -------- */
 .mouth-chart {
@@ -500,14 +517,50 @@
 }
 
 /* Picture Talk prompt image. */
-.exercise-image {
-  display: block;
-  max-width: min(80vw, 340px);
-  max-height: 34vh;
+/* Picture Talk image: a fixed-ratio frame reserves the space up front (no layout
+   jump when the bitmap finishes loading) with a shimmer skeleton behind it. */
+.exercise-image__frame {
+  position: relative;
+  width: min(80vw, 340px);
+  aspect-ratio: 4 / 3;
   margin: 0 auto 0.6rem;
   border-radius: 16px;
-  object-fit: cover;
+  overflow: hidden;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+.exercise-image__skeleton {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(120, 110, 160, 0.28);
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.06) 30%,
+    rgba(255, 255, 255, 0.32) 50%,
+    rgba(255, 255, 255, 0.06) 70%
+  );
+  background-size: 200% 100%;
+  animation: eximg-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes eximg-shimmer {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -150% 0;
+  }
+}
+.exercise-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.exercise-image.is-loaded {
+  opacity: 1;
 }
 
 /* "Next" button shown after an attempt is scored (replaces the mic). */

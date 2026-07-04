@@ -47,8 +47,8 @@ export function AccountScreen(): JSX.Element {
         if (!alive) return;
         setUser(u);
         setForm({
-          first_name: u.first_name,
-          last_name: u.last_name,
+          first_name: u.first_name ?? '',
+          last_name: u.last_name ?? '',
           dob: u.dob ?? '',
           gender: u.gender ?? '',
           phone_number: u.phone_number ?? '',

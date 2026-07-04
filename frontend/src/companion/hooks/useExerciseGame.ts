@@ -37,7 +37,11 @@ interface UseExerciseGame {
   mouthOpen: number;
   isSpeaking: boolean;
   start: () => void;
+  /** Re-attempt after a load error (re-fetches the intro + first prompt). */
+  retry: () => void;
   beginListening: () => void;
+  /** Recording produced nothing → return to 'ready' with an optional note. */
+  cancelListening: (message?: string) => void;
   submit: (audio: Blob) => Promise<void>;
   replay: () => void;
   /** For a planned exercise, mark today's session COMPLETED (/end). No-op for free
@@ -118,7 +122,24 @@ export function useExerciseGame(
     }
   }, [game, player, loadContent]);
 
-  const beginListening = useCallback(() => setPhase('listening'), []);
+  // Re-attempt after a failed load (resets the once-guard, replays intro + prompt).
+  const retry = useCallback(() => {
+    setError(null);
+    startedRef.current = false;
+    void start();
+  }, [start]);
+
+  const beginListening = useCallback(() => {
+    setError(null); // clear any "didn't catch that" note when a new attempt starts
+    setPhase('listening');
+  }, []);
+
+  // Recording produced no audio → back to 'ready' with a gentle note instead of
+  // hanging in "listening…".
+  const cancelListening = useCallback((message?: string) => {
+    setError(message ?? null);
+    setPhase('ready');
+  }, []);
 
   const submit = useCallback(
     async (audio: Blob): Promise<void> => {
@@ -167,7 +188,9 @@ export function useExerciseGame(
     mouthOpen: player.mouthOpen,
     isSpeaking: player.isPlaying,
     start,
+    retry,
     beginListening,
+    cancelListening,
     submit,
     replay,
     complete,

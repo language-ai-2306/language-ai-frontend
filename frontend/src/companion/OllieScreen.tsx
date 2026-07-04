@@ -62,6 +62,7 @@ export function OllieScreen(): JSX.Element {
       convo.beginListening(); // keep UI in listening until upload starts
       const blob = await recorder.stop();
       if (blob) void convo.sendReply(blob);
+      else convo.cancelListening("I didn't catch that — tap the mic and try again.");
     }
   }, [canSpeak, isListening, recorder, convo]);
 
@@ -109,6 +110,11 @@ export function OllieScreen(): JSX.Element {
           >
             {recorder.error ?? status}
           </p>
+          {phase === 'error' && (
+            <button type="button" className="overlay-retry" onClick={convo.retry}>
+              Try again
+            </button>
+          )}
         </div>
 
         <div className="overlay-dock">
