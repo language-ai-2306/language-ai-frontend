@@ -399,6 +399,9 @@
 /* ── Repeat-After-Me picker (difficulty select before the game) ─────────────── */
 .lq-screen--repeat {
   background: var(--lq-purple);
+  /* Let the browser own vertical scroll while horizontal (swipe-back) gestures
+     reach useSwipeBack. */
+  touch-action: pan-y;
 }
 /* Purple content sheet (matches the topbar), rising over the room hero. */
 .lq-picker {

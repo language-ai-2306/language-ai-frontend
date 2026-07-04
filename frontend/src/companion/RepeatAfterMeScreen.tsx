@@ -12,7 +12,9 @@ import { Play, Speech, User, type LucideIcon } from 'lucide-react';
 
 import { EXERCISE_LABELS, useApp, type GameDifficulty } from '../store/AppStore';
 import { AvatarStage } from './components/AvatarStage';
+import { BackSwipeHint } from './components/BackSwipeHint';
 import { BirdLoader } from './components/BirdLoader';
+import { useSwipeBack } from './hooks/useSwipeBack';
 import { HOME_CAMERA } from './three/avatarConfig';
 import './home.css';
 
@@ -40,8 +42,20 @@ export function RepeatAfterMeScreen(): JSX.Element {
     (l) => !(state.currentGame === 'STORY_TELLER' && l.key === 'twister'),
   );
 
+  // Swipe left (or tap the back arrow) to return to the previous screen (Home).
+  const goBack = (): void => navigate('home');
+  const { handlers, dragX, dragging, progress } = useSwipeBack(goBack);
+
   return (
-    <div className="lq-screen lq-screen--repeat">
+    <div
+      className="lq-screen lq-screen--repeat"
+      {...handlers}
+      style={{
+        transform: dragX ? `translateX(${dragX}px)` : undefined,
+        transition: dragging ? 'none' : 'transform 0.25s ease',
+      }}
+    >
+      <BackSwipeHint onBack={goBack} progress={progress} />
       <header className="lq-topbar">
         <div className="lq-brand">
           <span className="lq-brand__badge" aria-hidden="true">
