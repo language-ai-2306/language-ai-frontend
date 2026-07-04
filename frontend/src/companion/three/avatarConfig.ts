@@ -2,7 +2,7 @@
  * avatarConfig — chooses which 3D avatar to render and (for Ready Player Me)
  * where to load it from. Configured via Vite env so it can change without code:
  *
- *   VITE_AVATAR_KIND = fox | rpm          (default: fox)
+ *   VITE_AVATAR_KIND = mascot | fox | rpm     (default: mascot — Ollie the otter)
  *   VITE_RPM_AVATAR_URL = https://models.readyplayer.me/<id>.glb
  *
  * Create an avatar in ~30s at https://readyplayer.me/avatar, copy its .glb URL
@@ -20,8 +20,10 @@ const REQUIRED_MORPHS = 'Oculus Visemes,ARKit,eyeBlinkLeft,eyeBlinkRight';
 const PERF_PARAMS = 'textureAtlas=1024&lod=1';
 
 const KIND = ((import.meta.env.VITE_AVATAR_KIND as string) || '').toLowerCase();
+// Default is the mascot (Ollie the otter) so local and remote match without any
+// env override; set VITE_AVATAR_KIND=fox (or =rpm) to switch explicitly.
 export const AVATAR_KIND: AvatarKind =
-  KIND === 'rpm' ? 'rpm' : KIND === 'mascot' ? 'mascot' : 'fox';
+  KIND === 'rpm' ? 'rpm' : KIND === 'fox' ? 'fox' : 'mascot';
 
 /**
  * Ensure the RPM GLB ships with the mouth/eye blendshapes we drive. These query
