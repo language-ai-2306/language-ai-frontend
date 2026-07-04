@@ -1,0 +1,419 @@
+/* Patient overview — clinical dashboard. Inherits .doc-portal tokens. */
+
+/* ---- Header -------------------------------------------------------------- */
+.po-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.6rem;
+  flex-wrap: wrap;
+}
+.po-head__left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+.po-back {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--doc-border-strong);
+  background: var(--doc-surface);
+  color: var(--doc-ink);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.po-back:hover {
+  background: #f1f1f7;
+}
+.po-name {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.9rem;
+  letter-spacing: -0.02em;
+}
+.po-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+.po-sub {
+  margin: 0.2rem 0 0;
+  color: var(--doc-muted);
+  font-weight: 600;
+}
+.po-head__actions {
+  display: flex;
+  gap: 0.7rem;
+}
+
+/* Ghost button variant (used here + elsewhere in the portal). */
+.doc-btn--ghost {
+  background: var(--doc-surface);
+  color: var(--doc-ink);
+  border: 1px solid var(--doc-border-strong);
+}
+.doc-btn--ghost:hover {
+  background: #f1f1f7;
+}
+
+/* ---- Layout -------------------------------------------------------------- */
+.po-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+.po-stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+}
+@media (max-width: 1040px) {
+  .po-grid {
+    grid-template-columns: 1fr;
+  }
+  .po-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Stat cards ---------------------------------------------------------- */
+.po-stat {
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+  border-radius: 16px;
+  padding: 1.2rem 1.3rem;
+  box-shadow: 0 6px 18px rgba(20, 20, 43, 0.05);
+}
+.po-stat__label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--doc-muted);
+}
+.po-stat__value {
+  display: block;
+  margin: 0.35rem 0 0.5rem;
+  font-weight: 800;
+  font-size: 2.1rem;
+  line-height: 1;
+  color: var(--doc-ink);
+}
+.po-stat__value small {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--doc-muted);
+  margin-left: 0.15rem;
+}
+.po-stat__deltas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}
+.po-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #4b5563;
+}
+.po-delta__label {
+  color: var(--doc-faint);
+  font-weight: 600;
+}
+
+/* ---- AI clinical summary (mock) ------------------------------------------ */
+.po-ai {
+  grid-column: 1 / -1;
+  background: linear-gradient(150deg, #3a1e6d 0%, #2a1454 100%);
+  border-radius: 16px;
+  padding: 1.4rem 1.5rem;
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(42, 20, 84, 0.32);
+}
+.po-ai__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+.po-ai__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+.po-ai__title svg {
+  color: #c4b5fd;
+}
+.po-ai__tag {
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #e9deff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.po-ai__text {
+  margin: 0 0 0.6rem;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.92);
+}
+.po-ai__rec {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 700;
+  color: #e9deff;
+}
+.po-ai__chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.po-ai__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.po-ai__note {
+  margin: 0.9rem 0 0;
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ---- Generic card -------------------------------------------------------- */
+.po-card {
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+  border-radius: 16px;
+  padding: 1.3rem;
+  box-shadow: 0 6px 18px rgba(20, 20, 43, 0.05);
+}
+.po-card__title {
+  margin: 0 0 1rem;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--doc-ink);
+}
+.po-muted {
+  color: var(--doc-muted);
+  font-weight: 600;
+}
+.po-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+/* ---- Definition lists ---------------------------------------------------- */
+.po-dl {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+}
+.po-dl--wide {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.po-dl > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.po-dl dt {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--doc-faint);
+}
+.po-dl dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--doc-ink);
+}
+.po-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.po-chip {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--doc-indigo-weak);
+  color: var(--doc-indigo);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* ---- Bars ---------------------------------------------------------------- */
+.po-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.po-bar__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.po-bar__label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--doc-ink);
+}
+.po-bar__val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--doc-muted);
+}
+.po-bar__track {
+  height: 9px;
+  border-radius: 999px;
+  background: #eeeef4;
+  overflow: hidden;
+}
+.po-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c3aed, var(--doc-indigo));
+  transition: width 0.4s ease;
+}
+
+/* ---- Table --------------------------------------------------------------- */
+.po-table-wrap {
+  overflow-x: auto;
+}
+.po-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.po-table th {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--doc-faint);
+  border-bottom: 1px solid var(--doc-border);
+}
+.po-table td {
+  padding: 0.6rem;
+  border-bottom: 1px solid var(--doc-border);
+  color: var(--doc-ink);
+  font-weight: 600;
+}
+.po-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---- Practice calendar --------------------------------------------------- */
+.po-cal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.po-cal__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 34px;
+}
+.po-cal__dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--doc-indigo);
+}
+.po-cal__day {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--doc-muted);
+}
+
+/* ---- Attempts ------------------------------------------------------------ */
+.po-attempts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.po-attempt {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--doc-border);
+  border-radius: 12px;
+  background: #fafafd;
+}
+.po-attempt__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+}
+.po-attempt__type {
+  font-weight: 800;
+  color: var(--doc-ink);
+}
+.po-attempt__date {
+  font-size: 0.8rem;
+  color: var(--doc-muted);
+}
+.po-attempt__scores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+.po-attempt__btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  background: var(--doc-accent);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.po-attempt__btn:hover {
+  filter: brightness(1.08);
+}

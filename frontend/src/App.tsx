@@ -14,9 +14,15 @@ import { ProfileSetupScreen } from './companion/ProfileSetupScreen';
 import { QuickStartScreen } from './companion/QuickStartScreen';
 import { RepeatAfterMeScreen } from './companion/RepeatAfterMeScreen';
 import { SignUpScreen } from './companion/SignUpScreen';
+import { TaskCompleteScreen } from './companion/TaskCompleteScreen';
 import { TherapistSetupScreen } from './companion/TherapistSetupScreen';
 import { VerifyEmailScreen } from './companion/VerifyEmailScreen';
 import { RewardToast } from './components/RewardToast';
+import { DoctorProfileScreen } from './doctor/DoctorProfileScreen';
+import { NewRequestsScreen } from './doctor/NewRequestsScreen';
+import { PatientDashboardScreen } from './doctor/PatientDashboardScreen';
+import { PlansScreen } from './doctor/PlansScreen';
+import { PatientOverviewScreen } from './doctor/PatientOverviewScreen';
 import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
 import { ReadAloudScreen } from './screens/ReadAloudScreen';
@@ -62,12 +68,24 @@ function Router(): JSX.Element {
       return <LevelCompleteScreen />;
     case 'dailyComplete':
       return <DailyCompleteScreen />;
+    case 'taskComplete':
+      return <TaskCompleteScreen />;
     case 'account':
       return <AccountScreen />;
     case 'explore':
       return <ExploreTherapistsScreen />;
     case 'profile':
       return <ProfileScreen />;
+    case 'docPatients':
+      return <PatientDashboardScreen />;
+    case 'docPatientDetail':
+      return <PatientOverviewScreen />;
+    case 'docRequests':
+      return <NewRequestsScreen />;
+    case 'docProfile':
+      return <DoctorProfileScreen />;
+    case 'docPlans':
+      return <PlansScreen />;
     case 'home':
     default:
       return <HomeScreen />;

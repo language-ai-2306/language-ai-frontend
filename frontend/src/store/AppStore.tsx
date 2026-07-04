@@ -17,6 +17,7 @@ import {
 
 import { UNAUTHORIZED_EVENT } from '../api/client';
 import { clearToken, getToken } from '../api/token';
+import type { Role } from '../types/api';
 
 export type Screen =
   | 'login'
@@ -36,9 +37,15 @@ export type Screen =
   | 'assessment'
   | 'levelComplete'
   | 'dailyComplete'
+  | 'taskComplete'
   | 'account'
   | 'explore'
-  | 'profile';
+  | 'profile'
+  | 'docPatients'
+  | 'docPatientDetail'
+  | 'docRequests'
+  | 'docProfile'
+  | 'docPlans';
 export type Exercise = 'repeat' | 'read' | 'chat' | 'breathing';
 
 /** Which kind of account the sign-up flow is creating. Patients are the
@@ -167,11 +174,17 @@ export interface AppState {
   signupDraft: SignupDraft | null;
   /** Bearer token (mirrors localStorage via api/token). Null when logged out. */
   authToken: string | null;
+  /** Signed-in user's role (from /auth/me). Persisted so a reloaded doctor boots
+   *  straight to the clinician portal instead of the patient home. Null = logged out. */
+  role: Role | null;
   /** The patient's chosen avatar image URL (from /auth/me). Null for doctors / none. */
   avatarUrl: string | null;
   /** How the therapist screen was opened: 'explore' = browse the directory
    *  directly; 'mine' = show the assigned therapist (or browse if none). */
   therapistView: 'explore' | 'mine';
+  /** Doctor portal: the patient whose overview is open (id + name for an instant
+   *  header while the full clinical detail loads). Null when none is selected. */
+  docPatient: { id: string; name: string } | null;
 }
 
 const XP_PER_LEVEL = 100;
@@ -224,6 +237,7 @@ interface Persisted {
   levelsToday: number;
   levelDay: string | null;
   hasDoctor: boolean;
+  role: Role | null;
 }
 
 const SCREENS: Screen[] = [
@@ -244,9 +258,15 @@ const SCREENS: Screen[] = [
   'assessment',
   'levelComplete',
   'dailyComplete',
+  'taskComplete',
   'account',
   'explore',
   'profile',
+  'docPatients',
+  'docPatientDetail',
+  'docRequests',
+  'docProfile',
+  'docPlans',
 ];
 
 /** Dev/QA: `?screen=home` boots straight to a given screen for previewing,
@@ -298,10 +318,14 @@ function loadPersisted(): Persisted | null {
 function makeInitialState(): AppState {
   const p = loadPersisted();
   const token = getToken();
+  const role = p?.role ?? null;
   return {
-    // A saved token means "stay logged in" — boot to the dashboard. A stale token
-    // will 401 on the first call and route back to login automatically.
-    screen: readScreenOverride() ?? (token ? 'home' : 'login'),
+    // A saved token means "stay logged in" — boot to the right home for the role
+    // (doctors → clinician portal). A stale token will 401 on the first call and
+    // route back to login automatically.
+    screen:
+      readScreenOverride() ??
+      (token ? (role === 'DOCTOR' ? 'docPatients' : 'home') : 'login'),
     name: p?.name ?? '',
     avatar: p?.avatar ?? 'lion',
     profileComplete: p?.profileComplete ?? false,
@@ -323,8 +347,10 @@ function makeInitialState(): AppState {
     pendingVerification: null,
     signupDraft: null,
     authToken: token,
+    role,
     avatarUrl: null,
     therapistView: 'explore',
+    docPatient: null,
   };
 }
 
@@ -345,8 +371,10 @@ type Action =
   | { type: 'setPendingVerification'; value: PendingVerification | null }
   | { type: 'setSignupDraft'; value: SignupDraft | null }
   | { type: 'setAuthToken'; value: string | null }
+  | { type: 'setRole'; value: Role | null }
   | { type: 'setAvatarUrl'; value: string | null }
   | { type: 'setTherapistView'; value: 'explore' | 'mine' }
+  | { type: 'setDocPatient'; value: { id: string; name: string } | null }
   | { type: 'setHasDoctor'; value: boolean }
   | { type: 'toggleSound' }
   | { type: 'toggleSimple' }
@@ -399,10 +427,14 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, signupDraft: action.value };
     case 'setAuthToken':
       return { ...state, authToken: action.value };
+    case 'setRole':
+      return { ...state, role: action.value };
     case 'setAvatarUrl':
       return { ...state, avatarUrl: action.value };
     case 'setTherapistView':
       return { ...state, therapistView: action.value };
+    case 'setDocPatient':
+      return { ...state, docPatient: action.value };
     case 'setHasDoctor':
       return { ...state, hasDoctor: action.value };
     case 'toggleSound':
@@ -488,10 +520,14 @@ export interface AppApi {
   setSignupDraft: (value: SignupDraft | null) => void;
   /** Mirror the stored bearer token into state (call after login). */
   setAuthToken: (value: string | null) => void;
+  /** Persist the signed-in user's role (call after login, from /auth/me). */
+  setRole: (value: Role | null) => void;
   /** Set the patient's avatar image URL (from /auth/me or after editing). */
   setAvatarUrl: (value: string | null) => void;
   /** Set how the therapist screen opens ('explore' browse vs 'mine' assigned). */
   setTherapistView: (value: 'explore' | 'mine') => void;
+  /** Doctor portal: select which patient's overview to open (id + name). */
+  setDocPatient: (value: { id: string; name: string } | null) => void;
   /** Clear the token and return to the login screen. */
   logout: () => void;
   /** Set whether the child has a doctor (drives the landing-page variant). */
@@ -516,6 +552,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
   useEffect(() => {
     const onUnauthorized = (): void => {
       dispatch({ type: 'setAuthToken', value: null });
+      dispatch({ type: 'setRole', value: null });
       dispatch({ type: 'navigate', screen: 'login' });
     };
     window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
@@ -536,6 +573,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       levelsToday: state.levelsToday,
       levelDay: state.levelDay,
       hasDoctor: state.hasDoctor,
+      role: state.role,
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
@@ -554,6 +592,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     state.levelsToday,
     state.levelDay,
     state.hasDoctor,
+    state.role,
   ]);
 
   const api = useMemo<AppApi>(
@@ -569,11 +608,14 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       setPendingVerification: (value) => dispatch({ type: 'setPendingVerification', value }),
       setSignupDraft: (value) => dispatch({ type: 'setSignupDraft', value }),
       setAuthToken: (value) => dispatch({ type: 'setAuthToken', value }),
+      setRole: (value) => dispatch({ type: 'setRole', value }),
       setAvatarUrl: (value) => dispatch({ type: 'setAvatarUrl', value }),
       setTherapistView: (value) => dispatch({ type: 'setTherapistView', value }),
+      setDocPatient: (value) => dispatch({ type: 'setDocPatient', value }),
       logout: () => {
         clearToken();
         dispatch({ type: 'setAuthToken', value: null });
+        dispatch({ type: 'setRole', value: null });
         dispatch({ type: 'navigate', screen: 'login' });
       },
       setHasDoctor: (value) => dispatch({ type: 'setHasDoctor', value }),

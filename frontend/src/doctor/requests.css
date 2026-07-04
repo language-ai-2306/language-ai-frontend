@@ -1,0 +1,191 @@
+/* New Patient Requests — inherits .doc-portal tokens. Prefix: .rq-* */
+.rq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.2rem;
+}
+
+.rq-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--doc-surface);
+  border: 1px solid var(--doc-border);
+  border-radius: 16px;
+  padding: 1.3rem 1.3rem 1.2rem;
+  box-shadow: 0 6px 18px rgba(20, 20, 43, 0.05);
+}
+.rq-card__accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7c3aed, var(--doc-indigo));
+}
+
+.rq-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+.rq-card__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #a78bfa, #7c3aed);
+  color: #fff;
+  font-weight: 800;
+}
+.rq-card__name {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--doc-ink);
+}
+.rq-card__nick {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--doc-faint);
+}
+.rq-card__parent {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--doc-muted);
+}
+.rq-card__badge {
+  margin-left: auto;
+  flex: none;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: #fff3d6;
+  color: #8a5a00;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rq-card__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+.rq-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--doc-border);
+  border-radius: 10px;
+  background: #fafafd;
+}
+.rq-field__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--doc-faint);
+}
+.rq-field__val {
+  font-weight: 700;
+  color: var(--doc-ink);
+}
+.rq-field__val--muted {
+  color: var(--doc-faint);
+  font-weight: 600;
+}
+
+.rq-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--doc-border);
+  border-radius: 10px;
+  background: #fafafd;
+  margin-bottom: 1rem;
+}
+.rq-note__text {
+  margin: 0;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--doc-muted);
+  line-height: 1.45;
+}
+
+.rq-error {
+  margin: 0 0 0.7rem;
+  color: #9a2b52;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.rq-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+.rq-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: filter 0.15s ease, background 0.15s ease;
+}
+.rq-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.rq-btn--accept {
+  flex: 1;
+  border: none;
+  background: linear-gradient(180deg, #5b2ea6 0%, var(--doc-accent) 100%);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(76, 29, 149, 0.28);
+}
+.rq-btn--accept:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.rq-btn--schedule {
+  flex: 1;
+  border: 1px solid var(--doc-border-strong);
+  background: var(--doc-surface);
+  color: var(--doc-ink);
+}
+.rq-btn--schedule:hover:not(:disabled) {
+  background: #f1f1f7;
+}
+.rq-btn--reject {
+  flex: none;
+  border: 1px solid #f0c2d2;
+  background: #fff;
+  color: #c02b5a;
+}
+.rq-btn--reject:hover:not(:disabled) {
+  background: #fdf0f4;
+}
+
+.rq-toast {
+  margin-bottom: 1.2rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  background: #e7f7d8;
+  color: #3f6d16;
+  font-weight: 700;
+}
