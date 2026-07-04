@@ -239,7 +239,7 @@ export function HomeScreen(): JSX.Element {
     me()
       .then((u) => {
         if (!alive) return;
-        setName(u.first_name);
+        setName(u.first_name ?? '');
         setAvatarUrl(u.avatar_url ?? null);
       })
       .catch(() => undefined);
@@ -277,7 +277,7 @@ export function HomeScreen(): JSX.Element {
     name: exName(it.exercise_type),
     difficulty: exDiff(it.difficulty),
     duration: it.duration_minutes ?? null,
-    days: it.scheduled_days.map((d) => DAY_LABEL[d] ?? d),
+    days: (it.scheduled_days ?? []).map((d) => DAY_LABEL[d] ?? d),
     icon: EX_ICON[it.exercise_type] ?? '⭐',
     accent: EX_ACCENT[it.exercise_type] ?? '#a06ee8',
   }));

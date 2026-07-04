@@ -30,10 +30,11 @@ import {
 import type { AvatarState } from '../types';
 import { AVATAR_KIND } from './avatarConfig';
 
-// TEST(temporary): trying the HD ARKit Ollie. REVERT to the otter (uncomment the
-// line below) + delete public/models/ollie_hd_arkit_lipsync_test.glb when done.
-// const MODEL_URL = '/models/basicanimationottermodel.glb';
-const MODEL_URL = '/models/ollie_hd_arkit_lipsync_test.glb';
+// Ollie the otter — the HD ARKit-blendshape model, web-optimized (meshopt geometry
+// + WebP/1K textures: 11.8 MB → 1.2 MB, ~90% smaller). Same rig, 55 morph targets
+// and Idle clip as the source ollie_hd_arkit_lipsync_test.glb — verified identical.
+// drei's useGLTF decodes meshopt out of the box (bundled MeshoptDecoder, no CDN).
+const MODEL_URL = '/models/ollie_otter_web.glb';
 /** Yaw (degrees) to turn the model toward the camera. */
 const YAW_DEG = -90;
 /** World height the model is scaled to fill (matches the camera framing). */

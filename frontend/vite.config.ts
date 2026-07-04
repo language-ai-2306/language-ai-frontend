@@ -2,8 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // In dev, proxy the real backend's route prefixes to FastAPI so the frontend can
-// use relative URLs (no CORS surprises). Override the target with VITE_API_PROXY.
-const apiTarget = process.env.VITE_API_PROXY ?? 'http://localhost:8080';
+// use relative URLs (no CORS surprises). Defaults to the deployed backend; point
+// it at a local FastAPI with `VITE_API_PROXY=http://localhost:8080 npm run dev`.
+const apiTarget = process.env.VITE_API_PROXY ?? 'http://13.211.161.254:8080';
 
 export default defineConfig({
   plugins: [react()],

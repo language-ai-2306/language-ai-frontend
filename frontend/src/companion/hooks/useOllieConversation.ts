@@ -28,7 +28,9 @@ interface UseOllieConversation {
   mouthOpen: number;
   isSpeaking: boolean;
   start: () => void; // begin the session (call once, on mount)
+  retry: () => void; // re-attempt after a connection error
   beginListening: () => void; // recording started
+  cancelListening: (message?: string) => void; // recording produced nothing → back to ready
   sendReply: (audio: Blob) => Promise<void>; // recording stopped → upload
   replay: () => void; // hear Ollie's last line again
   end: () => void; // end the session (on exit)
@@ -67,7 +69,24 @@ export function useOllieConversation(): UseOllieConversation {
     }
   }, [speak]);
 
-  const beginListening = useCallback(() => setPhase('listening'), []);
+  // Re-attempt the greeting after a connection error (resets the once-guard).
+  const retry = useCallback(() => {
+    setError(null);
+    startedRef.current = false;
+    void start();
+  }, [start]);
+
+  const beginListening = useCallback(() => {
+    setError(null); // clear any "didn't catch that" note when a new turn starts
+    setPhase('listening');
+  }, []);
+
+  // Recording produced no audio (empty / too short) → return to the child's turn
+  // with a gentle note, instead of hanging in "listening…".
+  const cancelListening = useCallback((message?: string) => {
+    setError(message ?? null);
+    setPhase('ready');
+  }, []);
 
   const sendReply = useCallback(
     async (audio: Blob): Promise<void> => {
@@ -107,7 +126,9 @@ export function useOllieConversation(): UseOllieConversation {
     mouthOpen: player.mouthOpen,
     isSpeaking: player.isPlaying,
     start,
+    retry,
     beginListening,
+    cancelListening,
     sendReply,
     replay,
     end,

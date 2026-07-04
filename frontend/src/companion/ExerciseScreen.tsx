@@ -54,6 +54,28 @@ function fmtTime(s: number): string {
   return `${m}:${(s % 60).toString().padStart(2, '0')}`;
 }
 
+/**
+ * Picture Talk prompt image. The frame reserves its space immediately (fixed
+ * aspect ratio) and shows a shimmer skeleton until the bitmap loads, then fades
+ * the image in — so the phrase below never jumps. Resets on each new prompt.
+ */
+function ExerciseImage({ src }: { src: string }): JSX.Element {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => setLoaded(false), [src]);
+  return (
+    <div className="exercise-image__frame">
+      {!loaded && <span className="exercise-image__skeleton" aria-hidden="true" />}
+      <img
+        className={`exercise-image${loaded ? ' is-loaded' : ''}`}
+        src={src}
+        alt="Talk about this picture"
+        onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
+      />
+    </div>
+  );
+}
+
 export function ExerciseScreen(): JSX.Element {
   const { state, navigate } = useApp();
   const game = SLUG[state.currentGame];
@@ -87,12 +109,15 @@ export function ExerciseScreen(): JSX.Element {
     return () => window.clearInterval(id);
   }, [hasTimer, showWarning]);
 
-  // Time's up → mark the session COMPLETED (once).
+  // Time's up → mark the session COMPLETED (once) and celebrate. complete() and
+  // stop() are fire-and-forget, so navigating away immediately is safe.
   useEffect(() => {
     if (hasTimer && timeLeft === 0 && !completedRef.current) {
       completedRef.current = true;
       setCompleted(true);
       ex.complete();
+      void recorder.stop();
+      navigate('taskComplete');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, hasTimer]);
@@ -111,6 +136,7 @@ export function ExerciseScreen(): JSX.Element {
       ex.beginListening();
       const blob = await recorder.stop();
       if (blob) void ex.submit(blob);
+      else ex.cancelListening("I didn't catch that — tap the mic and try again.");
     }
   }, [canSpeak, isListening, recorder, ex]);
 
@@ -178,9 +204,7 @@ export function ExerciseScreen(): JSX.Element {
 
         <div className={`overlay-phrase${hasTimer ? ' overlay-phrase--timer' : ''}`}>
           <span className="overlay-phrase__eyebrow">{EYEBROW[state.currentGame]}</span>
-          {content?.image_url && (
-            <img className="exercise-image" src={content.image_url} alt="Talk about this picture" />
-          )}
+          {content?.image_url && <ExerciseImage src={content.image_url} />}
           {/* Story Teller is listen-and-retell — the child hears the story, so we
               don't show the text (that would be reading, not retelling). */}
           {state.currentGame !== 'STORY_TELLER' && (
@@ -193,6 +217,11 @@ export function ExerciseScreen(): JSX.Element {
           >
             {recorder.error ?? status}
           </p>
+          {phase === 'error' && (
+            <button type="button" className="overlay-retry" onClick={ex.retry}>
+              Try again
+            </button>
+          )}
         </div>
 
         <div className="overlay-dock">

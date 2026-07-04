@@ -16,7 +16,7 @@ import { getToken } from '../api/token';
 import './auth.css';
 
 export function LoginScreen(): JSX.Element {
-  const { navigate, setAuthToken, setName, setAvatarUrl } = useApp();
+  const { navigate, setAuthToken, setName, setAvatarUrl, setRole } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
@@ -34,9 +34,11 @@ export function LoginScreen(): JSX.Element {
     try {
       const user = await login(email.trim(), password); // stores token + returns /auth/me
       setAuthToken(getToken()); // mirror into the store
-      setName(user.first_name);
+      setRole(user.role); // persisted → a reloaded doctor boots to the portal
+      setName(user.first_name ?? '');
       setAvatarUrl(user.avatar_url ?? null);
-      navigate('home');
+      // Doctors go to the desktop clinician portal; patients to the kid dashboard.
+      navigate(user.role === 'DOCTOR' ? 'docPatients' : 'home');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Login failed. Please try again.');
     } finally {

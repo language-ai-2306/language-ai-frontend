@@ -43,3 +43,4 @@ backups/3d-models/*.fbx
 .vscode/
 *.log
 .Rhistory
+backups/3d-models/*.gltf
