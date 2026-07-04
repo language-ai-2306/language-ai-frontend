@@ -60,6 +60,9 @@ export function useExerciseGame(
   const [content, setContent] = useState<ExerciseContent | null>(null);
   const [error, setError] = useState<string | null>(null);
   const startedRef = useRef(false);
+  // 1-based attempt count for the CURRENT phrase. Reset to 1 each time a new
+  // prompt is shown; bumped on every retry. The backend caps retries with it.
+  const attemptNoRef = useRef(1);
 
   // Planned play sends plan_item_id (backend derives difficulty/phoneme); free
   // play sends difficulty. This is the content-request shape for either mode.
@@ -68,6 +71,7 @@ export function useExerciseGame(
   // Show a resolved prompt: set it, then play its spoken audio (if any) → ready.
   const showContent = useCallback(
     (c: ExerciseContent): void => {
+      attemptNoRef.current = 1; // new phrase → back to the first attempt
       setContent(c);
       if (c.audio) {
         setPhase('speaking');
@@ -148,8 +152,30 @@ export function useExerciseGame(
       setPhase('scoring');
       setError(null);
       try {
-        const res = await submitAttempt(game, { contentId: c.content_id, audio, planItemId });
-        // Prefetch the next prompt NOW — it loads while the feedback clip plays.
+        const res = await submitAttempt(game, {
+          contentId: c.content_id,
+          audio,
+          planItemId,
+          attemptNumber: attemptNoRef.current,
+        });
+
+        // Below the pass bar → stay on the SAME phrase so the child can try
+        // again. The backend caps retries (returns should_retry=false once the
+        // attempt limit is hit), so when it's false we always advance.
+        if (res.should_retry) {
+          attemptNoRef.current += 1;
+          const backToReady = () => setPhase('ready'); // same prompt, ready to re-record
+          if (res.feedback_audio) {
+            setPhase('speaking');
+            void player.play(res.feedback_audio, 'audio/mpeg', backToReady);
+          } else {
+            backToReady();
+          }
+          return;
+        }
+
+        // Passed (or retries exhausted) → advance. Prefetch the next prompt NOW,
+        // so it loads while the feedback clip plays.
         const nextPromise = getContent(game, contentOpts);
         if (res.feedback_audio) {
           setPhase('speaking');
@@ -170,7 +196,9 @@ export function useExerciseGame(
   const replay = useCallback(() => {
     if (content?.audio) {
       setPhase('speaking');
-      player.replay(() => setPhase('ready'));
+      // Always replay the PHRASE prompt — not player.replay(), which repeats the
+      // last-played clip (on a retry that's the "try again" feedback, not the phrase).
+      void player.play(content.audio, 'audio/mpeg', () => setPhase('ready'));
     }
   }, [content, player]);
 

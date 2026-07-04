@@ -61,7 +61,7 @@ export function getContent(
 /** POST /attempt — analyse a recording and score it (audio uploaded as WAV). */
 export async function submitAttempt(
   game: GameSlug,
-  opts: { contentId: string; audio: Blob; planItemId?: string; useMock?: boolean },
+  opts: { contentId: string; audio: Blob; planItemId?: string; useMock?: boolean; attemptNumber?: number },
 ): Promise<ExerciseAttempt> {
   let file = opts.audio;
   let filename = 'attempt.wav';
@@ -75,5 +75,7 @@ export async function submitAttempt(
   form.append('content_id', opts.contentId);
   if (opts.planItemId) form.append('plan_item_id', opts.planItemId);
   form.append('use_mock', String(opts.useMock ?? false));
+  // 1-based attempt count for this phrase; the backend caps retries with it.
+  form.append('attempt_number', String(opts.attemptNumber ?? 1));
   return request<ExerciseAttempt>(`/v1/exercises/${game}/attempt`, { method: 'POST', body: form });
 }

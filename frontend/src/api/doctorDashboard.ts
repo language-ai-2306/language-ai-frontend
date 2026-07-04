@@ -7,7 +7,8 @@
  *                                 Drives the "All Patients" dashboard.
  *   • GET /v1/doctor/patients  → caseload triage with clinical metrics (richer).
  */
-import { request } from './client';
+import { ApiError, request } from './client';
+import { getToken } from './token';
 
 /* ------------------------------------------------------------------ *
  *  GET /v1/patient — approved patients (paginated). Dashboard source.
@@ -115,6 +116,27 @@ export interface PatientDetail {
 /** GET /v1/doctor/patients/{id} — full clinical dashboard for one patient. */
 export function getPatientDetail(patientId: string): Promise<PatientDetail> {
   return request<PatientDetail>(`/v1/doctor/patients/${patientId}`);
+}
+
+/**
+ * GET /v1/doctor/patients/{id}/report.pdf — the patient progress report as a PDF.
+ * Uses a direct fetch (not the JSON-only `request` helper) to receive the binary
+ * blob, but mirrors its auth + ngrok headers.
+ */
+export async function getPatientReportPdf(patientId: string, windowDays?: number): Promise<Blob> {
+  const token = getToken();
+  const base = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
+  const qs = windowDays ? `?window_days=${windowDays}` : '';
+  const res = await fetch(`${base}/v1/doctor/patients/${patientId}/report.pdf${qs}`, {
+    headers: {
+      'ngrok-skip-browser-warning': 'true',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (!res.ok) {
+    throw new ApiError(`Could not generate the report (${res.status}).`, res.status);
+  }
+  return res.blob();
 }
 
 /* ------------------------------------------------------------------ *
