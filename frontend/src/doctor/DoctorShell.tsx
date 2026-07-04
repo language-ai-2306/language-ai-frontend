@@ -8,9 +8,11 @@
  * is active. Tabs without a `screen` yet render disabled ("coming soon").
  */
 import { Bell, Monitor } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { useApp, type Screen } from '../store/AppStore';
+import { LegalModal } from '../legal/LegalModal';
+import type { LegalKind } from '../legal/legalDocs';
 import './doctor.css';
 
 export type DoctorTab = 'patients' | 'requests' | 'plans';
@@ -47,6 +49,7 @@ interface DoctorShellProps {
 export function DoctorShell({ active, footer = true, showTabs = true, children }: DoctorShellProps): JSX.Element {
   const { state, navigate } = useApp();
   const doctorName = state.name.trim() || 'Dr. Vance';
+  const [legal, setLegal] = useState<LegalKind | null>(null);
 
   return (
     <div className="doc-portal">
@@ -116,8 +119,24 @@ export function DoctorShell({ active, footer = true, showTabs = true, children }
                 <span>© 2026 LanguageAI. Clinical Excellence in Speech Therapy.</span>
               </div>
               <nav className="doc-footer__links" aria-label="Legal">
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#terms">Terms of Service</a>
+                <a
+                  href="#privacy"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setLegal('privacy');
+                  }}
+                >
+                  Privacy Policy
+                </a>
+                <a
+                  href="#terms"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setLegal('terms');
+                  }}
+                >
+                  Terms of Service
+                </a>
                 <a href="#support">Support</a>
                 <a href="#contact">Contact</a>
               </nav>
@@ -125,6 +144,7 @@ export function DoctorShell({ active, footer = true, showTabs = true, children }
           </footer>
         )}
       </div>
+      {legal && <LegalModal audience="therapist" kind={legal} onClose={() => setLegal(null)} />}
     </div>
   );
 }

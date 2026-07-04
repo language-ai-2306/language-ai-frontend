@@ -111,6 +111,13 @@
   left: 50%;
   transform: translateX(-50%);
   width: min(92%, 460px);
+  /* Cap the dialogue box at ~40% of the screen; the text inside scrolls past
+     that so it never covers the avatar or the mic/close controls. */
+  max-height: 40vh;
+  max-height: 40dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   text-align: center;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(12px);
@@ -118,6 +125,11 @@
   border-radius: 24px;
   padding: 0.9rem 1.2rem 1rem;
   box-shadow: 0 8px 28px rgba(38, 54, 77, 0.14);
+}
+/* Keep the eyebrow label and status pinned; only the text scrolls. */
+.overlay-phrase__eyebrow,
+.overlay-phrase__status {
+  flex: none;
 }
 .overlay-phrase__eyebrow {
   display: block;
@@ -130,11 +142,24 @@
 }
 .overlay-phrase__text {
   margin: 0;
+  /* Scroll region: takes the space left under the eyebrow and shows a scrollbar
+     when the passage is longer than the capped card. */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Invisible scroller — scrollable, but no visible scrollbar. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge/IE */
   font-family: "Baloo 2", "Nunito", system-ui, sans-serif;
   font-weight: 700;
   font-size: clamp(1.4rem, 5.6vw, 1.95rem);
   line-height: 1.32;
   color: var(--c-navy);
+}
+/* Invisible scroller (Chrome/Safari/WebKit). */
+.overlay-phrase__text::-webkit-scrollbar {
+  display: none;
 }
 /* Read-along: the word currently being spoken lights up. */
 .overlay-phrase__word {
