@@ -5,7 +5,7 @@
  * bearer token; previewing without login shows an auth notice.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CalendarRange, Check, ChevronDown, ListChecks, Plus } from 'lucide-react';
+import { CalendarRange, Check, ChevronDown, Eye, ListChecks, Plus } from 'lucide-react';
 
 import { ApiError } from '../api/client';
 import {
@@ -228,7 +228,12 @@ function PlanCard({
   plan: PlanListItem;
   onStatusChange: (planId: string, status: PlanStatus) => void;
 }): JSX.Element {
+  const { navigate, setDocPlanId } = useApp();
   const items = [...plan.items].sort((a, b) => a.sequence - b.sequence);
+  const openPlan = (): void => {
+    setDocPlanId(plan.plan_id);
+    navigate('docTherapyPlan');
+  };
   return (
     <article className="pl-card">
       <header className="pl-card__head">
@@ -242,7 +247,12 @@ function PlanCard({
             {plan.item_count} exercise{plan.item_count === 1 ? '' : 's'}
           </p>
         </div>
-        <PlanStatusControl plan={plan} onChanged={(s) => onStatusChange(plan.plan_id, s)} />
+        <div className="pl-card__actions">
+          <PlanStatusControl plan={plan} onChanged={(s) => onStatusChange(plan.plan_id, s)} />
+          <button type="button" className="pl-open" onClick={openPlan}>
+            <Eye size={15} aria-hidden="true" /> View plan
+          </button>
+        </div>
       </header>
 
       {items.length === 0 ? (

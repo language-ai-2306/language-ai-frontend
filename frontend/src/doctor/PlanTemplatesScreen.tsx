@@ -61,7 +61,14 @@ const TEMPLATES: Template[] = [
 ];
 
 export function PlanTemplatesScreen(): JSX.Element {
-  const { navigate } = useApp();
+  const { navigate, setPlanEditorMode, setDocPlanId } = useApp();
+
+  // Templates are a starting point for a NEW plan — open the editor in create mode.
+  const useTemplate = (): void => {
+    setDocPlanId(null);
+    setPlanEditorMode('create');
+    navigate('docEditTherapyPlan');
+  };
 
   return (
     <DoctorShell>
@@ -90,11 +97,7 @@ export function PlanTemplatesScreen(): JSX.Element {
                 <h2 className="tpl-card__title">{title}</h2>
                 <p className="tpl-card__desc">{desc}</p>
               </div>
-              <button
-                type="button"
-                className="tpl-card__link"
-                onClick={() => navigate('docTherapyPlan')}
-              >
+              <button type="button" className="tpl-card__link" onClick={useTemplate}>
                 View Details
               </button>
             </article>

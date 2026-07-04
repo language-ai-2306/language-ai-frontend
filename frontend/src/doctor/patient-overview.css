@@ -69,25 +69,61 @@
 }
 
 /* ---- Layout -------------------------------------------------------------- */
-.po-grid {
+/* Left rail (patient/session/plan) + main pane (metrics, goals, recordings). */
+.po-layout {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: minmax(300px, 340px) 1fr;
   gap: 1.2rem;
   align-items: start;
 }
+.po-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.po-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  min-width: 0;
+}
 .po-stats {
-  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.2rem;
 }
+/* Weekly-goals ring beside the AI summary. */
+.po-toprow {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  gap: 1.2rem;
+  align-items: stretch;
+}
+/* Full-width richer clinical detail below the two-column area. */
+.po-extras {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 1.2rem;
+}
+@media (max-width: 1200px) {
+  .po-toprow {
+    grid-template-columns: 1fr;
+  }
+}
 @media (max-width: 1040px) {
-  .po-grid {
+  .po-layout {
     grid-template-columns: 1fr;
   }
   .po-stats {
     grid-template-columns: 1fr;
   }
+}
+
+/* A button that fills its card's width. */
+.po-full {
+  width: 100%;
+  justify-content: center;
 }
 
 /* ---- Stat cards ---------------------------------------------------------- */
@@ -140,7 +176,8 @@
 
 /* ---- AI clinical summary (mock) ------------------------------------------ */
 .po-ai {
-  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(150deg, #3a1e6d 0%, #2a1454 100%);
   border-radius: 16px;
   padding: 1.4rem 1.5rem;
@@ -206,6 +243,8 @@
 }
 .po-ai__note {
   margin: 0.9rem 0 0;
+  margin-top: auto;
+  padding-top: 0.9rem;
   font-size: 0.74rem;
   color: rgba(255, 255, 255, 0.55);
 }
@@ -415,5 +454,248 @@
   cursor: pointer;
 }
 .po-attempt__btn:hover {
+  filter: brightness(1.08);
+}
+
+/* ---- Placeholder value (fields the API doesn't provide) ------------------ */
+.po-dd--empty {
+  color: var(--doc-faint);
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* ---- Patient details: avatar + heading ----------------------------------- */
+.po-details__head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.1rem;
+}
+.po-details__title {
+  margin: 0;
+}
+.po-avatar {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--doc-indigo-weak);
+  color: var(--doc-indigo);
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Next session (placeholder — no scheduling API) ---------------------- */
+.po-next__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 1rem 0 1.2rem;
+}
+.po-next__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f1f1f7;
+  color: var(--doc-muted);
+  margin-bottom: 0.3rem;
+}
+.po-next__lead {
+  margin: 0;
+  font-weight: 700;
+  color: var(--doc-ink);
+}
+.po-next__note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--doc-muted);
+}
+
+/* ---- Treatment plan ------------------------------------------------------ */
+.po-plan__status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: #f6f6fb;
+  border: 1px solid var(--doc-border);
+  margin-bottom: 1rem;
+}
+.po-plan__k {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--doc-faint);
+}
+.po-plan__v {
+  font-weight: 800;
+  color: var(--doc-ink);
+}
+.po-plan__btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-bottom: 0.7rem;
+}
+.doc-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Weekly goals ring --------------------------------------------------- */
+.po-goals {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.po-goals .po-card__title {
+  align-self: flex-start;
+}
+.po-goals__ring {
+  margin: 0.4rem 0 1.1rem;
+}
+.po-donut {
+  width: 150px;
+  height: 150px;
+}
+.po-donut__track {
+  fill: none;
+  stroke: #ececf4;
+  stroke-width: 12;
+}
+.po-donut__fill {
+  fill: none;
+  stroke: #7c3aed;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+.po-donut__pct {
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 30px;
+  fill: var(--doc-ink);
+}
+.po-donut__unit {
+  font-size: 14px;
+  font-weight: 700;
+  fill: var(--doc-muted);
+}
+.po-goals__stats {
+  display: flex;
+  gap: 1.4rem;
+  width: 100%;
+  justify-content: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--doc-border);
+}
+.po-goals__stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+.po-goals__k {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--doc-faint);
+}
+.po-goals__v {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--doc-ink);
+}
+.po-goals__v--accent {
+  color: var(--doc-indigo);
+}
+.po-goals__note {
+  margin: 0.8rem 0 0;
+  font-size: 0.78rem;
+  color: var(--doc-muted);
+  text-align: center;
+}
+
+/* ---- Game recordings ----------------------------------------------------- */
+.po-recs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.po-rec {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--doc-border);
+  border-radius: 12px;
+  background: #fafafd;
+}
+.po-rec__icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: var(--doc-accent);
+  color: #fff;
+}
+.po-rec__icon--light {
+  background: var(--doc-indigo-weak);
+  color: var(--doc-indigo);
+}
+.po-rec__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+}
+.po-rec__name {
+  font-weight: 800;
+  color: var(--doc-ink);
+}
+.po-rec__date {
+  font-size: 0.8rem;
+  color: var(--doc-muted);
+}
+.po-rec__scores {
+  font-size: 0.76rem;
+  color: var(--doc-faint);
+  font-weight: 600;
+}
+.po-rec__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 9px;
+  padding: 0.55rem 0.9rem;
+  background: var(--doc-accent);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.po-rec__btn:hover {
   filter: brightness(1.08);
 }

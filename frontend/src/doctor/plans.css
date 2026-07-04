@@ -360,3 +360,30 @@
   font-weight: 600;
   font-size: 0.92rem;
 }
+
+/* View-plan action on a plan card (opens the live Therapy Plan view). */
+.pl-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: none;
+}
+.pl-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--doc-border-strong);
+  border-radius: 9px;
+  background: #fff;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--doc-accent);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+.pl-open:hover {
+  background: #efe9fb;
+}

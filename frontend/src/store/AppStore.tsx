@@ -191,6 +191,8 @@ export interface AppState {
   /** How the Therapy Plan editor opens: 'edit' an existing plan (pre-filled) or
    *  'create' a brand-new one (blank, name editable). */
   planEditorMode: 'create' | 'edit';
+  /** The plan (GUID) currently being viewed/edited. Null when creating a new one. */
+  docPlanId: string | null;
 }
 
 const XP_PER_LEVEL = 100;
@@ -361,6 +363,7 @@ function makeInitialState(): AppState {
     therapistView: 'explore',
     docPatient: null,
     planEditorMode: 'edit',
+    docPlanId: null,
   };
 }
 
@@ -386,6 +389,7 @@ type Action =
   | { type: 'setTherapistView'; value: 'explore' | 'mine' }
   | { type: 'setDocPatient'; value: { id: string; name: string } | null }
   | { type: 'setPlanEditorMode'; value: 'create' | 'edit' }
+  | { type: 'setDocPlanId'; value: string | null }
   | { type: 'setHasDoctor'; value: boolean }
   | { type: 'toggleSound' }
   | { type: 'toggleSimple' }
@@ -448,6 +452,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, docPatient: action.value };
     case 'setPlanEditorMode':
       return { ...state, planEditorMode: action.value };
+    case 'setDocPlanId':
+      return { ...state, docPlanId: action.value };
     case 'setHasDoctor':
       return { ...state, hasDoctor: action.value };
     case 'toggleSound':
@@ -543,6 +549,8 @@ export interface AppApi {
   setDocPatient: (value: { id: string; name: string } | null) => void;
   /** Set how the Therapy Plan editor opens ('create' blank vs 'edit' pre-filled). */
   setPlanEditorMode: (value: 'create' | 'edit') => void;
+  /** Set which plan (GUID) the Therapy Plan view/editor loads. Null = new plan. */
+  setDocPlanId: (value: string | null) => void;
   /** Clear the token and return to the login screen. */
   logout: () => void;
   /** Set whether the child has a doctor (drives the landing-page variant). */
@@ -628,6 +636,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       setTherapistView: (value) => dispatch({ type: 'setTherapistView', value }),
       setDocPatient: (value) => dispatch({ type: 'setDocPatient', value }),
       setPlanEditorMode: (value) => dispatch({ type: 'setPlanEditorMode', value }),
+      setDocPlanId: (value) => dispatch({ type: 'setDocPlanId', value }),
       logout: () => {
         clearToken();
         dispatch({ type: 'setAuthToken', value: null });

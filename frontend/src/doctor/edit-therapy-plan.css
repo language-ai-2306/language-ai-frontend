@@ -86,10 +86,14 @@
   border: 1px solid var(--doc-border);
   border-radius: 16px;
   box-shadow: 0 4px 14px rgba(20, 20, 43, 0.04);
-  overflow: hidden;
+  /* Not `overflow: hidden` — that clips the "Add Day"/"Add Exercise" popovers.
+     The header's rounded top corners are handled on the <th> cells instead. */
 }
 .etp-table-wrap {
-  overflow-x: auto;
+  /* `overflow-x: auto` forces overflow-y to `auto` too, which clips the day
+     picker and traps an inner scrollbar. Keep it visible so popovers escape and
+     the page scrolls normally (desktop-only, so no wide-table scroll needed). */
+  overflow: visible;
 }
 .etp-table {
   width: 100%;
@@ -106,6 +110,13 @@
   text-transform: uppercase;
   color: var(--doc-muted);
   white-space: nowrap;
+}
+/* Round the header to match the card, now that the card no longer clips. */
+.etp-table thead th:first-child {
+  border-top-left-radius: 16px;
+}
+.etp-table thead th:last-child {
+  border-top-right-radius: 16px;
 }
 .etp-th-remove,
 .etp-td-remove {
@@ -386,4 +397,16 @@
   position: fixed;
   inset: 0;
   z-index: 40;
+}
+
+/* Save/load error banner. */
+.etp-error {
+  margin: 0 0 1.1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: #fdeaea;
+  border: 1px solid #f5c2c2;
+  color: #b91c1c;
+  font-weight: 700;
+  font-size: 0.95rem;
 }

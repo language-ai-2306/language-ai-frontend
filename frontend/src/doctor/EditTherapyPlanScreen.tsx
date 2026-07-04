@@ -1,79 +1,81 @@
 /**
- * EditTherapyPlanScreen — the editable Therapy Plan (tab-less focused page).
- * Reached from "Edit Plan" (pre-filled with the plan's exercises) or from
- * "Customize New Plan" (blank, with an editable plan name). Lets the clinician
- * tweak each exercise's schedule days, daily duration and difficulty, remove
- * exercises, and add new ones.
+ * EditTherapyPlanScreen — the editable Therapy Plan (tab-less focused page),
+ * wired to the plans API.
  *
- * Local, in-memory editing for now (demo); wire Save Changes to
- * PATCH /v1/plans/{id} (+ its items) to persist.
+ *   • 'create' mode → blank, editable plan name; Save POSTs a new plan for the
+ *     selected patient and activates it.
+ *   • 'edit' mode → loads the plan named by docPlanId; Save diffs the rows against
+ *     the loaded items and issues add / update / delete item calls.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, Check, FileDown, Pencil, Plus, PlusCircle, Trash2, X } from 'lucide-react';
 
+import { ApiError } from '../api/client';
+import {
+  addPlanItem,
+  createPlan,
+  deletePlanItem,
+  getPlan,
+  updatePlan,
+  updatePlanItem,
+} from '../api/plans';
 import { useApp } from '../store/AppStore';
 import { DoctorShell } from './DoctorShell';
+import {
+  GAMES,
+  WEEKDAYS,
+  isNewRow,
+  itemToRow,
+  makeRow,
+  rowToItemInput,
+  type EditRow,
+} from './planMapping';
 import './edit-therapy-plan.css';
-
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const GAMES = ['Read It Loud', 'Picture Talk', 'Story Teller', 'Repeat After Me', 'Talk with Ollie'];
-
-interface EditRow {
-  id: string;
-  name: string;
-  days: string[];
-  duration: number;
-  /** Selected difficulty; null for adaptive (Talk with Ollie). */
-  difficulty: string | null;
-  /** Available difficulty options ([] for adaptive). */
-  levels: string[];
-  adaptive: boolean;
-}
-
-let _nextId = 1;
-const uid = (): string => `ex-${_nextId++}`;
-
-function levelsFor(name: string): string[] {
-  if (name === 'Talk with Ollie') return [];
-  if (name === 'Repeat After Me') return ['Easy', 'Medium', 'Hard', 'Tongue Twister'];
-  return ['Easy', 'Medium', 'Hard'];
-}
-
-function makeRow(name: string, days: string[], duration: number, difficulty: string | null): EditRow {
-  const levels = levelsFor(name);
-  return {
-    id: uid(),
-    name,
-    days,
-    duration,
-    difficulty: levels.length ? (difficulty ?? levels[0]) : null,
-    levels,
-    adaptive: levels.length === 0,
-  };
-}
-
-/** Pre-filled plan for "edit" mode (matches the Therapy Plan view). */
-function initialRows(): EditRow[] {
-  return [
-    makeRow('Read It Loud', ['Mon', 'Wed', 'Fri'], 15, 'Medium'),
-    makeRow('Picture Talk', ['Tue', 'Thu'], 15, 'Medium'),
-    makeRow('Story Teller', ['Mon', 'Thu'], 15, 'Easy'),
-    makeRow('Repeat After Me', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], 15, 'Medium'),
-    makeRow('Talk with Ollie', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], 10, null),
-  ];
-}
 
 const byWeekday = (a: string, b: string): number => WEEKDAYS.indexOf(a) - WEEKDAYS.indexOf(b);
 
 export function EditTherapyPlanScreen(): JSX.Element {
-  const { state, navigate } = useApp();
+  const { state, navigate, setDocPlanId } = useApp();
   const create = state.planEditorMode === 'create';
+  const planId = state.docPlanId;
 
-  const [rows, setRows] = useState<EditRow[]>(() => (create ? [] : initialRows()));
+  const [rows, setRows] = useState<EditRow[]>([]);
   const [planName, setPlanName] = useState(create ? 'New Therapy Plan' : 'Therapy Plan');
   const [editingName, setEditingName] = useState(false);
   const [dayPickerFor, setDayPickerFor] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [loading, setLoading] = useState(!create && !!planId);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [originalIds, setOriginalIds] = useState<string[]>([]);
+
+  // Edit mode: load the plan's items to pre-fill the editor.
+  useEffect(() => {
+    if (create || !planId) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    (async (): Promise<void> => {
+      try {
+        const p = await getPlan(planId);
+        if (cancelled) return;
+        const loaded = [...p.items].sort((a, b) => a.sequence - b.sequence).map(itemToRow);
+        setRows(loaded);
+        setPlanName(p.title);
+        setOriginalIds(loaded.map((r) => r.id));
+      } catch (e) {
+        if (!cancelled) setError(e instanceof ApiError ? e.message : 'Could not load the plan.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [create, planId]);
 
   const closeMenus = (): void => {
     setDayPickerFor(null);
@@ -86,9 +88,7 @@ export function EditTherapyPlanScreen(): JSX.Element {
   const addDay = (id: string, day: string): void => {
     setRows((rs) =>
       rs.map((r) =>
-        r.id === id && !r.days.includes(day)
-          ? { ...r, days: [...r.days, day].sort(byWeekday) }
-          : r,
+        r.id === id && !r.days.includes(day) ? { ...r, days: [...r.days, day].sort(byWeekday) } : r,
       ),
     );
     setDayPickerFor(null);
@@ -102,6 +102,65 @@ export function EditTherapyPlanScreen(): JSX.Element {
   const addExercise = (name: string): void => {
     setRows((rs) => [...rs, makeRow(name, ['Mon'], 15, null)]);
     setAddOpen(false);
+  };
+
+  // ---- Save ---------------------------------------------------------------
+  const save = async (): Promise<void> => {
+    setSaving(true);
+    setError(null);
+    try {
+      if (create) {
+        if (!state.docPatient?.id) {
+          setError('Open a patient from All Patients first, then create a plan.');
+          setSaving(false);
+          return;
+        }
+        const created = await createPlan({
+          patient_id: state.docPatient.id,
+          title: planName.trim() || 'Therapy Plan',
+          items: rows.map((r, i) => rowToItemInput(r, i + 1)),
+        });
+        // New plans start as DRAFT — activate so they surface as the patient's
+        // active plan. Best-effort: a failed activation shouldn't lose the plan.
+        try {
+          await updatePlan(created.plan_id, { status: 'ACTIVE' });
+        } catch {
+          /* non-fatal */
+        }
+        setDocPlanId(created.plan_id);
+        navigate('docTherapyPlan');
+        return;
+      }
+
+      // Edit: diff rows against the originally-loaded items.
+      if (!planId) {
+        setError('No plan selected to save.');
+        setSaving(false);
+        return;
+      }
+      const currentIds = new Set(rows.map((r) => r.id));
+      for (const id of originalIds) {
+        if (!currentIds.has(id)) await deletePlanItem(planId, id);
+      }
+      for (let i = 0; i < rows.length; i++) {
+        const input = rowToItemInput(rows[i], i + 1);
+        if (isNewRow(rows[i].id)) {
+          await addPlanItem(planId, input);
+        } else {
+          await updatePlanItem(planId, rows[i].id, {
+            difficulty: input.difficulty,
+            sequence: input.sequence,
+            frequency: input.frequency,
+            duration_minutes: input.duration_minutes,
+            schedule: input.schedule,
+          });
+        }
+      }
+      navigate('docTherapyPlan');
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Could not save the plan. Please try again.');
+      setSaving(false);
+    }
   };
 
   return (
@@ -151,154 +210,165 @@ export function EditTherapyPlanScreen(): JSX.Element {
             <button
               type="button"
               className="doc-btn doc-btn--primary"
-              onClick={() => navigate('docTherapyPlan')}
+              onClick={() => void save()}
+              disabled={saving || loading}
             >
-              <Check size={17} aria-hidden="true" /> Save Changes
+              <Check size={17} aria-hidden="true" /> {saving ? 'Saving…' : 'Save Changes'}
             </button>
           </div>
         </div>
 
-        <div className="etp-card">
-          <div className="etp-table-wrap">
-            <table className="etp-table">
-              <thead>
-                <tr>
-                  <th>Exercise Name</th>
-                  <th>Recommended Days</th>
-                  <th>Daily Duration</th>
-                  <th>Difficulty Level</th>
-                  <th className="etp-th-remove">Remove</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="etp-empty">
-                      No exercises yet — add one to build this plan.
-                    </td>
-                  </tr>
-                ) : (
-                  rows.map((r) => {
-                    const remaining = WEEKDAYS.filter((d) => !r.days.includes(d));
-                    return (
-                      <tr key={r.id}>
-                        <td className="etp-exname">{r.name}</td>
-                        <td>
-                          <div className="etp-days">
-                            {r.days.map((d) => (
-                              <span key={d} className="etp-daychip">
-                                {d}
-                                <button
-                                  type="button"
-                                  className="etp-daychip__x"
-                                  onClick={() => removeDay(r.id, d)}
-                                  aria-label={`Remove ${d}`}
-                                >
-                                  <X size={12} aria-hidden="true" />
-                                </button>
-                              </span>
-                            ))}
-                            <div className="etp-daypick">
-                              <button
-                                type="button"
-                                className="etp-addday"
-                                onClick={() => setDayPickerFor((cur) => (cur === r.id ? null : r.id))}
-                                disabled={remaining.length === 0}
-                              >
-                                <Plus size={13} aria-hidden="true" /> Add Day
-                              </button>
-                              {dayPickerFor === r.id && remaining.length > 0 && (
-                                <div className="etp-daymenu">
-                                  {remaining.map((d) => (
-                                    <button
-                                      key={d}
-                                      type="button"
-                                      className="etp-daymenu__item"
-                                      onClick={() => addDay(r.id, d)}
-                                    >
-                                      {d}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="etp-dur">
-                            <input
-                              type="number"
-                              min={1}
-                              max={120}
-                              className="etp-durinput"
-                              value={r.duration}
-                              onChange={(e) => setDuration(r.id, e.target.value)}
-                              aria-label={`${r.name} daily minutes`}
-                            />
-                            <span className="etp-dur__unit">mins</span>
-                          </div>
-                        </td>
-                        <td>
-                          {r.adaptive ? (
-                            <span className="etp-adaptive">Adaptive AI</span>
-                          ) : (
-                            <div className="etp-levels">
-                              {r.levels.map((lvl) => (
-                                <button
-                                  key={lvl}
-                                  type="button"
-                                  className={`etp-pill${lvl === r.difficulty ? ' etp-pill--on' : ''}`}
-                                  onClick={() => setDifficulty(r.id, lvl)}
-                                >
-                                  {lvl}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </td>
-                        <td className="etp-td-remove">
-                          <button
-                            type="button"
-                            className="etp-remove"
-                            onClick={() => removeRow(r.id)}
-                            aria-label={`Remove ${r.name}`}
-                          >
-                            <Trash2 size={17} aria-hidden="true" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+        {error && (
+          <p className="etp-error" role="alert">
+            {error}
+          </p>
+        )}
 
-          <div className="etp-cardfoot">
-            <p className="etp-note">
-              Changes made here will immediately update the child&apos;s personalized therapy plan.
-            </p>
-            <div className="etp-addwrap">
-              <button type="button" className="etp-add" onClick={() => setAddOpen((o) => !o)}>
-                <PlusCircle size={17} aria-hidden="true" /> Add Exercise
-              </button>
-              {addOpen && (
-                <div className="etp-addmenu">
-                  {GAMES.map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      className="etp-addmenu__item"
-                      onClick={() => addExercise(g)}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              )}
+        {loading ? (
+          <p className="doc-empty">Loading plan…</p>
+        ) : (
+          <div className="etp-card">
+            <div className="etp-table-wrap">
+              <table className="etp-table">
+                <thead>
+                  <tr>
+                    <th>Exercise Name</th>
+                    <th>Recommended Days</th>
+                    <th>Daily Duration</th>
+                    <th>Difficulty Level</th>
+                    <th className="etp-th-remove">Remove</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="etp-empty">
+                        No exercises yet — add one to build this plan.
+                      </td>
+                    </tr>
+                  ) : (
+                    rows.map((r) => {
+                      const remaining = WEEKDAYS.filter((d) => !r.days.includes(d));
+                      return (
+                        <tr key={r.id}>
+                          <td className="etp-exname">{r.name}</td>
+                          <td>
+                            <div className="etp-days">
+                              {r.days.map((d) => (
+                                <span key={d} className="etp-daychip">
+                                  {d}
+                                  <button
+                                    type="button"
+                                    className="etp-daychip__x"
+                                    onClick={() => removeDay(r.id, d)}
+                                    aria-label={`Remove ${d}`}
+                                  >
+                                    <X size={12} aria-hidden="true" />
+                                  </button>
+                                </span>
+                              ))}
+                              <div className="etp-daypick">
+                                <button
+                                  type="button"
+                                  className="etp-addday"
+                                  onClick={() => setDayPickerFor((cur) => (cur === r.id ? null : r.id))}
+                                  disabled={remaining.length === 0}
+                                >
+                                  <Plus size={13} aria-hidden="true" /> Add Day
+                                </button>
+                                {dayPickerFor === r.id && remaining.length > 0 && (
+                                  <div className="etp-daymenu">
+                                    {remaining.map((d) => (
+                                      <button
+                                        key={d}
+                                        type="button"
+                                        className="etp-daymenu__item"
+                                        onClick={() => addDay(r.id, d)}
+                                      >
+                                        {d}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="etp-dur">
+                              <input
+                                type="number"
+                                min={1}
+                                max={120}
+                                className="etp-durinput"
+                                value={r.duration}
+                                onChange={(e) => setDuration(r.id, e.target.value)}
+                                aria-label={`${r.name} daily minutes`}
+                              />
+                              <span className="etp-dur__unit">mins</span>
+                            </div>
+                          </td>
+                          <td>
+                            {r.adaptive ? (
+                              <span className="etp-adaptive">Adaptive AI</span>
+                            ) : (
+                              <div className="etp-levels">
+                                {r.levels.map((lvl) => (
+                                  <button
+                                    key={lvl}
+                                    type="button"
+                                    className={`etp-pill${lvl === r.difficulty ? ' etp-pill--on' : ''}`}
+                                    onClick={() => setDifficulty(r.id, lvl)}
+                                  >
+                                    {lvl}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </td>
+                          <td className="etp-td-remove">
+                            <button
+                              type="button"
+                              className="etp-remove"
+                              onClick={() => removeRow(r.id)}
+                              aria-label={`Remove ${r.name}`}
+                            >
+                              <Trash2 size={17} aria-hidden="true" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="etp-cardfoot">
+              <p className="etp-note">
+                Changes made here will immediately update the child&apos;s personalized therapy plan.
+              </p>
+              <div className="etp-addwrap">
+                <button type="button" className="etp-add" onClick={() => setAddOpen((o) => !o)}>
+                  <PlusCircle size={17} aria-hidden="true" /> Add Exercise
+                </button>
+                {addOpen && (
+                  <div className="etp-addmenu">
+                    {GAMES.map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        className="etp-addmenu__item"
+                        onClick={() => addExercise(g)}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {(dayPickerFor !== null || addOpen) && (
