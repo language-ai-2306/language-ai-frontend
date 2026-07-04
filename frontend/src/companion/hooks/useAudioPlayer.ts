@@ -23,9 +23,46 @@ function base64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
+/**
+ * A single AudioContext shared by every player instance. Mobile browsers (iOS
+ * Safari especially, and strict desktop ones) only let audio start from within a
+ * user gesture — but Ollie's greeting/replies play from an async network
+ * callback, long after the tap that opened the screen. By creating this one
+ * context and resuming it on the *first* pointer/touch/key event, every later
+ * play() is already unlocked, so the voice actually plays. Without this, you get
+ * no sound AND no mouth movement (the analyser never runs) on every device.
+ */
+let sharedCtx: AudioContext | null = null;
+let unlockArmed = false;
+
+function getSharedCtx(): AudioContext | null {
+  const Ctx = window.AudioContext ?? (window as WebkitWindow).webkitAudioContext;
+  if (!Ctx) return null;
+  if (!sharedCtx) sharedCtx = new Ctx();
+  return sharedCtx;
+}
+
+/** Resume the shared context on the first user gesture (once per app load). */
+function armAudioUnlock(): void {
+  if (unlockArmed || typeof document === 'undefined') return;
+  unlockArmed = true;
+  const unlock = (): void => {
+    const c = getSharedCtx();
+    if (c && c.state !== 'running') void c.resume();
+  };
+  // Not { once: true } — re-unlock after any iOS interruption too. Idempotent.
+  for (const ev of ['pointerdown', 'touchend', 'keydown', 'click']) {
+    document.addEventListener(ev, unlock, { passive: true });
+  }
+}
+
+// Arm at module load so the earliest tap anywhere in the app (login, home,
+// entering a game) unlocks audio — before Ollie's greeting ever fires.
+armAudioUnlock();
+
 export function useAudioPlayer(): UseAudioPlayer {
-  const ctxRef = useRef<AudioContext | null>(null);
   const srcRef = useRef<AudioBufferSourceNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef<{ base64: string; mime: string } | null>(null);
   // Generation token, bumped on every stop()/new play(). An in-flight play() that
@@ -55,6 +92,12 @@ export function useAudioPlayer(): UseAudioPlayer {
       src.disconnect();
       srcRef.current = null;
     }
+    // Disconnect the analyser too — otherwise it stays wired to destination and
+    // one dangling node accumulates per clip over a long session.
+    if (analyserRef.current) {
+      analyserRef.current.disconnect();
+      analyserRef.current = null;
+    }
     setIsPlaying(false);
     setMouthOpen(0);
   }, []);
@@ -70,16 +113,15 @@ export function useAudioPlayer(): UseAudioPlayer {
       const myToken = tokenRef.current;
       const alive = (): boolean => tokenRef.current === myToken && !disposedRef.current;
 
-      const Ctx = window.AudioContext ?? (window as WebkitWindow).webkitAudioContext;
-      if (!Ctx) {
+      const ctx = getSharedCtx();
+      if (!ctx) {
         onEnded?.();
         return;
       }
-      let ctx: AudioContext;
       try {
-        ctx = ctxRef.current ?? new Ctx();
-        ctxRef.current = ctx;
-        if (ctx.state === 'suspended') await ctx.resume();
+        // Resume from 'suspended' and iOS Safari's 'interrupted' state. The
+        // first-gesture unlock normally has the shared context running already.
+        if (ctx.state !== 'running') await ctx.resume();
       } catch {
         if (alive()) onEnded?.(); // autoplay blocked / context failed — don't stall the flow
         return;
@@ -103,6 +145,7 @@ export function useAudioPlayer(): UseAudioPlayer {
         src.connect(analyser);
         analyser.connect(ctx.destination);
         srcRef.current = src;
+        analyserRef.current = analyser;
 
         const data = new Uint8Array(analyser.fftSize);
         const tick = (): void => {
@@ -125,6 +168,19 @@ export function useAudioPlayer(): UseAudioPlayer {
         src.start();
         tick();
       } catch {
+        // Setup/start failed — reset so isPlaying/srcRef don't stick, then let
+        // the flow continue (don't bump the token, so alive() stays true).
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+        if (analyserRef.current) {
+          analyserRef.current.disconnect();
+          analyserRef.current = null;
+        }
+        srcRef.current = null;
+        setIsPlaying(false);
+        setMouthOpen(0);
         if (alive()) onEnded?.(); // context torn down mid-setup — don't stall the flow
       }
     },
@@ -138,14 +194,19 @@ export function useAudioPlayer(): UseAudioPlayer {
     [play],
   );
 
-  useEffect(
-    () => () => {
-      disposedRef.current = true; // block any play() from a late-resolving callback
+  // Re-arm on every (re)mount, THEN block on teardown. React StrictMode runs
+  // effects setup→cleanup→setup on the SAME instance (same refs); without
+  // resetting this on setup, the cleanup's `= true` sticks and makes every later
+  // play() bail before decoding — that was the "no audio" regression. On a real
+  // unmount, `= true` still blocks a late-resolving callback. The *shared* audio
+  // context is intentionally left open for the next screen.
+  useEffect(() => {
+    disposedRef.current = false;
+    return () => {
+      disposedRef.current = true;
       stop();
-      if (ctxRef.current && ctxRef.current.state !== 'closed') void ctxRef.current.close();
-    },
-    [stop],
-  );
+    };
+  }, [stop]);
 
   return { isPlaying, mouthOpen, play, replay, stop };
 }
