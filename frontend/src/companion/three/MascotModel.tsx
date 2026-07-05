@@ -30,11 +30,13 @@ import {
 import type { AvatarState } from '../types';
 import { AVATAR_KIND } from './avatarConfig';
 
-// Ollie the otter — the HD ARKit-blendshape model, web-optimized (meshopt geometry
-// + WebP/1K textures: 11.8 MB → 1.2 MB, ~90% smaller). Same rig, 55 morph targets
-// and Idle clip as the source ollie_hd_arkit_lipsync_test.glb — verified identical.
+// Ollie the otter — HD "perfected" build exported from hd_model_perfected.blend:
+// full body rig (Head + Jaw bones), 53 ARKit blendshapes (jawOpen, mouthFunnel,
+// mouthPucker, mouthSmile…) driving lip-sync, and the Idle.001 clip as idle.
+// WebP textures + meshopt-compressed geometry/morphs (EXT_meshopt_compression +
+// KHR_mesh_quantization): 14 MB → 1.6 MB, rig/morphs/animation verified identical.
 // drei's useGLTF decodes meshopt out of the box (bundled MeshoptDecoder, no CDN).
-const MODEL_URL = '/models/ollie_otter_web.glb';
+const MODEL_URL = '/models/ollie_hd_web.glb';
 /** Yaw (degrees) to turn the model toward the camera. */
 const YAW_DEG = -90;
 /** World height the model is scaled to fill (matches the camera framing). */
