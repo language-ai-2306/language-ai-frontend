@@ -190,6 +190,18 @@
   margin: 0 auto;
   padding: 2.2rem 1.6rem 3rem;
 }
+/* Dashboard variant: make the page fill the full height between header (68px) and
+   footer (64px) — matching .doc-main — and push the pager to the bottom so the
+   content spans the whole page. Scoped to `--fill` so other doctor screens (Plans,
+   Requests, Profile…) keep the natural-height base `.doc-page`. */
+.doc-page--fill {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 68px - 64px);
+}
+.doc-page--fill .doc-pager {
+  margin-top: auto;
+}
 .doc-page__head {
   display: flex;
   align-items: flex-start;
