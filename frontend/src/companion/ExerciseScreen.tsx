@@ -10,6 +10,7 @@ import { useApp, type ExerciseKind, type GameDifficulty } from '../store/AppStor
 import { AvatarStage } from './components/AvatarStage';
 import { BackButton } from './components/BackButton';
 import { BirdLoader } from './components/BirdLoader';
+import { Metronome } from './components/Metronome';
 import { MicrophoneButton, type MicVisualState } from './components/MicrophoneButton';
 import { ReplayButton } from './components/ReplayButton';
 import { useExerciseGame } from './hooks/useExerciseGame';
@@ -210,6 +211,10 @@ export function ExerciseScreen(): JSX.Element {
           {state.currentGame !== 'STORY_TELLER' && (
             <p className="overlay-phrase__text">{content?.text ?? ''}</p>
           )}
+          {/* Syllable-Timed (Westmead): a steady beat to speak along to. */}
+          {content?.technique === 'SYLLABLE_TIMED' && (
+            <Metronome running={canSpeak || isListening} bpm={90} />
+          )}
           <p
             className={`overlay-phrase__status${ex.error ? ' overlay-phrase__status--retry' : ''}`}
             role="status"
@@ -217,6 +222,20 @@ export function ExerciseScreen(): JSX.Element {
           >
             {recorder.error ?? status}
           </p>
+          {/* MEASURED technique result (e.g. "Lovely even beats! ⭐"). */}
+          {ex.techniqueMetric?.label != null && (
+            <p
+              role="status"
+              style={{
+                marginTop: 6,
+                fontSize: 13,
+                fontWeight: 600,
+                color: ex.techniqueMetric.met ? '#059669' : '#b45309',
+              }}
+            >
+              {String(ex.techniqueMetric.label)}
+            </p>
+          )}
           {phase === 'error' && (
             <button type="button" className="overlay-retry" onClick={ex.retry}>
               Try again

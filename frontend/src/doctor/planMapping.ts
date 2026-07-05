@@ -69,6 +69,7 @@ export interface EditRow {
   days: string[];
   duration: number;
   difficulty: string | null;
+  technique: string | null;
   levels: string[];
   adaptive: boolean;
 }
@@ -83,6 +84,7 @@ export function makeRow(
   days: string[],
   duration: number,
   difficulty: string | null,
+  technique: string | null = null,
   id: string = localRowId(),
 ): EditRow {
   const levels = levelsFor(name);
@@ -92,6 +94,7 @@ export function makeRow(
     days,
     duration,
     difficulty: levels.length ? (difficulty ?? levels[0]) : null,
+    technique,
     levels,
     adaptive: levels.length === 0,
   };
@@ -102,7 +105,8 @@ export function itemToRow(item: PlanItem): EditRow {
   const name = exerciseLabel(item.exercise_type);
   const dow = (item.schedule?.days_of_week as string[] | undefined) ?? [];
   const days = item.frequency === 'DAILY' ? [...WEEKDAYS] : dow.map(dayLabel);
-  return makeRow(name, days, item.duration_minutes ?? 15, difficultyLabel(item.difficulty), item.item_id);
+  return makeRow(name, days, item.duration_minutes ?? 15, difficultyLabel(item.difficulty),
+    item.technique ?? null, item.item_id);
 }
 
 /** Editable row → backend item input (POST/PATCH). All 7 days or none → DAILY;
@@ -112,9 +116,20 @@ export function rowToItemInput(row: EditRow, sequence: number): PlanItemInput {
   return {
     exercise_type: TYPE_BY_NAME[row.name] ?? 'REPEAT_AFTER_ME',
     difficulty: row.adaptive ? null : (DIFF_ENUM[row.difficulty ?? ''] ?? null),
+    technique: row.technique || null,
     sequence,
     frequency: weekly ? 'WEEKLY' : 'DAILY',
     duration_minutes: row.duration || null,
     schedule: weekly ? { days_of_week: row.days.map(dayCode) } : {},
   };
 }
+
+/** Technique options for the plan editor dropdown (value → kid-facing label). */
+export const TECHNIQUE_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: 'None' },
+  { value: 'EASY_ONSET', label: 'Gentle Start' },
+  { value: 'LIGHT_CONTACT', label: 'Feather Touch' },
+  { value: 'PROLONGED_SPEECH', label: 'Stretchy Speech' },
+  { value: 'SYLLABLE_TIMED', label: 'Steady Beats' },
+  { value: 'DIAPHRAGMATIC_BREATHING', label: 'Belly Breathing' },
+];
