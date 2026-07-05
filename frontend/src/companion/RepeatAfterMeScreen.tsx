@@ -57,7 +57,7 @@ export function RepeatAfterMeScreen(): JSX.Element {
       <header className="lq-topbar">
         <div className="lq-brand">
           <span className="lq-brand__badge" aria-hidden="true">
-            🦉
+            <img src="/logo.png" alt="" className="lq-brand__logo" />
           </span>
           <span className="lq-brand__title">LanguageAI</span>
         </div>

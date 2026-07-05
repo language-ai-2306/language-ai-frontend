@@ -58,14 +58,20 @@
   gap: 0.6rem;
 }
 .lq-brand__badge {
-  width: 38px;
-  height: 38px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   font-size: 1.25rem;
   background: #fff;
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+}
+.lq-brand__logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .lq-brand__title {
   font-family: "Baloo 2", "Nunito", system-ui, sans-serif;
