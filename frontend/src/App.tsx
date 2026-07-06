@@ -26,6 +26,8 @@ import { PlanTemplatesScreen } from './doctor/PlanTemplatesScreen';
 import { PatientOverviewScreen } from './doctor/PatientOverviewScreen';
 import { TherapyPlanScreen } from './doctor/TherapyPlanScreen';
 import { EditTherapyPlanScreen } from './doctor/EditTherapyPlanScreen';
+import { LandingScreen } from './landing/LandingScreen';
+import { InterviewScreen } from './landing/InterviewScreen';
 import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
 import { ReadAloudScreen } from './screens/ReadAloudScreen';
@@ -37,6 +39,10 @@ import './App.css';
 function Router(): JSX.Element {
   const { state } = useApp();
   switch (state.screen) {
+    case 'landing':
+      return <LandingScreen />;
+    case 'interview':
+      return <InterviewScreen />;
     case 'login':
       return <LoginScreen />;
     case 'signup':
