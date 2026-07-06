@@ -9,6 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   Award,
   BadgeCheck,
@@ -53,8 +54,15 @@ function initials(name: string): string {
 }
 
 export function DoctorProfileScreen(): JSX.Element {
-  const { state, logout } = useApp();
+  const { state, navigate, logout } = useApp();
   const [user, setUser] = useState<UserRead | null>(null);
+
+  // Profile opens from the avatar menu on any page, so Back returns to wherever
+  // the user came from (falling back to the patient dashboard).
+  const backTarget =
+    state.previousScreen && state.previousScreen !== 'docProfile'
+      ? state.previousScreen
+      : 'docPatients';
 
   // Pull real identity fields; failures just leave the store fallbacks in place.
   useEffect(() => {
@@ -76,6 +84,10 @@ export function DoctorProfileScreen(): JSX.Element {
   return (
     <DoctorShell>
       <div className="doc-page dp-page">
+        <button type="button" className="dp-back" onClick={() => navigate(backTarget)}>
+          <ArrowLeft size={18} aria-hidden="true" /> Back
+        </button>
+
         {/* Hero */}
         <section className="dp-hero">
           <span className="dp-hero__avatar" aria-hidden="true">
