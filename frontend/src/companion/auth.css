@@ -36,7 +36,26 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  position: relative;
 }
+
+/* Back-to-landing button (top-left of the card). */
+.auth-back {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: none;
+  border-radius: 50%;
+  background: #f2ecfb;
+  color: var(--c-brand);
+  cursor: pointer;
+}
+.auth-back:hover { background: #e8ddf6; }
 
 /* ---- Brand ---- */
 .auth-logo {

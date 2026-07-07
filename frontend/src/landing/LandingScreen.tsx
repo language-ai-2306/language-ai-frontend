@@ -18,17 +18,34 @@ import {
   FileText,
   Gamepad2,
   Heart,
+  Home,
   Image as ImageIcon,
+  MessageCircle,
   ShieldCheck,
   Sparkles,
   Stethoscope,
   Target,
+  User,
   Users,
 } from 'lucide-react';
 import type { JSX, ReactNode } from 'react';
 
 import { useApp } from '../store/AppStore';
 import './landing.css';
+
+// Optional real footage of the Repeat-after-me game. Drop an mp4 in
+// frontend/public/videos/ and set this to e.g. '/videos/repeat-after-me.mp4' to
+// show the actual game; an empty string uses the animated CSS recreation below.
+const DEMO_VIDEO_URL: string = '';
+
+// A real in-app screenshot to show inside the phone. Drop the image in
+// frontend/public/ and set this to its path, e.g. '/app-screen.png'. An empty
+// string keeps the built-in CSS app mockup below.
+const HERO_APP_IMAGE: string = '/app-home.png';
+
+// Screenshot for the "For families" phone showcase. Defaults to the home screen;
+// drop a game screen in frontend/public/ and point this at it for variety.
+const FAMILIES_APP_IMAGE: string = '/app-games.png';
 
 const NAV_LINKS = [
   { label: 'Product', href: '#how' },
@@ -37,32 +54,31 @@ const NAV_LINKS = [
   { label: 'Pricing', href: '#pricing' },
 ];
 
-const GAMES: { icon: ReactNode; title: string; desc: string; ollie?: boolean }[] = [
+const GAMES: { icon: ReactNode; title: string; desc: string }[] = [
+  {
+    icon: <MessageCircle size={22} />,
+    title: 'Talk with Ollie',
+    desc: 'A friendly back and forth chat with Ollie turns everyday conversation into gentle, encouraging fluency practice.',
+  },
   {
     icon: <BookOpen size={22} />,
-    title: 'Read-it-Loud',
+    title: 'Read It Loud',
     desc: 'Practice reading with gentle pacing prompts, playful rewards, and clear fluency feedback.',
   },
   {
     icon: <AudioLines size={22} />,
-    title: 'Repeat-after-me',
-    desc: "Children echo Ollie's words and sounds while LanguageAI tracks per-sound mastery.",
+    title: 'Repeat After Me',
+    desc: "Children echo Ollie's words and sounds while LanguageAI tracks per sound mastery.",
   },
   {
     icon: <Heart size={22} />,
-    title: 'Story-Teller',
+    title: 'Story Teller',
     desc: 'Prompted stories turn spontaneous speech into rich, clinically useful practice recordings.',
   },
   {
     icon: <ImageIcon size={22} />,
-    title: 'Picture-Talk',
+    title: 'Picture Talk',
     desc: 'Describe friendly scenes, practice target words, and build confidence in natural speech.',
-  },
-  {
-    ollie: true,
-    icon: null,
-    title: 'Converse with Ollie',
-    desc: 'A friendly animated companion reacts, encourages, and keeps practice feeling safe, silly, and worth repeating.',
   },
 ];
 
@@ -77,7 +93,7 @@ const CLIN_PILLS: { icon: ReactNode; label: string }[] = [
 
 const STEPS: { n: number; green?: boolean; title: string; desc: string }[] = [
   { n: 1, title: 'Practice', desc: 'A child plays a short game, reads aloud, describes a picture, or chats with Ollie.' },
-  { n: 2, green: true, title: 'Analyze', desc: 'AI transcribes speech, detects blocks, prolongations, and repetitions, then scores fluency.' },
+  { n: 2, title: 'Analyze', desc: 'AI transcribes speech, detects blocks, prolongations, and repetitions, then scores fluency.' },
   { n: 3, title: 'Review', desc: 'Therapists track trends, adjust goals, and share progress reports families can understand.' },
 ];
 
@@ -89,12 +105,12 @@ const AI_FEATURES: { icon: ReactNode; text: string }[] = [
 
 const QUOTES: { text: string; who: string; green?: boolean }[] = [
   {
-    text: 'LanguageAI gives me the kind of home-practice data I’ve always wanted: clear trends, meaningful disfluency markers, and progress families can understand.',
-    who: 'Speech-language pathologist · placeholder',
+    text: 'LanguageAI gives me the kind of home practice data I’ve always wanted: clear trends, meaningful disfluency markers, and progress families can understand.',
+    who: 'Anonymous Speech language pathologist',
   },
   {
     text: 'My child asks to practice with Ollie. It feels less like homework and more like a game we can celebrate together.',
-    who: 'Parent · placeholder',
+    who: 'Anonymous Parent',
     green: true,
   },
 ];
@@ -110,7 +126,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Is my child’s data private?',
-    a: 'Privacy is central to the product. Practice recordings and reports are handled with a clinical-use mindset and clear family controls.',
+    a: 'Privacy is central to the product. Practice recordings and reports are handled with a clinical use mindset and clear family controls.',
   },
   {
     q: 'What ages is it for?',
@@ -119,12 +135,18 @@ const FAQS: { q: string; a: string }[] = [
 ];
 
 export function LandingScreen(): JSX.Element {
-  const { state, navigate, startGame } = useApp();
-  // Already signed in? Continue straight into the app; otherwise into auth.
+  const { state, navigate } = useApp();
+  // Already signed in? Continue straight into the app; otherwise into auth
+  // (logged-out "Try Now" → login, which then leads into the game).
   const enter = (): void =>
     state.authToken ? navigate(state.role === 'DOCTOR' ? 'docPatients' : 'home') : navigate('login');
-  // "Try Now" jumps straight into the Converse-with-Ollie game.
-  const tryNow = (): void => startGame('converse', null, 'TALK_WITH_OLLIE');
+  // "Try Now" opens the app in a NEW tab via the ?screen= deep-link, leaving the
+  // landing page open. Same destination logic as `enter`: logged-out → login,
+  // signed-in → home/dashboard.
+  const openTryNow = (): void => {
+    const screen = state.authToken ? (state.role === 'DOCTOR' ? 'docPatients' : 'home') : 'login';
+    window.open(`?screen=${screen}`, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="lp">
@@ -139,7 +161,7 @@ export function LandingScreen(): JSX.Element {
           </nav>
           <div className="lp-nav__actions">
             <button type="button" className="lp-btn lp-btn--ghost" onClick={enter}>Sign in</button>
-            <button type="button" className="lp-btn lp-btn--primary" onClick={tryNow}>Try Now !!</button>
+            <button type="button" className="lp-btn lp-btn--primary" onClick={openTryNow}>Try Now !</button>
           </div>
         </div>
       </header>
@@ -148,8 +170,8 @@ export function LandingScreen(): JSX.Element {
       <section className="lp-hero" id="top">
         <div className="lp-container lp-hero__inner">
           <div className="lp-hero__text">
-            <span className="lp-badge"><Sparkles size={16} /> AI-powered practice built with SLPs</span>
-            <h1 className="lp-h1">Speech practice kids love — insight therapists trust.</h1>
+            <span className="lp-badge"><Sparkles size={16} /> AI powered practice built with SLPs</span>
+            <h1 className="lp-h1">Speech practice kids love, insight therapists trust.</h1>
             <p className="lp-lead">
               LanguageAI turns daily fluency practice into playful games with Ollie the otter, while every
               recording becomes objective clinical insight for SLPs.
@@ -163,25 +185,51 @@ export function LandingScreen(): JSX.Element {
               </button>
             </div>
             <ul className="lp-checks">
-              {['Fluency scoring', 'Disfluency detection', 'SLP-ready reports'].map((c) => (
+              {['Fluency scoring', 'Disfluency detection', 'SLP ready reports'].map((c) => (
                 <li key={c}><Check size={16} /> {c}</li>
               ))}
             </ul>
           </div>
 
-          {/* Placeholder for the three.js Ollie scene (swap this node later). */}
+          {/* Hero visual: an animated "Repeat-after-me" demo — Ollie waves hello,
+              says a word, listens, then celebrates, on a loop. Set DEMO_VIDEO_URL
+              to swap in a real screen recording of the game. */}
           <div className="lp-hero__visual" id="hero-ollie" aria-hidden="true">
-            <span className="lp-chip lp-chip--score">Fluency score<b>87%</b></span>
-            <div className="lp-ollie">
-              <span className="lp-ollie__face">•ᴥ•</span>
-              <span className="lp-ollie__label">Converse<br />with Ollie</span>
-              <span className="lp-wave"><i /><i /><i /><i /><i /></span>
-              <span className="lp-ollie__toast">Great try!</span>
-            </div>
-            <span className="lp-chip lp-chip--insight">
-              <b>Session insight</b>
-              Blocks ↓ 12% · WPM 78 · /r/ mastery improving
-            </span>
+            {DEMO_VIDEO_URL ? (
+              <video className="lp-demo__video" src={DEMO_VIDEO_URL} autoPlay loop muted playsInline />
+            ) : (
+              <div className="lp-phone">
+                <div className="lp-phone__screen">
+                  {HERO_APP_IMAGE && <img className="lp-phone__shot" src={HERO_APP_IMAGE} alt="" />}
+                  <div className="lp-phone__status">
+                    <span>9:41</span>
+                    <span className="lp-phone__stat-r">
+                      <span className="lp-phone__bars"><i /><i /><i /><i /></span>
+                      <span className="lp-phone__batt" />
+                    </span>
+                  </div>
+                  <div className="lp-phone__head">
+                    <b>Hi, Ollie! 👋</b>
+                    <small>Let’s practice today</small>
+                  </div>
+                  <div className="lp-phone__body">
+                    <div className="lp-phone__card">
+                      <span className="lp-phone__eyebrow">Repeat after me</span>
+                      <span className="lp-phone__ollie">•ᴥ•</span>
+                      <p className="lp-phone__say">Say: “rabbit” 🐰</p>
+                      <span className="lp-wave"><i /><i /><i /><i /><i /></span>
+                      <span className="lp-phone__great">Great try! · 87%</span>
+                    </div>
+                  </div>
+                  <div className="lp-phone__tabs">
+                    <span className="is-active"><Home size={15} />Home</span>
+                    <span><Gamepad2 size={15} />Practice</span>
+                    <span><BarChart3 size={15} />Progress</span>
+                    <span><User size={15} />Profile</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -189,7 +237,7 @@ export function LandingScreen(): JSX.Element {
       {/* ---- Trust strip ---- */}
       <div className="lp-container">
         <div className="lp-trust">
-          {['Built with SLPs', '5 practice games', 'AI-measured fluency', 'Clinician-ready reports'].map((t, i) => (
+          {['Built with SLPs', '5 practice games', 'AI measured fluency', 'Clinician ready reports'].map((t, i) => (
             <span key={t} className="lp-trust__item">
               {i > 0 && <span className="lp-trust__dot" aria-hidden="true">·</span>}
               {t}
@@ -209,19 +257,23 @@ export function LandingScreen(): JSX.Element {
           </p>
           <div className="lp-grid lp-grid--2 lp-problem">
             <article className="lp-card">
-              <span className="lp-icon lp-icon--soft"><CalendarClock size={22} /></span>
-              <h3 className="lp-h3">Practice is easy to skip</h3>
+              <div className="lp-problem__head">
+                <span className="lp-icon lp-icon--soft"><CalendarClock size={22} /></span>
+                <h3 className="lp-h3">Practice is easy to skip</h3>
+              </div>
               <p className="lp-p">
                 Families want to help, but worksheets feel repetitive, children lose motivation, and SLPs
                 often receive only a vague sense of what happened at home.
               </p>
             </article>
             <article className="lp-card lp-card--violet">
-              <span className="lp-icon lp-icon--on-violet"><Gamepad2 size={22} /></span>
-              <h3 className="lp-h3">Play creates consistency</h3>
-              <p className="lp-p">
+              <div className="lp-problem__head">
+                <span className="lp-icon lp-icon--on-violet"><Gamepad2 size={22} /></span>
+                <h3 className="lp-h3">Play creates consistency</h3>
+              </div>
+              <p className="lp-p lp-p--on-violet">
                 Ollie guides short, playful sessions while AI turns each recording into fluency scores,
-                disfluency patterns, words per minute, and sound-level progress.
+                disfluency patterns, words per minute, and sound level progress.
               </p>
             </article>
           </div>
@@ -237,24 +289,23 @@ export function LandingScreen(): JSX.Element {
             Short, cheerful activities help children build fluency and articulation confidence with instant
             encouragement from Ollie.
           </p>
-          <div className="lp-games">
-            {GAMES.map((g) =>
-              g.ollie ? (
-                <article key={g.title} className="lp-card lp-card--violet lp-game lp-game--ollie">
-                  <span className="lp-ollie-badge"><span className="lp-ollie-badge__face">•ᴥ•</span></span>
-                  <div>
+          <div className="lp-families">
+            <div className="lp-phone lp-phone--showcase">
+              <div className="lp-phone__screen">
+                <img className="lp-phone__shot" src={FAMILIES_APP_IMAGE} alt="The LanguageAI app on a phone" />
+              </div>
+            </div>
+            <div className="lp-games">
+              {GAMES.map((g) => (
+                <article key={g.title} className="lp-card lp-game">
+                  <span className="lp-icon lp-icon--soft">{g.icon}</span>
+                  <div className="lp-game__text">
                     <h3 className="lp-h3">{g.title}</h3>
                     <p className="lp-p">{g.desc}</p>
                   </div>
                 </article>
-              ) : (
-                <article key={g.title} className="lp-card lp-game">
-                  <span className="lp-icon lp-icon--soft">{g.icon}</span>
-                  <h3 className="lp-h3">{g.title}</h3>
-                  <p className="lp-p">{g.desc}</p>
-                </article>
-              ),
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -264,7 +315,7 @@ export function LandingScreen(): JSX.Element {
         <div className="lp-container lp-split">
           <div className="lp-split__text">
             <p className="lp-eyebrow">For SLPs and clinics</p>
-            <h2 className="lp-h2">Clinical-grade insight without extra admin.</h2>
+            <h2 className="lp-h2">Clinical grade insight without extra admin.</h2>
             <p className="lp-sub">
               Monitor patients, build treatment plans, review AI speech analysis, and export progress reports
               from one clean dashboard.
@@ -303,8 +354,10 @@ export function LandingScreen(): JSX.Element {
           <div className="lp-grid lp-grid--3 lp-steps">
             {STEPS.map((s) => (
               <article key={s.n} className="lp-card lp-step">
-                <span className={`lp-step__n${s.green ? ' lp-step__n--green' : ''}`}>{s.n}</span>
-                <h3 className="lp-h3">{s.title}</h3>
+                <div className="lp-step__head">
+                  <span className="lp-step__n">{s.n}</span>
+                  <h3 className="lp-h3">{s.title}</h3>
+                </div>
                 <p className="lp-p">{s.desc}</p>
               </article>
             ))}
@@ -316,14 +369,16 @@ export function LandingScreen(): JSX.Element {
       <section className="lp-section">
         <div className="lp-container lp-split lp-split--ai">
           <div className="lp-card lp-card--violet lp-ai">
-            <span className="lp-icon lp-icon--on-violet"><Brain size={24} /></span>
-            <h2 className="lp-h2 lp-h2--on-violet">AI that translates practice into clinical signal.</h2>
+            <div className="lp-ai__head">
+              <span className="lp-icon lp-icon--on-violet"><Brain size={24} /></span>
+              <h2 className="lp-h2 lp-h2--on-violet">AI that translates practice into clinical signal.</h2>
+            </div>
             <p className="lp-p lp-p--on-violet">
               LanguageAI combines automatic transcription, disfluency detection, fluency scoring,
-              words-per-minute tracking, and per-sound mastery into a simple review workflow built for clinical use.
+              words per minute tracking, and per sound mastery into a simple review workflow built for clinical use.
             </p>
             <div className="lp-pills lp-pills--on-violet">
-              <span className="lp-pill lp-pill--glass"><ShieldCheck size={16} /> Privacy-first</span>
+              <span className="lp-pill lp-pill--glass"><ShieldCheck size={16} /> Privacy first</span>
               <span className="lp-pill lp-pill--glass"><Stethoscope size={16} /> Built for clinical use</span>
             </div>
           </div>
@@ -360,9 +415,9 @@ export function LandingScreen(): JSX.Element {
             <h3 className="lp-cta__title">Start your child’s fluency journey</h3>
             <button type="button" className="lp-btn lp-btn--white" onClick={enter}>Start free</button>
           </div>
-          <div className="lp-card lp-card--ink lp-cta__card">
+          <div className="lp-card lp-card--violet lp-cta__card">
             <h3 className="lp-cta__title">Bring LanguageAI to your clinic</h3>
-            <button type="button" className="lp-btn lp-btn--green" onClick={tryNow}>Try Now !!</button>
+            <button type="button" className="lp-btn lp-btn--green" onClick={openTryNow}>Try Now !</button>
           </div>
         </div>
       </section>
