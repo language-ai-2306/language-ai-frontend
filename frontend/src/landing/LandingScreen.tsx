@@ -28,9 +28,13 @@ import {
   User,
   Users,
 } from 'lucide-react';
+import { useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 
 import { useApp } from '../store/AppStore';
+import { LegalModal } from '../legal/LegalModal';
+import type { LegalKind } from '../legal/legalDocs';
+import { openInterviewAs } from './InterviewScreen';
 import './landing.css';
 
 // Optional real footage of the Repeat-after-me game. Drop an mp4 in
@@ -51,7 +55,6 @@ const NAV_LINKS = [
   { label: 'Product', href: '#how' },
   { label: 'For Families', href: '#families' },
   { label: 'For Clinicians', href: '#clinicians' },
-  { label: 'Pricing', href: '#pricing' },
 ];
 
 const GAMES: { icon: ReactNode; title: string; desc: string }[] = [
@@ -63,7 +66,7 @@ const GAMES: { icon: ReactNode; title: string; desc: string }[] = [
   {
     icon: <BookOpen size={22} />,
     title: 'Read It Loud',
-    desc: 'Practice reading with gentle pacing prompts, playful rewards, and clear fluency feedback.',
+    desc: 'Practice reading with gentle pacing prompts, playful rewards and clear fluency feedback.',
   },
   {
     icon: <AudioLines size={22} />,
@@ -78,7 +81,7 @@ const GAMES: { icon: ReactNode; title: string; desc: string }[] = [
   {
     icon: <ImageIcon size={22} />,
     title: 'Picture Talk',
-    desc: 'Describe friendly scenes, practice target words, and build confidence in natural speech.',
+    desc: 'Describe friendly scenes, practice target words and build confidence in natural speech.',
   },
 ];
 
@@ -92,20 +95,20 @@ const CLIN_PILLS: { icon: ReactNode; label: string }[] = [
 ];
 
 const STEPS: { n: number; green?: boolean; title: string; desc: string }[] = [
-  { n: 1, title: 'Practice', desc: 'A child plays a short game, reads aloud, describes a picture, or chats with Ollie.' },
-  { n: 2, title: 'Analyze', desc: 'AI transcribes speech, detects blocks, prolongations, and repetitions, then scores fluency.' },
-  { n: 3, title: 'Review', desc: 'Therapists track trends, adjust goals, and share progress reports families can understand.' },
+  { n: 1, title: 'Practice', desc: 'A child plays a short game, reads aloud, describes a picture or chats with Ollie.' },
+  { n: 2, title: 'Analyze', desc: 'AI transcribes speech, detects blocks, prolongations and repetitions, then scores fluency.' },
+  { n: 3, title: 'Review', desc: 'Therapists track trends, adjust goals and share progress reports families can understand.' },
 ];
 
 const AI_FEATURES: { icon: ReactNode; text: string }[] = [
   { icon: <FileText size={20} />, text: 'Automatic transcription highlights practice words and target sounds.' },
-  { icon: <AudioLines size={20} />, text: 'Detects repetitions, prolongations, and blocks from each recording.' },
+  { icon: <AudioLines size={20} />, text: 'Detects repetitions, prolongations and blocks from each recording.' },
   { icon: <BarChart3 size={20} />, text: 'Scores fluency and tracks change over time, not just completion.' },
 ];
 
 const QUOTES: { text: string; who: string; green?: boolean }[] = [
   {
-    text: 'LanguageAI gives me the kind of home practice data I’ve always wanted: clear trends, meaningful disfluency markers, and progress families can understand.',
+    text: 'LanguageAI gives me the kind of home practice data I’ve always wanted: clear trends, meaningful disfluency markers and progress families can understand.',
     who: 'Anonymous Speech language pathologist',
   },
   {
@@ -118,11 +121,11 @@ const QUOTES: { text: string; who: string; green?: boolean }[] = [
 const FAQS: { q: string; a: string }[] = [
   {
     q: 'Is LanguageAI a replacement for therapy?',
-    a: 'No. LanguageAI supports home practice and gives SLPs better session data, but it is designed to complement care from a qualified clinician.',
+    a: 'No. LanguageAI supports home practice and gives SLPs better session data but it is designed to complement care from a qualified clinician.',
   },
   {
     q: 'How does the AI measure fluency?',
-    a: 'Each recording is analyzed for transcription, words per minute, fluency score, and disfluency markers like blocks, prolongations, and repetitions.',
+    a: 'Each recording is analyzed for transcription, words per minute, fluency score and disfluency markers like blocks, prolongations and repetitions.',
   },
   {
     q: 'Is my child’s data private?',
@@ -136,6 +139,8 @@ const FAQS: { q: string; a: string }[] = [
 
 export function LandingScreen(): JSX.Element {
   const { state, navigate } = useApp();
+  // Legal + consent docs (Terms & Privacy) opened from the footer.
+  const [legal, setLegal] = useState<LegalKind | null>(null);
   // Already signed in? Continue straight into the app; otherwise into auth
   // (logged-out "Try Now" → login, which then leads into the game).
   const enter = (): void =>
@@ -237,11 +242,8 @@ export function LandingScreen(): JSX.Element {
       {/* ---- Trust strip ---- */}
       <div className="lp-container">
         <div className="lp-trust">
-          {['Built with SLPs', '5 practice games', 'AI measured fluency', 'Clinician ready reports'].map((t, i) => (
-            <span key={t} className="lp-trust__item">
-              {i > 0 && <span className="lp-trust__dot" aria-hidden="true">·</span>}
-              {t}
-            </span>
+          {['Built with SLPs', '5 practice games', 'AI measured fluency', 'Clinician ready reports'].map((t) => (
+            <span key={t} className="lp-trust__item">{t}</span>
           ))}
         </div>
       </div>
@@ -262,7 +264,7 @@ export function LandingScreen(): JSX.Element {
                 <h3 className="lp-h3">Practice is easy to skip</h3>
               </div>
               <p className="lp-p">
-                Families want to help, but worksheets feel repetitive, children lose motivation, and SLPs
+                Families want to help but worksheets feel repetitive, children lose motivation and SLPs
                 often receive only a vague sense of what happened at home.
               </p>
             </article>
@@ -273,7 +275,7 @@ export function LandingScreen(): JSX.Element {
               </div>
               <p className="lp-p lp-p--on-violet">
                 Ollie guides short, playful sessions while AI turns each recording into fluency scores,
-                disfluency patterns, words per minute, and sound level progress.
+                disfluency patterns, words per minute and sound level progress.
               </p>
             </article>
           </div>
@@ -317,7 +319,7 @@ export function LandingScreen(): JSX.Element {
             <p className="lp-eyebrow">For SLPs and clinics</p>
             <h2 className="lp-h2">Clinical grade insight without extra admin.</h2>
             <p className="lp-sub">
-              Monitor patients, build treatment plans, review AI speech analysis, and export progress reports
+              Monitor patients, build treatment plans, review AI speech analysis and export progress reports
               from one clean dashboard.
             </p>
             <div className="lp-pills">
@@ -375,7 +377,7 @@ export function LandingScreen(): JSX.Element {
             </div>
             <p className="lp-p lp-p--on-violet">
               LanguageAI combines automatic transcription, disfluency detection, fluency scoring,
-              words per minute tracking, and per sound mastery into a simple review workflow built for clinical use.
+              words per minute tracking and per sound mastery into a simple review workflow built for clinical use.
             </p>
             <div className="lp-pills lp-pills--on-violet">
               <span className="lp-pill lp-pill--glass"><ShieldCheck size={16} /> Privacy first</span>
@@ -417,7 +419,7 @@ export function LandingScreen(): JSX.Element {
           </div>
           <div className="lp-card lp-card--violet lp-cta__card">
             <h3 className="lp-cta__title">Bring LanguageAI to your clinic</h3>
-            <button type="button" className="lp-btn lp-btn--green" onClick={openTryNow}>Try Now !</button>
+            <button type="button" className="lp-btn lp-btn--white" onClick={openTryNow}>Try Now !</button>
           </div>
         </div>
       </section>
@@ -450,7 +452,6 @@ export function LandingScreen(): JSX.Element {
               <b>Product</b>
               <a href="#families">For Families</a>
               <a href="#clinicians">For Clinicians</a>
-              <a href="#pricing">Pricing</a>
             </div>
             <div>
               <b>Company</b>
@@ -459,12 +460,24 @@ export function LandingScreen(): JSX.Element {
                 href="#interview"
                 onClick={(e) => {
                   e.preventDefault();
+                  openInterviewAs('parent');
                   navigate('interview');
                 }}
               >
-                Share your experience
+                Interview consent (families)
               </a>
-              <a href="#top">Privacy</a>
+              <a
+                href="#interview"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openInterviewAs('slp');
+                  navigate('interview');
+                }}
+              >
+                Interview consent (SLPs)
+              </a>
+              <a href="#privacy" onClick={(e) => { e.preventDefault(); setLegal('privacy'); }}>Privacy</a>
+              <a href="#terms" onClick={(e) => { e.preventDefault(); setLegal('terms'); }}>Terms &amp; Consent</a>
             </div>
             <div>
               <b>Contact</b>
@@ -478,6 +491,7 @@ export function LandingScreen(): JSX.Element {
           <span>Warm practice. Objective progress.</span>
         </div>
       </footer>
+      {legal && <LegalModal audience="user" kind={legal} onClose={() => setLegal(null)} />}
     </div>
   );
 }

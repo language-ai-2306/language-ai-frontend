@@ -12,10 +12,22 @@ import { useApp } from '../store/AppStore';
 import './interview.css';
 
 type YN = 'yes' | 'no' | null;
+type Participant = 'parent' | 'slp' | 'other' | null;
+
+// Lets the landing footer preselect who is taking part before navigating here.
+let pendingParticipant: Participant = null;
+export function openInterviewAs(role: Participant): void {
+  pendingParticipant = role;
+}
 
 export function InterviewScreen(): JSX.Element {
   const { navigate } = useApp();
   const rootRef = useRef<HTMLDivElement>(null);
+  const [participant, setParticipant] = useState<Participant>(() => {
+    const p = pendingParticipant;
+    pendingParticipant = null;
+    return p;
+  });
   const [challenge, setChallenge] = useState<YN>(null);
   const [appUse, setAppUse] = useState<YN>(null);
   const [therapist, setTherapist] = useState<YN>(null);
@@ -33,6 +45,10 @@ export function InterviewScreen(): JSX.Element {
     const agree = (root.querySelector('#cf-agree') as HTMLInputElement | null)?.checked ? 'Yes' : 'No';
     const rec = (root.querySelector('#cf-rec') as HTMLInputElement | null)?.checked ? 'Yes' : 'No';
     lines.push(`Consent to take part: ${agree}`, `OK to audio-record: ${rec}`, '');
+    const childBox = root.querySelector('#cf-child-consent') as HTMLInputElement | null;
+    if (childBox) lines.push(`Parent/guardian consents on the child's behalf: ${childBox.checked ? 'Yes' : 'No'}`, '');
+    const slpBox = root.querySelector('#cf-slp-consent') as HTMLInputElement | null;
+    if (slpBox) lines.push(`SLP consents to take part: ${slpBox.checked ? 'Yes' : 'No'}`, '');
 
     root.querySelectorAll('.cf-card').forEach((card) => {
       const heading = card.querySelector('.cf-h')?.textContent ?? '';
@@ -84,12 +100,13 @@ export function InterviewScreen(): JSX.Element {
 
         <header>
           <span className="cf-brand">LanguageAI</span>
-          <h1 className="cf-title">Family &amp; clinician interview — consent and questions</h1>
+          <h1 className="cf-title">Family &amp; clinician interview: consent and questions</h1>
           <p className="cf-sub">
             LanguageAI is a gentle, AI-guided speech-practice companion for children, with clinical
             insight for speech-language pathologists. We&apos;d love to learn from your experience to build
             something genuinely helpful.
           </p>
+          <p className="cf-nospam">🔒 We&apos;ll never spam you. Your responses stay on this page until you choose to share them.</p>
         </header>
 
         {/* ---- Consent ---- */}
@@ -100,15 +117,15 @@ export function InterviewScreen(): JSX.Element {
           </div>
           <ul className="cf-list">
             <li>Taking part is completely <strong>voluntary</strong>. You can skip any question or stop at any time.</li>
-            <li>This is a conversation for <strong>product research</strong> — not a clinical assessment or medical advice.</li>
+            <li>This is a conversation for <strong>product research</strong>: not a clinical assessment or medical advice.</li>
             <li>You don&apos;t need to share identifying or medical details about your child. General experiences help most.</li>
-            <li>Your responses are kept <strong>confidential</strong> and used only — de-identified — to improve the product.</li>
-            <li>Estimated time: about <strong>10–15 minutes</strong>.</li>
+            <li>Your responses are kept <strong>confidential</strong> and used only (de-identified) to improve the product.</li>
+            <li>Estimated time: about <strong>10 to 15 minutes</strong>.</li>
           </ul>
 
           <label className="cf-choice cf-choice--wide">
             <input type="checkbox" id="cf-rec" />
-            I&apos;m okay with this interview being <strong>&nbsp;audio-recorded&nbsp;</strong> for note-taking (optional).
+            <span>I&apos;m okay with this interview being <strong>audio-recorded</strong> for note-taking (optional).</span>
           </label>
 
           <hr className="cf-divider" />
@@ -117,9 +134,9 @@ export function InterviewScreen(): JSX.Element {
             <fieldset className="cf-q" data-q="Participant">
               <legend className="cf-q-label">I am a…</legend>
               <div className="cf-choices">
-                <label className="cf-choice"><input type="radio" name="participant" value="Parent / Guardian" /> Parent / Guardian</label>
-                <label className="cf-choice"><input type="radio" name="participant" value="Clinician (SLP)" /> Clinician (SLP)</label>
-                <label className="cf-choice"><input type="radio" name="participant" value="Other" /> Other</label>
+                <label className="cf-choice"><input type="radio" name="participant" value="Parent / Guardian" checked={participant === 'parent'} onChange={() => setParticipant('parent')} /> Parent / Guardian</label>
+                <label className="cf-choice"><input type="radio" name="participant" value="Clinician (SLP)" checked={participant === 'slp'} onChange={() => setParticipant('slp')} /> Clinician (SLP)</label>
+                <label className="cf-choice"><input type="radio" name="participant" value="Other" checked={participant === 'other'} onChange={() => setParticipant('other')} /> Other</label>
               </div>
             </fieldset>
             <div className="cf-q" data-q="Name or initials">
@@ -135,9 +152,57 @@ export function InterviewScreen(): JSX.Element {
             </div>
           </div>
 
+          {participant === 'parent' && (
+            <div className="cf-role">
+              <p className="cf-eyebrow cf-eyebrow--good">Parent / guardian consent for your child</p>
+              <div className="cf-grid2">
+                <div className="cf-q" data-q="Child's first name or initials">
+                  <label className="cf-q-label" htmlFor="cf-child-name">Child&apos;s first name or initials</label>
+                  <input className="cf-field" id="cf-child-name" type="text" autoComplete="off" placeholder="e.g. J. or Jamie" />
+                </div>
+                <div className="cf-q" data-q="Child's age">
+                  <label className="cf-q-label" htmlFor="cf-child-age">Child&apos;s age</label>
+                  <input className="cf-field" id="cf-child-age" type="text" inputMode="numeric" placeholder="e.g. 6" />
+                </div>
+              </div>
+              <fieldset className="cf-q" data-q="Relationship to the child">
+                <legend className="cf-q-label">Your relationship to the child</legend>
+                <div className="cf-choices">
+                  {['Parent', 'Legal guardian', 'Grandparent', 'Other'].map((v) => (
+                    <label key={v} className="cf-choice"><input type="radio" name="guardian_rel" value={v} /> {v}</label>
+                  ))}
+                </div>
+              </fieldset>
+              <label className="cf-choice cf-choice--good cf-choice--wide">
+                <input type="checkbox" id="cf-child-consent" />
+                <span>I am the child&apos;s <strong>parent or legal guardian</strong> and I consent to my child taking part on their behalf.</span>
+              </label>
+            </div>
+          )}
+
+          {participant === 'slp' && (
+            <div className="cf-role">
+              <p className="cf-eyebrow">Clinician (SLP) consent</p>
+              <div className="cf-grid2">
+                <div className="cf-q" data-q="Workplace / clinic">
+                  <label className="cf-q-label" htmlFor="cf-slp-clinic">Workplace / clinic <span className="cf-hint">(optional)</span></label>
+                  <input className="cf-field" id="cf-slp-clinic" type="text" autoComplete="off" placeholder="e.g. Sunshine Speech Clinic" />
+                </div>
+                <div className="cf-q" data-q="Role / credential">
+                  <label className="cf-q-label" htmlFor="cf-slp-role">Role / credential <span className="cf-hint">(optional)</span></label>
+                  <input className="cf-field" id="cf-slp-role" type="text" autoComplete="off" placeholder="e.g. SLP, CPSP" />
+                </div>
+              </div>
+              <label className="cf-choice cf-choice--good cf-choice--wide">
+                <input type="checkbox" id="cf-slp-consent" />
+                <span>I consent to take part as a <strong>speech-language pathologist</strong> and will share professional views rather than identifiable patient information.</span>
+              </label>
+            </div>
+          )}
+
           <label className="cf-choice cf-choice--good cf-choice--wide">
             <input type="checkbox" id="cf-agree" />
-            I have read and understood the above, and I <strong>&nbsp;agree to take part.</strong>
+            <span>I have read and understood the above and I <strong>agree to take part.</strong></span>
           </label>
         </section>
 
@@ -229,12 +294,12 @@ export function InterviewScreen(): JSX.Element {
                 <label className="cf-choice"><input type="radio" name="a_therapist" value="Yes" onChange={() => setTherapist('yes')} /> Yes</label>
                 <label className="cf-choice"><input type="radio" name="a_therapist" value="No" onChange={() => setTherapist('no')} /> No</label>
               </div>
-              {therapist === 'yes' && <input className="cf-field" type="text" placeholder="If yes — duration or stage" />}
+              {therapist === 'yes' && <input className="cf-field" type="text" placeholder="If yes: duration or stage" />}
             </fieldset>
 
             {therapist === 'no' && (
-              <div className="cf-q" data-q="If not — why not?">
-                <label className="cf-q-label" htmlFor="cf-awhynot">If not — why not?</label>
+              <div className="cf-q" data-q="If not, why not?">
+                <label className="cf-q-label" htmlFor="cf-awhynot">If not, why not?</label>
                 <textarea className="cf-field" id="cf-awhynot" />
               </div>
             )}
@@ -298,7 +363,7 @@ export function InterviewScreen(): JSX.Element {
           <hr className="cf-divider" />
 
           <fieldset className="cf-q" data-q="Comfortable with a child interacting with a friendly AI companion?">
-            <legend className="cf-q-label">Would you feel comfortable with a child interacting with a friendly AI companion — like SpongeBob, Bluey, Elmo, or Bert &amp; Ernie?</legend>
+            <legend className="cf-q-label">Would you feel comfortable with a child interacting with a friendly AI companion like SpongeBob, Bluey, Elmo, or Bert &amp; Ernie?</legend>
             <div className="cf-choices">
               {['Yes', 'No', 'Unsure'].map((v) => (
                 <label key={v} className="cf-choice"><input type="radio" name="ai_comfort" value={v} /> {v}</label>
@@ -331,10 +396,10 @@ export function InterviewScreen(): JSX.Element {
         </div>
 
         <p className="cf-note">
-          This is a plain-language template to support product-research interviews — not legal advice.
+          This is a plain-language template to support product-research interviews, not legal advice.
           If this is part of formal or academic research, please have it reviewed and route it through
           your institution&apos;s ethics process (HREC / IRB) before use. Responses stay on this page until
-          you copy or download them — nothing is sent anywhere automatically.
+          you copy or download them. Nothing is sent anywhere automatically.
         </p>
       </div>
     </div>
