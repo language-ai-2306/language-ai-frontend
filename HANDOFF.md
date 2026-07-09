@@ -201,6 +201,26 @@ server → {"type":"feedback", ...AttemptFeedback}   | {"type":"error","detail":
   unrelated to the practice pipeline.
 - Local memory note for this project exists in the agent's auto-memory
   (`languageai-project`); it's been updated to reflect this session.
+- **Browser Back/Forward is wired to the state router** (`frontend/src/store/AppStore.tsx`).
+  Navigation lives in `state.screen` (not React Router), so history must be synced by
+  hand. Three pieces, all in `AppProvider`:
+  1. A once-effect **seeds** the current entry (`history.replaceState({ screen }, '')`)
+     and listens for `popstate` — on Back/Forward it sets `fromPopRef` and dispatches
+     `navigate` to `e.state.screen` (falls back to `landing`).
+  2. An effect on `[state.screen]` **mirrors** every screen change into history —
+     `pushState` normally, `replaceState` for redirects (see below), skipping changes
+     that came from `popstate` (`fromPopRef`) and the already-seeded first entry
+     (`history.state?.screen === state.screen`).
+  3. **Redirects** (`logout()` and the 401/`UNAUTHORIZED_EVENT` handler) set
+     `replaceNextRef.current = true` before dispatching, so Back never returns to a
+     now-invalid signed-in screen.
+  Gotcha: the seed effect **must be defined before** the mirror effect, or the mirror's
+  first run pushes a duplicate entry on mount. The URL is intentionally left unchanged
+  (`pushState(state, '')` with no url arg), so the existing `?screen=`/`?doctor=`/`?reset=`
+  deep-link params are untouched. Any *new* place that sets `screen` directly in the
+  reducer (e.g. `startGame` → `companion`) automatically becomes a Back target since it
+  flows through `state.screen`; use the `replaceNextRef` pattern if a transition should
+  NOT be one.
 
 ---
 
