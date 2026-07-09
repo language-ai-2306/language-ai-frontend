@@ -18,6 +18,7 @@ import { TaskCompleteScreen } from './companion/TaskCompleteScreen';
 import { TherapistSetupScreen } from './companion/TherapistSetupScreen';
 import { VerifyEmailScreen } from './companion/VerifyEmailScreen';
 import { RewardToast } from './components/RewardToast';
+import { SilentSoundToast } from './components/SilentSoundToast';
 import { DoctorProfileScreen } from './doctor/DoctorProfileScreen';
 import { NewRequestsScreen } from './doctor/NewRequestsScreen';
 import { PatientDashboardScreen } from './doctor/PatientDashboardScreen';
@@ -113,6 +114,7 @@ export default function App(): JSX.Element {
       <div className="app-shell">
         <Router />
         <RewardToast />
+        <SilentSoundToast />
       </div>
     </AppProvider>
   );

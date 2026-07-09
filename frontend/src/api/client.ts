@@ -16,6 +16,11 @@ export const REQUEST_TIMEOUT_MS = 15_000;
  *  store listens for this and routes back to login. */
 export const UNAUTHORIZED_EVENT = 'languageai:unauthorized';
 
+/** Fired on `window` when a practice game starts. Drives the mobile "your phone
+ *  may be on silent" reminder toast. NB: the web can't read the hardware silent
+ *  switch, so that toast is an honest reminder, not detection. */
+export const GAME_STARTED_EVENT = 'languageai:game-started';
+
 /** Max message length — mirrors the backend bound (defense in depth). */
 export const MAX_MESSAGE_LENGTH = 500;
 
