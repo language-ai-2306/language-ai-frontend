@@ -74,18 +74,35 @@
   display: grid;
   grid-template-columns: minmax(300px, 340px) 1fr;
   gap: 1.2rem;
-  align-items: start;
+  /* stretch (not start) so the left rail fills the full row height set by the
+     taller main pane — the sidebar cards then divide that height between them. */
+  align-items: stretch;
 }
 .po-side {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
 }
+/* Sidebar cards grow to equal heights so the three together fill the whole
+   column. Scoped to `.po-side >` so the shared `.po-card` (main pane, Game
+   Recordings, etc.) is unaffected. */
+.po-side > .po-card {
+  flex: 1 1 0;
+}
 .po-main {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
   min-width: 0;
+}
+/* Right pane: the two content cards (Performance Breakdown + Game Recordings) grow
+   to fill any leftover column height — e.g. patients with little/no data, where the
+   left rail is the taller column and stretches this pane. `flex-grow` only hands out
+   POSITIVE free space, so data-rich patients (where this pane is already the tallest
+   column) are untouched, and the scoped `.po-main >` leaves the stat row and the
+   Weekly-Goals/AI top row (not `.po-card`) at their natural size. */
+.po-main > .po-card {
+  flex: 1 1 auto;
 }
 .po-stats {
   display: grid;
@@ -633,10 +650,28 @@
 .po-recs {
   list-style: none;
   margin: 0;
-  padding: 0;
+  /* right padding keeps the scrollbar off the recording cards */
+  padding: 0 0.4rem 0 0;
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
+  /* Scoped to .po-recs only (unique to the Game Recordings widget) so the shared
+     .po-card card class is untouched: cap the height and let the list scroll —
+     the scrollbar shows ONLY when the recordings overflow (overflow-y: auto). */
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Subtle scrollbar, scoped to this widget so no other list is affected. */
+.po-recs::-webkit-scrollbar {
+  width: 8px;
+}
+.po-recs::-webkit-scrollbar-thumb {
+  background: var(--doc-border);
+  border-radius: 8px;
+}
+.po-recs::-webkit-scrollbar-track {
+  background: transparent;
 }
 .po-rec {
   display: flex;

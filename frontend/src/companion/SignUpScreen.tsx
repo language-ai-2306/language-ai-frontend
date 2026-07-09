@@ -17,6 +17,8 @@ import { signup, toGenderCode } from '../api/auth';
 import { ApiError } from '../api/client';
 import { PATIENT_AVATARS } from './avatars';
 import { AvatarPicker } from './components/AvatarPicker';
+import { LegalModal } from '../legal/LegalModal';
+import type { LegalKind } from '../legal/legalDocs';
 import './signup.css';
 
 /** Age at or below which a patient must supply guardian details. */
@@ -81,6 +83,7 @@ export function SignUpScreen(): JSX.Element {
   const [userType, setUserType] = useState<UserType>('patient');
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [agree, setAgree] = useState(false);
+  const [legal, setLegal] = useState<LegalKind | null>(null);
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
@@ -390,8 +393,27 @@ export function SignUpScreen(): JSX.Element {
         <label className="su-terms">
           <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
           <span>
-            I agree to the <a href="#terms" onClick={(e) => e.preventDefault()}>Terms of Service</a> and{' '}
-            <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy Policy</a>.
+            I agree to the{' '}
+            <a
+              href="#terms"
+              onClick={(e) => {
+                e.preventDefault();
+                setLegal('terms');
+              }}
+            >
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a
+              href="#privacy"
+              onClick={(e) => {
+                e.preventDefault();
+                setLegal('privacy');
+              }}
+            >
+              Privacy Policy
+            </a>
+            .
           </span>
         </label>
 
@@ -407,6 +429,7 @@ export function SignUpScreen(): JSX.Element {
           </button>
         </p>
       </form>
+      {legal && <LegalModal audience="user" kind={legal} onClose={() => setLegal(null)} />}
     </div>
   );
 }

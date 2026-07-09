@@ -8,7 +8,7 @@
  * difficulty-specific question set from the API later.
  */
 import { Suspense } from 'react';
-import { Play, Speech, User, type LucideIcon } from 'lucide-react';
+import { Play, Speech, X, type LucideIcon } from 'lucide-react';
 
 import { EXERCISE_LABELS, useApp, type GameDifficulty } from '../store/AppStore';
 import { AvatarStage } from './components/AvatarStage';
@@ -57,24 +57,25 @@ export function RepeatAfterMeScreen(): JSX.Element {
       <header className="lq-topbar">
         <div className="lq-brand">
           <span className="lq-brand__badge" aria-hidden="true">
-            🦉
+            <img src="/logo.png" alt="" className="lq-brand__logo" />
           </span>
           <span className="lq-brand__title">LanguageAI</span>
         </div>
-        <button
-          type="button"
-          className="lq-profile"
-          onClick={() => navigate('home')}
-          aria-label="Back to home"
-          title="Home"
-        >
-          <User size={20} aria-hidden="true" />
-        </button>
       </header>
 
       <main className="lq-main">
         {/* Hero — same companion + room as Home, with a "Let's play" bubble. */}
         <section className="lq-hero">
+          {/* Close (X) — floats below the header, top-right over the room. */}
+          <button
+            type="button"
+            className="lq-close"
+            onClick={() => navigate('home')}
+            aria-label="Close"
+            title="Close"
+          >
+            <X size={22} aria-hidden="true" />
+          </button>
           <div className="lq-bubble">
             <span className="lq-bubble__text">🎉 Let&apos;s play &quot;{label}&quot;</span>
           </div>

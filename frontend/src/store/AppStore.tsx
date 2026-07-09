@@ -20,6 +20,8 @@ import { clearToken, getToken } from '../api/token';
 import type { Role } from '../types/api';
 
 export type Screen =
+  | 'landing'
+  | 'interview'
   | 'login'
   | 'signup'
   | 'verifyEmail'
@@ -136,6 +138,10 @@ export interface AssessmentResult {
 
 export interface AppState {
   screen: Screen;
+  /** The screen shown before the current one. Lets a page reachable from many
+   *  places (e.g. the doctor profile, opened from the avatar menu on any page)
+   *  offer a Back that returns to wherever the user came from. */
+  previousScreen: Screen | null;
   name: string;
   /** Chosen avatar id (see AVATARS in ProfileSetupScreen). */
   avatar: string;
@@ -249,6 +255,8 @@ interface Persisted {
 }
 
 const SCREENS: Screen[] = [
+  'landing',
+  'interview',
   'login',
   'signup',
   'verifyEmail',
@@ -331,12 +339,11 @@ function makeInitialState(): AppState {
   const token = getToken();
   const role = p?.role ?? null;
   return {
-    // A saved token means "stay logged in" — boot to the right home for the role
-    // (doctors → clinician portal). A stale token will 401 on the first call and
-    // route back to login automatically.
-    screen:
-      readScreenOverride() ??
-      (token ? (role === 'DOCTOR' ? 'docPatients' : 'home') : 'login'),
+    // The landing page is always the front door. A saved token still lives in
+    // state (authToken/role below), so signing in routes the user straight into
+    // their app; an explicit ?screen= override still wins for deep links.
+    screen: readScreenOverride() ?? 'landing',
+    previousScreen: null,
     name: p?.name ?? '',
     avatar: p?.avatar ?? 'lion',
     profileComplete: p?.profileComplete ?? false,
@@ -411,7 +418,7 @@ function bumpStreak(prev: Progress): Progress {
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'navigate':
-      return { ...state, screen: action.screen };
+      return { ...state, screen: action.screen, previousScreen: state.screen };
     case 'startGame':
       return {
         ...state,

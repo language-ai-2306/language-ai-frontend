@@ -8,6 +8,7 @@
  */
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
+import { logClientError } from '../api/errorLog';
 import './errorboundary.css';
 
 interface Props {
@@ -28,8 +29,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     this.setState({ info });
-    // In production this would go to a monitoring service.
-    console.error('UI crashed:', error, info);
+    // Dev → formatted console; prod → POST to the backend sink so it can be
+    // reviewed & replicated (see api/errorLog).
+    logClientError(error, { source: 'react', componentStack: info.componentStack });
   }
 
   private reset = (): void => this.setState({ error: null, info: null });

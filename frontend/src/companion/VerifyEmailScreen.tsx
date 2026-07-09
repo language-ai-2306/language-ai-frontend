@@ -47,10 +47,12 @@ export function VerifyEmailScreen(): JSX.Element {
 
         <div className="su-verify__hero">
           <div className="su-verify__ring" aria-hidden="true">
-            <div className="su-verify__avatar">
-              {/* Ollie placeholder — swap for <img src="/ollie.png" /> once the
-                  brand asset ships (see QuickStartScreen). */}
-              <span role="img" aria-label="Ollie the owl">🦉</span>
+            <div className="su-verify__avatar" style={{ overflow: 'hidden' }}>
+              <img
+                src="/logo.png"
+                alt="LanguageAI"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
             </div>
           </div>
           <span className="su-badge">

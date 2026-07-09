@@ -19,14 +19,12 @@ export function QuickStartScreen(): JSX.Element {
           Hey {firstName}! <span aria-hidden="true">👋</span>
         </div>
 
-        {/* Ollie logo. Swap this block for <img src="/ollie-logo.png" /> once the
-            brand asset is added to public/. */}
         <div className="qs-logo">
-          <div className="qs-logo__badge" aria-hidden="true">
-            🦉
-          </div>
-          <div className="qs-logo__name">Ollie</div>
-          <div className="qs-logo__tag">Language App</div>
+          <img
+            src="/logo.png"
+            alt="LanguageAI"
+            style={{ width: 150, height: 'auto', display: 'block' }}
+          />
         </div>
 
         <h1 className="qs-title">

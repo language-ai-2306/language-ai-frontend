@@ -36,9 +36,39 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  position: relative;
 }
 
+/* Back-to-landing button (top-left of the card). */
+.auth-back {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: none;
+  border-radius: 50%;
+  background: #f2ecfb;
+  color: var(--c-brand);
+  cursor: pointer;
+}
+.auth-back:hover { background: #e8ddf6; }
+
 /* ---- Brand ---- */
+.auth-brand {
+  display: flex;
+  justify-content: center;
+  padding-top: 2rem;
+  margin-bottom: 0.25rem;
+}
+.auth-logo-img {
+  width: min(200px, 68vw);
+  height: auto;
+  display: block;
+}
 .auth-logo {
   display: grid;
   place-items: center;
@@ -56,7 +86,7 @@
   line-height: 1.05;
 }
 .auth-sub {
-  margin: 0.35rem 0 1.3rem;
+  margin: 0.75rem 0 0.6rem;
   text-align: center;
   color: var(--c-muted);
   font-size: 1.05rem;

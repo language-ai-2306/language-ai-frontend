@@ -7,7 +7,7 @@
  * quick check. Replace `submit` with a real API call to /auth later.
  */
 import { useState, type FormEvent } from 'react';
-import { ArrowRight, Eye, EyeOff, Lock, Mail, MessagesSquare } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
 import { useApp } from '../store/AppStore';
 import { login } from '../api/auth';
@@ -49,10 +49,17 @@ export function LoginScreen(): JSX.Element {
   return (
     <div className="auth-screen">
       <form className="auth-card" onSubmit={submit}>
-        <div className="auth-logo" aria-hidden="true">
-          <MessagesSquare size={40} strokeWidth={2.4} />
+        <button
+          type="button"
+          className="auth-back"
+          onClick={() => navigate('landing')}
+          aria-label="Back to landing page"
+        >
+          <ArrowLeft size={22} aria-hidden="true" />
+        </button>
+        <div className="auth-brand">
+          <img className="auth-logo-img" src="/login-logo.png" alt="LanguageAI" />
         </div>
-        <h1 className="auth-title">LanguageAI</h1>
         <p className="auth-sub">Welcome back! Ready to learn?</p>
 
         <label className="auth-field">

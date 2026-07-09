@@ -106,7 +106,7 @@ export function PatientDashboardScreen(): JSX.Element {
 
   return (
     <DoctorShell active="patients">
-      <div className="doc-page">
+      <div className="doc-page doc-page--fill">
         <div className="doc-page__head">
           <div>
             <h1 className="doc-page__title">Patient Dashboard</h1>

@@ -58,14 +58,20 @@
   gap: 0.6rem;
 }
 .lq-brand__badge {
-  width: 38px;
-  height: 38px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   font-size: 1.25rem;
   background: #fff;
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+}
+.lq-brand__logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .lq-brand__title {
   font-family: "Baloo 2", "Nunito", system-ui, sans-serif;
@@ -73,6 +79,35 @@
   font-size: 1.35rem;
   letter-spacing: 0.01em;
 }
+/* Close (X) — white circle floating below the header, top-right over the room.
+   Exits to Home; matches the in-game close control. */
+.lq-close {
+  position: absolute;
+  z-index: 5;
+  top: 0.8rem;
+  right: 0.8rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--lq-ink);
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(20, 8, 50, 0.28);
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
+}
+.lq-close:hover {
+  background: #fff;
+}
+.lq-close:active {
+  transform: scale(0.94);
+}
+
 .lq-profile {
   width: 42px;
   height: 42px;

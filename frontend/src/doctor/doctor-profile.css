@@ -3,6 +3,27 @@
   max-width: 1120px;
 }
 
+/* Back link — returns to the page the profile was opened from (matches the
+   .tp-back / .etp-back convention on the other focused sub-pages). */
+.dp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  margin-bottom: 1.2rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--doc-accent);
+  transition: opacity 0.15s ease;
+}
+.dp-back:hover {
+  opacity: 0.75;
+}
+
 /* ---- Hero ---------------------------------------------------------------- */
 .dp-hero {
   display: flex;
