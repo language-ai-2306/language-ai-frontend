@@ -57,12 +57,9 @@ export function LoginScreen(): JSX.Element {
         >
           <ArrowLeft size={22} aria-hidden="true" />
         </button>
-        <img
-          className="auth-logo-img"
-          src="/login-logo.png"
-          alt="LanguageAI"
-          style={{ width: 243, height: 'auto', display: 'block', margin: '-24px auto -48px' }}
-        />
+        <div className="auth-brand">
+          <img className="auth-logo-img" src="/login-logo.png" alt="LanguageAI" />
+        </div>
         <p className="auth-sub">Welcome back! Ready to learn?</p>
 
         <label className="auth-field">

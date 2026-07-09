@@ -58,6 +58,17 @@
 .auth-back:hover { background: #e8ddf6; }
 
 /* ---- Brand ---- */
+.auth-brand {
+  display: flex;
+  justify-content: center;
+  padding-top: 2rem;
+  margin-bottom: 0.25rem;
+}
+.auth-logo-img {
+  width: min(200px, 68vw);
+  height: auto;
+  display: block;
+}
 .auth-logo {
   display: grid;
   place-items: center;
@@ -75,7 +86,7 @@
   line-height: 1.05;
 }
 .auth-sub {
-  margin: 0.2rem 0 0.6rem;
+  margin: 0.75rem 0 0.6rem;
   text-align: center;
   color: var(--c-muted);
   font-size: 1.05rem;
