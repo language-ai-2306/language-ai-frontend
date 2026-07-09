@@ -12,10 +12,11 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   type ReactNode,
 } from 'react';
 
-import { UNAUTHORIZED_EVENT } from '../api/client';
+import { GAME_STARTED_EVENT, UNAUTHORIZED_EVENT } from '../api/client';
 import { clearToken, getToken } from '../api/token';
 import type { Role } from '../types/api';
 
@@ -578,9 +579,21 @@ const AppContext = createContext<AppApi | null>(null);
 export function AppProvider({ children }: { children: ReactNode }): JSX.Element {
   const [state, dispatch] = useReducer(reducer, undefined, makeInitialState);
 
+  // --- Browser Back/Forward integration -------------------------------------
+  // The router lives in state.screen; these refs keep it in sync with the
+  // History API so the browser's Back/Forward buttons walk the screen stack
+  // instead of leaving the site on the first Back press.
+  //   fromPopRef     — the next screen change came from Back/Forward; don't re-push.
+  //   replaceNextRef — replace the current entry instead of pushing it. Used for
+  //                    redirects (logout / 401) so Back never returns to a
+  //                    now-invalid signed-in screen.
+  const fromPopRef = useRef(false);
+  const replaceNextRef = useRef(false);
+
   // A 401 anywhere (expired/invalid token) → clear auth state and go to login.
   useEffect(() => {
     const onUnauthorized = (): void => {
+      replaceNextRef.current = true; // redirect: don't leave the dead screen in history
       dispatch({ type: 'setAuthToken', value: null });
       dispatch({ type: 'setRole', value: null });
       dispatch({ type: 'navigate', screen: 'login' });
@@ -588,6 +601,37 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
   }, []);
+
+  // Seed the current history entry (so the first Back has a screen to return to)
+  // and listen for Back/Forward. Runs once; the seed must precede the sync effect
+  // below so its first run sees a matching entry and skips a duplicate push.
+  useEffect(() => {
+    history.replaceState({ screen: state.screen }, '');
+    const onPop = (e: PopStateEvent): void => {
+      fromPopRef.current = true;
+      const screen = (e.state?.screen as Screen | undefined) ?? 'landing';
+      dispatch({ type: 'navigate', screen });
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Mirror every screen change into browser history. Skips changes that came
+  // from Back/Forward (fromPopRef) and the already-seeded initial entry.
+  useEffect(() => {
+    if (fromPopRef.current) {
+      fromPopRef.current = false;
+      return;
+    }
+    if (history.state?.screen === state.screen) return;
+    if (replaceNextRef.current) {
+      replaceNextRef.current = false;
+      history.replaceState({ screen: state.screen }, '');
+    } else {
+      history.pushState({ screen: state.screen }, '');
+    }
+  }, [state.screen]);
 
   // Persist the durable slice whenever it changes.
   useEffect(() => {
@@ -629,8 +673,12 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
     () => ({
       state,
       navigate: (screen) => dispatch({ type: 'navigate', screen }),
-      startGame: (mode, difficulty, game, planItemId, planItemDuration) =>
-        dispatch({ type: 'startGame', mode, difficulty, game, planItemId, planItemDuration }),
+      startGame: (mode, difficulty, game, planItemId, planItemDuration) => {
+        dispatch({ type: 'startGame', mode, difficulty, game, planItemId, planItemDuration });
+        // Signal a game start so the mobile "check your phone isn't on silent"
+        // reminder can fire (see SilentSoundToast).
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event(GAME_STARTED_EVENT));
+      },
       setCurrentGame: (game) => dispatch({ type: 'setCurrentGame', game }),
       setName: (name) => dispatch({ type: 'setName', name }),
       completeProfile: (input) => dispatch({ type: 'completeProfile', ...input }),
@@ -646,6 +694,7 @@ export function AppProvider({ children }: { children: ReactNode }): JSX.Element 
       setDocPlanId: (value) => dispatch({ type: 'setDocPlanId', value }),
       logout: () => {
         clearToken();
+        replaceNextRef.current = true; // redirect: don't leave the signed-in screen in history
         dispatch({ type: 'setAuthToken', value: null });
         dispatch({ type: 'setRole', value: null });
         dispatch({ type: 'navigate', screen: 'login' });
