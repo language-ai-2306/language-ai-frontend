@@ -734,3 +734,21 @@
 .po-rec__btn:hover {
   filter: brightness(1.08);
 }
+.po-rec__btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  filter: none;
+}
+.po-rec__err {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--doc-danger, #c0392b);
+}
+.po-spin {
+  animation: po-spin 0.8s linear infinite;
+}
+@keyframes po-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
