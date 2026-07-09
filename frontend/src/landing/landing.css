@@ -24,9 +24,9 @@
 
 .lp-container {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1920px;
   margin: 0 auto;
-  padding: 0 clamp(20px, 4vw, 48px);
+  padding: 0 clamp(20px, 4vw, 72px);
 }
 
 /* ---- Typography ---- */
@@ -55,6 +55,26 @@
   margin: 0.9rem 0 0.5rem;
 }
 .lp-lead { color: var(--lp-body); font-size: 1.08rem; line-height: 1.55; margin: 1rem 0; }
+/* Brand punchline — an emphasized promise under the hero lead. */
+.lp-punch {
+  font-family: 'Baloo 2', system-ui, sans-serif;
+  font-weight: 800;
+  color: var(--lp-head);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  line-height: 1.3;
+  margin: 1.1rem 0 0;
+  max-width: 640px;
+}
+.lp-punch__hl {
+  color: var(--lp-violet-d);
+  /* Soft green highlighter marker sitting behind the text, not a bar under it. */
+  background: rgba(142, 240, 182, 0.55);
+  padding: 0.04em 0.28em;
+  border-radius: 7px;
+  white-space: nowrap;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
 .lp-sub { color: var(--lp-muted); font-size: 1.05rem; line-height: 1.5; margin: 0.8rem 0 0; }
 .lp-p { color: var(--lp-body); line-height: 1.5; margin: 0.4rem 0 0; }
 .lp-p--on-violet { color: rgba(255, 255, 255, 0.88); }
@@ -117,7 +137,8 @@
 .lp-nav__links a { color: var(--lp-head); text-decoration: none; font-weight: 700; opacity: 0.85; }
 .lp-nav__links a:hover { opacity: 1; }
 .lp-nav__actions { display: flex; gap: 0.5rem; }
-.lp-nav__actions .lp-btn--ghost { display: none; }
+/* Both auth buttons show on mobile too; compact them so they fit a phone width. */
+.lp-nav__actions .lp-btn { padding: 0.5rem 0.85rem; font-size: 0.9rem; }
 
 /* ---- Hero ---- */
 .lp-hero { background: linear-gradient(180deg, #efeaff 0%, #e9e3fb 100%); padding: 36px 0 30px; }
@@ -477,7 +498,7 @@
   .lp-hero__text { flex: 1 1 54%; }
   .lp-hero__visual { flex: 1 1 46%; min-height: 420px; align-self: stretch; }
   .lp-nav__links { display: flex; gap: 1.6rem; }
-  .lp-nav__actions .lp-btn--ghost { display: inline-flex; }
+  .lp-nav__actions .lp-btn { padding: 0.65rem 1.25rem; font-size: 1rem; }
   .lp-split { flex-direction: row; align-items: center; }
   .lp-split__text { flex: 1 1 48%; }
   .lp-dash { flex: 1 1 52%; }

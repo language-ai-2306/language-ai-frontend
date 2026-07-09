@@ -181,6 +181,9 @@ export function LandingScreen(): JSX.Element {
               LanguageAI turns daily fluency practice into playful games with Ollie the otter, while every
               recording becomes objective clinical insight for SLPs.
             </p>
+            <p className="lp-punch">
+              We believe that speech therapy session should be available <span className="lp-punch__hl">24×7</span>
+            </p>
             <div className="lp-hero__cta">
               <button type="button" className="lp-btn lp-btn--primary lp-btn--lg" onClick={enter}>
                 Start free <ArrowRight size={18} />
