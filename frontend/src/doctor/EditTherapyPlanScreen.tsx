@@ -23,6 +23,7 @@ import { useApp } from '../store/AppStore';
 import { DoctorShell } from './DoctorShell';
 import {
   GAMES,
+  TECHNIQUE_OPTIONS,
   WEEKDAYS,
   isNewRow,
   itemToRow,
@@ -99,6 +100,8 @@ export function EditTherapyPlanScreen(): JSX.Element {
     );
   const setDifficulty = (id: string, level: string): void =>
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, difficulty: level } : r)));
+  const setTechnique = (id: string, technique: string): void =>
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, technique: technique || null } : r)));
   const addExercise = (name: string): void => {
     setRows((rs) => [...rs, makeRow(name, ['Mon'], 15, null)]);
     setAddOpen(false);
@@ -149,6 +152,7 @@ export function EditTherapyPlanScreen(): JSX.Element {
         } else {
           await updatePlanItem(planId, rows[i].id, {
             difficulty: input.difficulty,
+            technique: input.technique,
             sequence: input.sequence,
             frequency: input.frequency,
             duration_minutes: input.duration_minutes,
@@ -236,6 +240,7 @@ export function EditTherapyPlanScreen(): JSX.Element {
                     <th>Recommended Days</th>
                     <th>Daily Duration</th>
                     <th>Difficulty Level</th>
+                    <th>Technique</th>
                     <th className="etp-th-remove">Remove</th>
                   </tr>
                 </thead>
@@ -324,6 +329,20 @@ export function EditTherapyPlanScreen(): JSX.Element {
                                 ))}
                               </div>
                             )}
+                          </td>
+                          <td>
+                            <select
+                              className="etp-durinput"
+                              value={r.technique ?? ''}
+                              onChange={(e) => setTechnique(r.id, e.target.value)}
+                              aria-label={`${r.name} fluency technique`}
+                            >
+                              {TECHNIQUE_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>
+                                  {o.label}
+                                </option>
+                              ))}
+                            </select>
                           </td>
                           <td className="etp-td-remove">
                             <button

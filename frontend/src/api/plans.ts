@@ -12,6 +12,7 @@ export interface PlanItem {
   exercise_type: string; // REPEAT_AFTER_ME | READ_IT_LOUD | …
   target_phoneme?: string | null;
   difficulty?: Difficulty | null;
+  technique?: string | null; // fluency technique to apply
   frequency: string;
   duration_minutes?: number | null;
   schedule: Record<string, unknown>;
@@ -84,6 +85,7 @@ export interface PlanItemInput {
   exercise_type: string;
   target_phoneme?: string | null;
   difficulty?: Difficulty | null; // omit for TALK_WITH_OLLIE
+  technique?: string | null;
   sequence?: number;
   frequency?: string; // DAILY | WEEKLY | MONTHLY | CUSTOM
   duration_minutes?: number | null;
@@ -119,6 +121,7 @@ export function addPlanItem(planId: string, item: PlanItemInput): Promise<PlanIt
 export interface PlanItemPatch {
   target_phoneme?: string | null;
   difficulty?: Difficulty | null;
+  technique?: string | null;
   sequence?: number;
   frequency?: string;
   duration_minutes?: number | null;

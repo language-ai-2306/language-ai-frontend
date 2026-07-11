@@ -14,6 +14,7 @@ import { ApiError } from '../../api/client';
 import {
   endExercise,
   getContent,
+  getTechniqueIntro,
   startExercise,
   submitAttempt,
   type BackendDifficulty,
@@ -34,6 +35,8 @@ interface UseExerciseGame {
   phase: ExercisePhase;
   content: ExerciseContent | null;
   error: string | null;
+  /** MEASURED-technique result from the last attempt (e.g. Syllable-Timed), or null. */
+  techniqueMetric: Record<string, unknown> | null;
   mouthOpen: number;
   isSpeaking: boolean;
   start: () => void;
@@ -59,10 +62,16 @@ export function useExerciseGame(
   const [phase, setPhase] = useState<ExercisePhase>('loading');
   const [content, setContent] = useState<ExerciseContent | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Result of a MEASURED technique on the last attempt (e.g. Syllable-Timed CV-ISD).
+  // Null for coaching techniques or before the first scored attempt.
+  const [techniqueMetric, setTechniqueMetric] = useState<Record<string, unknown> | null>(null);
   const startedRef = useRef(false);
   // 1-based attempt count for the CURRENT phrase. Reset to 1 each time a new
   // prompt is shown; bumped on every retry. The backend caps retries with it.
   const attemptNoRef = useRef(1);
+  // The technique whose intro/demo has already been played this session (so we
+  // introduce it once, not on every phrase).
+  const introducedTechRef = useRef<string | null>(null);
 
   // Planned play sends plan_item_id (backend derives difficulty/phoneme); free
   // play sends difficulty. This is the content-request shape for either mode.
@@ -70,9 +79,26 @@ export function useExerciseGame(
 
   // Show a resolved prompt: set it, then play its spoken audio (if any) → ready.
   const showContent = useCallback(
-    (c: ExerciseContent): void => {
+    async (c: ExerciseContent): Promise<void> => {
       attemptNoRef.current = 1; // new phrase → back to the first attempt
+      setTechniqueMetric(null); // clear last phrase's technique result
       setContent(c);
+      // Play the technique intro (Ollie explains + demos) ONCE, the first time the
+      // technique appears this session. Best-effort — never block the phrase.
+      if (c.technique && introducedTechRef.current !== c.technique) {
+        introducedTechRef.current = c.technique;
+        try {
+          const intro = await getTechniqueIntro(c.technique);
+          if (intro.audio) {
+            setPhase('speaking');
+            await new Promise<void>((resolve) =>
+              void player.play(intro.audio as string, 'audio/mpeg', resolve),
+            );
+          }
+        } catch {
+          /* spoken intro is non-critical — fall through to the phrase */
+        }
+      }
       if (c.audio) {
         setPhase('speaking');
         void player.play(c.audio, 'audio/mpeg', () => setPhase('ready'));
@@ -87,7 +113,7 @@ export function useExerciseGame(
     setError(null);
     setPhase('loading');
     try {
-      showContent(await getContent(game, contentOpts));
+      await showContent(await getContent(game, contentOpts));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not load the exercise.');
       setPhase('error');
@@ -100,7 +126,7 @@ export function useExerciseGame(
     async (nextPromise: Promise<ExerciseContent>): Promise<void> => {
       try {
         const c = await nextPromise;
-        showContent(c);
+        await showContent(c);
       } catch (e) {
         setError(e instanceof ApiError ? e.message : 'Could not load the next exercise.');
         setPhase('error');
@@ -157,7 +183,9 @@ export function useExerciseGame(
           audio,
           planItemId,
           attemptNumber: attemptNoRef.current,
+          technique: c.technique ?? undefined,
         });
+        setTechniqueMetric((res.technique_metric as Record<string, unknown> | null) ?? null);
 
         // Below the pass bar → stay on the SAME phrase so the child can try
         // again. The backend caps retries (returns should_retry=false once the
@@ -213,6 +241,7 @@ export function useExerciseGame(
     phase,
     content,
     error,
+    techniqueMetric,
     mouthOpen: player.mouthOpen,
     isSpeaking: player.isPlaying,
     start,

@@ -33,7 +33,6 @@ export type Screen =
   | 'repeatSelect'
   | 'read'
   | 'chat'
-  | 'breathing'
   | 'summary'
   | 'companion'
   | 'assessment'
@@ -51,7 +50,7 @@ export type Screen =
   | 'docPlanTemplates'
   | 'docTherapyPlan'
   | 'docEditTherapyPlan';
-export type Exercise = 'repeat' | 'read' | 'chat' | 'breathing';
+export type Exercise = 'repeat' | 'read' | 'chat';
 
 /** Which kind of account the sign-up flow is creating. Patients are the
  *  learners (often minors, who need guardian verification); therapists are the
@@ -235,7 +234,7 @@ const dayKey = (d: Date): string => d.toISOString().slice(0, 10);
 const emptySession = (): Session => ({
   stars: 0,
   attempts: 0,
-  byExercise: { repeat: 0, read: 0, chat: 0, breathing: 0 },
+  byExercise: { repeat: 0, read: 0, chat: 0 },
   words: [],
 });
 
@@ -268,7 +267,6 @@ const SCREENS: Screen[] = [
   'repeatSelect',
   'read',
   'chat',
-  'breathing',
   'summary',
   'companion',
   'assessment',
