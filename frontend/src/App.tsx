@@ -28,7 +28,6 @@ import { TherapyPlanScreen } from './doctor/TherapyPlanScreen';
 import { EditTherapyPlanScreen } from './doctor/EditTherapyPlanScreen';
 import { LandingScreen } from './landing/LandingScreen';
 import { InterviewScreen } from './landing/InterviewScreen';
-import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
 import { ReadAloudScreen } from './screens/ReadAloudScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
@@ -65,8 +64,6 @@ function Router(): JSX.Element {
       return <ReadAloudScreen />;
     case 'chat':
       return <ChatScreen />;
-    case 'breathing':
-      return <BreathingScreen />;
     case 'summary':
       return <SummaryScreen />;
     case 'companion':

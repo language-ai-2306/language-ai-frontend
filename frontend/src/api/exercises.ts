@@ -65,34 +65,6 @@ export function getTechniqueIntro(technique: string): Promise<TechniqueIntro> {
   return request<TechniqueIntro>(`/v1/exercises/techniques/${technique}/intro`);
 }
 
-export interface BreathingPattern {
-  inhale_s: number;
-  hold_s: number;
-  exhale_s: number;
-  cycles: number;
-}
-export interface BreathingConfig {
-  display_name: string;
-  explanation: string;
-  cue: string;
-  pattern: BreathingPattern;
-  intro_audio?: string | null; // base64 MP3 of Ollie's guidance
-}
-
-/** GET /breathing — the pacer pattern + Ollie's spoken guidance. */
-export function getBreathingConfig(): Promise<BreathingConfig> {
-  return request<BreathingConfig>(`/v1/exercises/breathing`);
-}
-
-/** POST /breathing/complete — log a completed breathing session (credits a plan item). */
-export function completeBreathing(
-  planItemId?: string,
-): Promise<{ status: string; plan_session_completed: boolean }> {
-  const form = new FormData();
-  if (planItemId) form.append('plan_item_id', planItemId);
-  return request(`/v1/exercises/breathing/complete`, { method: 'POST', body: form });
-}
-
 /** GET /start — the AI's spoken intro. Pass planItemId for a planned exercise
  *  (opens today's session). */
 export function startExercise(game: GameSlug, planItemId?: string): Promise<ExerciseIntro> {

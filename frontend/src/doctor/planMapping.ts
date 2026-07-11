@@ -127,9 +127,5 @@ export function rowToItemInput(row: EditRow, sequence: number): PlanItemInput {
 /** Technique options for the plan editor dropdown (value → kid-facing label). */
 export const TECHNIQUE_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'None' },
-  { value: 'EASY_ONSET', label: 'Gentle Start' },
-  { value: 'LIGHT_CONTACT', label: 'Feather Touch' },
-  { value: 'PROLONGED_SPEECH', label: 'Stretchy Speech' },
   { value: 'SYLLABLE_TIMED', label: 'Steady Beats' },
-  { value: 'DIAPHRAGMATIC_BREATHING', label: 'Belly Breathing' },
 ];
