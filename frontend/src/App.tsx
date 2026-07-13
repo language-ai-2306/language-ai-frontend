@@ -1,4 +1,6 @@
 /** App — screen router + global reward toast, wrapped in the app store. */
+import { useEffect } from 'react';
+
 import { AccountScreen } from './companion/AccountScreen';
 import { AssessmentScreen } from './companion/AssessmentScreen';
 import { DailyCompleteScreen } from './companion/DailyCompleteScreen';
@@ -33,13 +35,60 @@ import { BreathingScreen } from './screens/BreathingScreen';
 import { ChatScreen } from './screens/ChatScreen';
 import { ReadAloudScreen } from './screens/ReadAloudScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
-import { AppProvider, useApp } from './store/AppStore';
+import { AppProvider, useApp, type Screen } from './store/AppStore';
 import './screens/screens.css';
 import './App.css';
 
+/** Screens that render without a bearer token: the marketing site and the whole
+ *  sign-up / sign-in flow. Every other screen calls the authenticated API. */
+const PUBLIC_SCREENS: ReadonlySet<Screen> = new Set<Screen>([
+  'landing',
+  'interview',
+  'login',
+  'signup',
+  'verifyEmail',
+  'profileSetup',
+  'therapistSetup',
+  'onboardingComplete',
+]);
+
+/** Clinician-portal screens. They read /doctors/* , which a patient's token
+ *  cannot access, so a non-doctor must never mount them. */
+const DOCTOR_SCREENS: ReadonlySet<Screen> = new Set<Screen>([
+  'docPatients',
+  'docPatientDetail',
+  'docRequests',
+  'docProfile',
+  'docPlans',
+  'docPlanTemplates',
+  'docTherapyPlan',
+  'docEditTherapyPlan',
+]);
+
 function Router(): JSX.Element {
-  const { state } = useApp();
-  switch (state.screen) {
+  const { state, navigate } = useApp();
+  const { screen, authToken, role } = state;
+
+  // Auth guard. Screens fetch on mount, so a signed-out screen (deep link, stale
+  // tab, expired token) would otherwise fire its requests with no Authorization
+  // header, take a 401, and only *then* bounce to login. Decide before rendering:
+  // the guarded screen must never mount, not even for one frame.
+  const signedOut = !authToken && !PUBLIC_SCREENS.has(screen);
+  // Role is null only for a session persisted before roles existed — don't lock
+  // a real doctor out over that; the token guard above still applies.
+  const wrongRole = !signedOut && DOCTOR_SCREENS.has(screen) && role !== null && role !== 'DOCTOR';
+
+  // Keep store + history in step with what we actually render, so Back doesn't
+  // return to the screen we just refused.
+  useEffect(() => {
+    if (signedOut) navigate('login');
+    else if (wrongRole) navigate('home');
+  }, [signedOut, wrongRole, navigate]);
+
+  if (signedOut) return <LoginScreen />;
+  if (wrongRole) return <HomeScreen />;
+
+  switch (screen) {
     case 'landing':
       return <LandingScreen />;
     case 'interview':

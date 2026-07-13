@@ -37,8 +37,26 @@ export class ApiError extends Error {
   }
 }
 
+/** The only endpoints that are callable without a bearer token. */
+const PUBLIC_PATHS = [/^\/auth\/login/, /^\/auth\/signup/, /^\/health/];
+
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken();
+
+  // No token, authenticated endpoint → don't send the request at all. A screen
+  // whose fetch chain outlives a 401 (its next call runs before React unmounts
+  // it) would otherwise hit the API with no Authorization header. Fail here so
+  // the app reports an expired session instead of a bare, confusing 401.
+  if (!token && !PUBLIC_PATHS.some((p) => p.test(path))) {
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    throw new ApiError(
+      'Your session has expired. Please sign in again.',
+      401,
+      IS_DEV
+        ? `${(init?.method ?? 'GET').toUpperCase()} ${BASE_URL}${path}\nnot sent: no bearer token`
+        : undefined,
+    );
+  }
   // FormData must set its own multipart Content-Type (with boundary) — never JSON.
   const isForm = typeof FormData !== 'undefined' && init?.body instanceof FormData;
   // Merge headers: default JSON (unless form), then caller overrides, then the auth
