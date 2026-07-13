@@ -10,6 +10,7 @@
 import { Bell, Monitor } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
+import { doctorInitials } from '../api/doctors';
 import { useApp, type Screen } from '../store/AppStore';
 import { LegalModal } from '../legal/LegalModal';
 import type { LegalKind } from '../legal/legalDocs';
@@ -29,11 +30,6 @@ const TABS: TabDef[] = [
   { id: 'plans', label: 'Plans', screen: 'docPlans' },
 ];
 
-/** Initials from a full name, e.g. "Eleanor Vance" → "EV". */
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0] ?? '') + (parts[parts.length - 1]?.[0] ?? '')).toUpperCase() || '?';
-}
 
 interface DoctorShellProps {
   /** Which nav tab to highlight; omit on non-section pages (e.g. the profile). */
@@ -103,7 +99,7 @@ export function DoctorShell({ active, footer = true, showTabs = true, children }
                 onClick={() => navigate('docProfile')}
                 aria-label="Your profile"
               >
-                {initials(doctorName)}
+                {doctorInitials(doctorName) || '?'}
               </button>
             </div>
           </div>

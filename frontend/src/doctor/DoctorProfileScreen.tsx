@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 
 import { me } from '../api/auth';
+import { doctorDisplayName, doctorInitials } from '../api/doctors';
 import type { UserRead } from '../types/api';
 import { useApp } from '../store/AppStore';
 import { DoctorShell } from './DoctorShell';
@@ -48,10 +49,6 @@ const PLACEHOLDER = {
   clinic: 'Suite 402, Medical Arts Bldg',
 };
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0] ?? '') + (parts[parts.length - 1]?.[0] ?? '')).toUpperCase() || 'DR';
-}
 
 export function DoctorProfileScreen(): JSX.Element {
   const { state, navigate, logout } = useApp();
@@ -75,9 +72,9 @@ export function DoctorProfileScreen(): JSX.Element {
     };
   }, []);
 
-  const fullName = user
-    ? `Dr. ${user.first_name} ${user.last_name}`.trim()
-    : `Dr. ${state.name}`.trim() || 'Dr. Vance';
+  const fullName =
+    (user ? doctorDisplayName(user.first_name, user.last_name) : doctorDisplayName(state.name)) ||
+    'Dr. Vance';
   const email = user?.email ?? '—';
   const phone = user?.phone_number ?? 'Not provided';
 
@@ -91,7 +88,7 @@ export function DoctorProfileScreen(): JSX.Element {
         {/* Hero */}
         <section className="dp-hero">
           <span className="dp-hero__avatar" aria-hidden="true">
-            {initials(user ? `${user.first_name} ${user.last_name}` : state.name || 'Dr')}
+            {doctorInitials(user ? user.first_name : state.name, user?.last_name) || 'DR'}
             <span className="dp-hero__online" />
           </span>
           <div className="dp-hero__body">

@@ -10,6 +10,8 @@ import { ArrowLeft, BadgeCheck, Clock, Heart } from 'lucide-react';
 
 import { ApiError } from '../api/client';
 import {
+  doctorDisplayName,
+  doctorInitials,
   getTherapistStatus,
   listDoctors,
   removeMyDoctor,
@@ -20,7 +22,7 @@ import { useApp } from '../store/AppStore';
 import './explore.css';
 
 function Avatar({ doctor, size }: { doctor: DoctorListItem; size: 'sm' | 'lg' }): JSX.Element {
-  const initials = `${doctor.first_name[0] ?? ''}${doctor.last_name[0] ?? ''}`.toUpperCase();
+  const initials = doctorInitials(doctor.first_name, doctor.last_name);
   const cls = `exp-avatar exp-avatar--${size}`;
   if (doctor.photo_url) {
     return <img className={cls} src={doctor.photo_url} alt={`${doctor.first_name} ${doctor.last_name}`} />;
@@ -32,7 +34,7 @@ function Avatar({ doctor, size }: { doctor: DoctorListItem; size: 'sm' | 'lg' })
   );
 }
 
-const fullName = (d: DoctorListItem): string => `Dr. ${d.first_name} ${d.last_name}`;
+const fullName = (d: DoctorListItem): string => doctorDisplayName(d.first_name, d.last_name);
 
 function DoctorDetail({ doctor, action }: { doctor: DoctorListItem; action?: JSX.Element }): JSX.Element {
   return (

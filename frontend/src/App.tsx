@@ -13,7 +13,6 @@ import { OllieScreen } from './companion/OllieScreen';
 import { OnboardingCompleteScreen } from './companion/OnboardingCompleteScreen';
 import { ProfileScreen } from './companion/ProfileScreen';
 import { ProfileSetupScreen } from './companion/ProfileSetupScreen';
-import { QuickStartScreen } from './companion/QuickStartScreen';
 import { RepeatAfterMeScreen } from './companion/RepeatAfterMeScreen';
 import { SignUpScreen } from './companion/SignUpScreen';
 import { TaskCompleteScreen } from './companion/TaskCompleteScreen';
@@ -31,9 +30,6 @@ import { TherapyPlanScreen } from './doctor/TherapyPlanScreen';
 import { EditTherapyPlanScreen } from './doctor/EditTherapyPlanScreen';
 import { LandingScreen } from './landing/LandingScreen';
 import { InterviewScreen } from './landing/InterviewScreen';
-import { BreathingScreen } from './screens/BreathingScreen';
-import { ChatScreen } from './screens/ChatScreen';
-import { ReadAloudScreen } from './screens/ReadAloudScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { AppProvider, useApp, type Screen } from './store/AppStore';
 import './screens/screens.css';
@@ -105,18 +101,10 @@ function Router(): JSX.Element {
       return <TherapistSetupScreen />;
     case 'onboardingComplete':
       return <OnboardingCompleteScreen />;
-    case 'quickStart':
-      return <QuickStartScreen />;
     case 'repeatSelect':
       return <RepeatAfterMeScreen />;
     case 'assessment':
       return <AssessmentScreen />;
-    case 'read':
-      return <ReadAloudScreen />;
-    case 'chat':
-      return <ChatScreen />;
-    case 'breathing':
-      return <BreathingScreen />;
     case 'summary':
       return <SummaryScreen />;
     case 'companion':

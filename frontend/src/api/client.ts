@@ -1,5 +1,4 @@
 /** Thin API client for the LanguageAI backend. */
-import type { ChatRequest, ChatResponse } from '../types';
 import { clearToken, getToken } from './token';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -130,14 +129,6 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // 204 No Content → nothing to parse.
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
-}
-
-export function sendChat(message: string): Promise<ChatResponse> {
-  const payload: ChatRequest = { message };
-  return request<ChatResponse>('/api/chat', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
 }
 
 // Practice-attempt audio is uploaded over a WebSocket — see ./audioSocket.ts.

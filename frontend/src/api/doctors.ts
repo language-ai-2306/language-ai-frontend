@@ -10,6 +10,28 @@ export interface DoctorListItem {
   photo_url?: string | null;
 }
 
+/** A title already sitting in the name, e.g. first_name = "Dr" / "Dr." / "Prof". */
+const TITLE_RE = /^(dr|doctor|prof|mr|mrs|ms|mx)\b\.?\s*/i;
+
+/**
+ * "Dr."-prefixed display name that doesn't double a title the record already
+ * carries — first_name = "Dr", last_name = "Smith" used to render "Dr. Dr Smith".
+ */
+export function doctorDisplayName(first?: string | null, last?: string | null): string {
+  const raw = `${first ?? ''} ${last ?? ''}`.replace(/\s+/g, ' ').trim();
+  if (!raw) return '';
+  const bare = raw.replace(TITLE_RE, '').trim();
+  return bare ? `Dr. ${bare}` : raw; // name is only a title → leave it as-is
+}
+
+/** Avatar initials from the name minus any title: "Dr Smith" → "S", not "DD". */
+export function doctorInitials(first?: string | null, last?: string | null): string {
+  const raw = `${first ?? ''} ${last ?? ''}`.replace(/\s+/g, ' ').trim();
+  const parts = (raw.replace(TITLE_RE, '').trim() || raw).split(' ').filter(Boolean);
+  const ini = (parts[0]?.[0] ?? '') + (parts.length > 1 ? (parts[parts.length - 1][0] ?? '') : '');
+  return ini.toUpperCase();
+}
+
 export interface DoctorPage {
   items: DoctorListItem[];
   page: number;
