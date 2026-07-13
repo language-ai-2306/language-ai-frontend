@@ -31,6 +31,10 @@ const medal = (rank: number, score: number | null): string => {
   return '';
 };
 
+/** How often the board re-checks the API. The score only changes when a child
+ *  finishes an exercise or a new player signs up, so 30s is ample. */
+const POLL_MS = 30_000;
+
 export function LeaderboardScreen(): JSX.Element {
   const { navigate } = useApp();
   const [rows, setRows] = useState<LeaderboardEntry[]>([]);
@@ -39,14 +43,45 @@ export function LeaderboardScreen(): JSX.Element {
 
   useEffect(() => {
     let alive = true;
-    getLeaderboard()
-      .then((r) => alive && setRows(r))
-      .catch((e) =>
-        alive && setError(e instanceof ApiError ? e.message : 'Could not load the leaderboard.'),
-      )
-      .finally(() => alive && setLoading(false));
+
+    /** `initial` shows the skeleton; a poll refreshes silently underneath, so the
+     *  board never flashes back to skeletons while someone is reading it. */
+    const load = (initial = false): void => {
+      getLeaderboard()
+        .then((r) => {
+          if (!alive) return;
+          setRows(r);
+          setError(''); // a good poll clears a stale error from a bad one
+        })
+        .catch((e) => {
+          if (!alive) return;
+          // Only surface a failure if we have nothing to show. A blip mid-demo
+          // shouldn't blow away a board that's already on screen — we just keep
+          // the last good data and try again in 30s.
+          if (initial) setError(e instanceof ApiError ? e.message : 'Could not load the leaderboard.');
+        })
+        .finally(() => {
+          if (alive && initial) setLoading(false);
+        });
+    };
+
+    load(true);
+    const id = window.setInterval(() => {
+      // A backgrounded tab (projector asleep, another window on top) doesn't need
+      // to poll — and we refetch the moment it comes back anyway.
+      if (document.visibilityState === 'visible') load();
+    }, POLL_MS);
+
+    // Coming back to the tab shouldn't mean waiting up to 30s for fresh scores.
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') load();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
     return () => {
       alive = false;
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);
 
@@ -63,8 +98,8 @@ export function LeaderboardScreen(): JSX.Element {
 
         <header className="lb__head">
           <span className="lb__cup" aria-hidden="true"><Trophy size={26} /></span>
-          <h1 className="lb__title">School Leaderboard</h1>
-          <p className="lb__sub">Fluency scores across the school. Keep practising to climb!</p>
+          <h1 className="lb__title">Leaderboard</h1>
+          <p className="lb__sub">Fluency scores across all players. Keep practising to climb!</p>
         </header>
 
         <div className="lb__card">

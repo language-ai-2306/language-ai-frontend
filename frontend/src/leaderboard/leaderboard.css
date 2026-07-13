@@ -1,14 +1,21 @@
 /* Public school leaderboard. Prefix: .lb-* / .lb__*
    Sits on the same room image the home screen uses, so the public board and the
    app look like one place. */
+/* Locked to the viewport and laid out as a column: back button + header take what
+   they need, the list gets the rest and scrolls inside itself. The page itself
+   never scrolls, so there's exactly one scrollbar. */
 .lb {
   position: relative;
   isolation: isolate;
-  min-height: 100dvh;
-  padding: 1.5rem 1.1rem 3rem;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* Side gutters come from .lb__inner, which mirrors the landing page's
+     .lp-container — so the board lines up with the rest of the site. */
+  padding: 1.5rem 0 2rem;
   color: #fff;
   font-family: 'Nunito', system-ui, -apple-system, sans-serif;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 .lb__room,
 .lb__scrim {
@@ -27,7 +34,22 @@
     linear-gradient(180deg, rgba(30, 11, 63, 0.72) 0%, rgba(30, 11, 63, 0.86) 100%);
 }
 
-.lb__inner { max-width: 720px; margin: 0 auto; }
+/* Same measure and gutters as the landing page's .lp-container — keep the two in
+   step if either changes. */
+.lb__inner {
+  width: 100%;
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 72px);
+  /* Column too, so .lb__card can claim the leftover height. */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+/* The back button shouldn't stretch to the full row width. */
+.lb__back { align-self: flex-start; }
 
 .lb__back {
   display: inline-flex;
@@ -73,8 +95,40 @@
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 22px;
   backdrop-filter: blur(8px);
-  padding: 0.4rem 0.5rem;
-  overflow: hidden;
+  /* No top padding: it would sit ABOVE the sticky header, and rows would show in
+     that sliver as they scroll under it. */
+  padding: 0 0.5rem 0.4rem;
+
+  /* A whole school won't fit on screen. The LIST scrolls, not the page, so the
+     trophy, title and column headers stay put on a wall display. It takes exactly
+     the height left over (see the flex column on .lb / .lb__inner) — a fixed
+     max-height would guess wrong and let the page scroll as well, giving two
+     scrollbars. */
+  flex: 1;
+  min-height: 0; /* without this a flex child refuses to shrink below its content */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* NB: deliberately NOT using `scrollbar-width` / `scrollbar-color`. Chrome ignores
+   the ::-webkit-scrollbar rules below the moment either standard property is set,
+   and falls back to a macOS overlay bar that fades out when idle — which on an
+   untouched wall display reads as "the list just ends". These give a bar that is
+   always visible, and that takes up real space, whenever the list can scroll. */
+.lb__card::-webkit-scrollbar { width: 10px; }
+.lb__card::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  margin: 0.5rem 0;
+}
+.lb__card::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.34);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.lb__card::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.55);
+  background-clip: padding-box;
 }
 .lb__row {
   display: grid;
@@ -93,6 +147,15 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.6);
+  /* Stays put while the rows scroll under it. The backdrop must be effectively
+     OPAQUE: the card is glass and a nested backdrop-filter is ignored, so at any
+     real transparency the rows scrolling underneath show straight through the
+     header text. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #2c1359;
+  border-radius: 14px;
 }
 .lb__col--score { text-align: right; }
 .lb__col--name { font-weight: 700; font-size: 1.05rem; }
