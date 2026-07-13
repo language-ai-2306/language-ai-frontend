@@ -1,0 +1,215 @@
+/* Public school leaderboard. Prefix: .lb-* / .lb__*
+   Sits on the same room image the home screen uses, so the public board and the
+   app look like one place. */
+/* Locked to the viewport and laid out as a column: back button + header take what
+   they need, the list gets the rest and scrolls inside itself. The page itself
+   never scrolls, so there's exactly one scrollbar. */
+.lb {
+  position: relative;
+  isolation: isolate;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* Side gutters come from .lb__inner, which mirrors the landing page's
+     .lp-container — so the board lines up with the rest of the site. */
+  padding: 1.5rem 0 2rem;
+  color: #fff;
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+.lb__room,
+.lb__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.lb__room {
+  background: #2b1259 url('/backgroundImage.png') center 30% / cover no-repeat;
+}
+/* The rug and window are bright; the table is white text, so darken hard. */
+.lb__scrim {
+  background:
+    radial-gradient(120% 90% at 50% 35%, rgba(23, 6, 51, 0.25) 0%, rgba(23, 6, 51, 0.7) 100%),
+    linear-gradient(180deg, rgba(30, 11, 63, 0.72) 0%, rgba(30, 11, 63, 0.86) 100%);
+}
+
+/* Same measure and gutters as the landing page's .lp-container — keep the two in
+   step if either changes. */
+.lb__inner {
+  width: 100%;
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 72px);
+  /* Column too, so .lb__card can claim the leftover height. */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+/* The back button shouldn't stretch to the full row width. */
+.lb__back { align-self: flex-start; }
+
+.lb__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+.lb__back:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* ---- Header ---- */
+.lb__head { text-align: center; margin: 1.6rem 0 1.4rem; }
+.lb__cup {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 0.6rem;
+  border-radius: 50%;
+  color: #fde68a;
+  background: rgba(253, 230, 138, 0.16);
+  border: 1px solid rgba(253, 230, 138, 0.35);
+}
+.lb__title {
+  margin: 0;
+  font-family: 'Baloo 2', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.9rem, 6vw, 2.6rem);
+  line-height: 1.1;
+  text-shadow: 0 2px 16px rgba(23, 6, 51, 0.6);
+}
+.lb__sub { margin: 0.4rem 0 0; color: rgba(255, 255, 255, 0.75); font-weight: 600; }
+
+/* ---- Table (CSS grid rows, so the 3 columns line up exactly) ---- */
+.lb__card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  backdrop-filter: blur(8px);
+  /* No top padding: it would sit ABOVE the sticky header, and rows would show in
+     that sliver as they scroll under it. */
+  padding: 0 0.5rem 0.4rem;
+
+  /* A whole school won't fit on screen. The LIST scrolls, not the page, so the
+     trophy, title and column headers stay put on a wall display. It takes exactly
+     the height left over (see the flex column on .lb / .lb__inner) — a fixed
+     max-height would guess wrong and let the page scroll as well, giving two
+     scrollbars. */
+  flex: 1;
+  min-height: 0; /* without this a flex child refuses to shrink below its content */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* NB: deliberately NOT using `scrollbar-width` / `scrollbar-color`. Chrome ignores
+   the ::-webkit-scrollbar rules below the moment either standard property is set,
+   and falls back to a macOS overlay bar that fades out when idle — which on an
+   untouched wall display reads as "the list just ends". These give a bar that is
+   always visible, and that takes up real space, whenever the list can scroll. */
+.lb__card::-webkit-scrollbar { width: 10px; }
+.lb__card::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  margin: 0.5rem 0;
+}
+.lb__card::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.34);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.lb__card::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.55);
+  background-clip: padding-box;
+}
+.lb__row {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr 6.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 14px;
+}
+.lb__row + .lb__row { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.lb__row:not(.lb__row--head):hover { background: rgba(255, 255, 255, 0.06); }
+
+.lb__row--head {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  /* Stays put while the rows scroll under it. The backdrop must be effectively
+     OPAQUE: the card is glass and a nested backdrop-filter is ignored, so at any
+     real transparency the rows scrolling underneath show straight through the
+     header text. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #2c1359;
+  border-radius: 14px;
+}
+.lb__col--score { text-align: right; }
+.lb__col--name { font-weight: 700; font-size: 1.05rem; }
+
+/* Rank pill — the top three get a medal tint. */
+.lb__rank {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.1rem;
+  height: 2.1rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-family: 'Baloo 2', system-ui, sans-serif;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.lb__rank--gold   { background: linear-gradient(140deg, #fde68a, #f59e0b); color: #4a2c00; }
+.lb__rank--silver { background: linear-gradient(140deg, #e5e7eb, #9ca3af); color: #29303a; }
+.lb__rank--bronze { background: linear-gradient(140deg, #fcd9b6, #c2793f); color: #43230a; }
+
+.lb__score {
+  font-family: 'Baloo 2', system-ui, sans-serif;
+  font-size: 1.2rem;
+  color: #a7f3d0;
+}
+/* No exercises done yet → no score exists. A dash, never a 0. */
+.lb__dash { color: rgba(255, 255, 255, 0.4); font-size: 1.2rem; font-weight: 800; }
+
+/* ---- Loading / empty / error ---- */
+.lb__status { text-align: center; padding: 1rem; margin: 0; color: rgba(255, 255, 255, 0.75); font-weight: 700; }
+.lb__status--err { color: #fecaca; }
+.lb__row--skel { pointer-events: none; }
+.lb__skel {
+  height: 1.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: lb-shimmer 1.25s ease-in-out infinite;
+}
+.lb__skel--rank { width: 2.1rem; height: 2.1rem; border-radius: 50%; }
+.lb__skel--name { width: min(60%, 11rem); }
+.lb__skel--score { width: 3.2rem; justify-self: end; }
+@keyframes lb-shimmer {
+  from { background-position: 180% 0; }
+  to   { background-position: -80% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lb__skel { animation: none; }
+}

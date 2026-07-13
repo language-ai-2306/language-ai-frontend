@@ -23,6 +23,7 @@ import type { Role } from '../types/api';
 export type Screen =
   | 'landing'
   | 'interview'
+  | 'leaderboard'
   | 'login'
   | 'signup'
   | 'verifyEmail'
@@ -254,6 +255,7 @@ interface Persisted {
 const SCREENS: Screen[] = [
   'landing',
   'interview',
+  'leaderboard',
   'login',
   'signup',
   'verifyEmail',

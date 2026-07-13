@@ -30,6 +30,7 @@ import { TherapyPlanScreen } from './doctor/TherapyPlanScreen';
 import { EditTherapyPlanScreen } from './doctor/EditTherapyPlanScreen';
 import { LandingScreen } from './landing/LandingScreen';
 import { InterviewScreen } from './landing/InterviewScreen';
+import { LeaderboardScreen } from './leaderboard/LeaderboardScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { AppProvider, useApp, type Screen } from './store/AppStore';
 import './screens/screens.css';
@@ -40,6 +41,9 @@ import './App.css';
 const PUBLIC_SCREENS: ReadonlySet<Screen> = new Set<Screen>([
   'landing',
   'interview',
+  // The school leaderboard is deliberately open to anyone — no login. Its API path
+  // is whitelisted in client.ts (PUBLIC_PATHS) too; both are needed.
+  'leaderboard',
   'login',
   'signup',
   'verifyEmail',
@@ -89,6 +93,8 @@ function Router(): JSX.Element {
       return <LandingScreen />;
     case 'interview':
       return <InterviewScreen />;
+    case 'leaderboard':
+      return <LeaderboardScreen />;
     case 'login':
       return <LoginScreen />;
     case 'signup':

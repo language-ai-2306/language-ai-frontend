@@ -199,6 +199,10 @@ export function LandingScreen(): JSX.Element {
             {NAV_LINKS.map((l) => (
               <a key={l.label} href={l.href}>{l.label}</a>
             ))}
+            {/* A screen, not an anchor — the leaderboard is its own public page. */}
+            <button type="button" className="lp-nav__tab" onClick={() => navigate('leaderboard')}>
+              Leaderboard
+            </button>
           </nav>
           <div className="lp-nav__actions">
             <button type="button" className="lp-btn lp-btn--ghost" onClick={enter}>Sign in</button>

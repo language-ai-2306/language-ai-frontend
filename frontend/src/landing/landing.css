@@ -136,6 +136,18 @@
 .lp-nav__links { display: none; }
 .lp-nav__links a { color: var(--lp-head); text-decoration: none; font-weight: 700; opacity: 0.85; }
 .lp-nav__links a:hover { opacity: 1; }
+/* Leaderboard is a <button> (it routes to a screen) — make it read as a nav tab. */
+.lp-nav__tab {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--lp-head);
+  opacity: 0.85;
+  cursor: pointer;
+}
+.lp-nav__tab:hover { opacity: 1; }
 .lp-nav__actions { display: flex; gap: 0.5rem; }
 /* Both auth buttons show on mobile too; compact them so they fit a phone width. */
 .lp-nav__actions .lp-btn { padding: 0.5rem 0.85rem; font-size: 0.9rem; }

@@ -37,7 +37,10 @@ export class ApiError extends Error {
 }
 
 /** The only endpoints that are callable without a bearer token. */
-const PUBLIC_PATHS = [/^\/auth\/login/, /^\/auth\/signup/, /^\/health/];
+/** Endpoints callable with NO bearer token. The leaderboard is public by design —
+ *  without it here, the guard below would refuse the request and bounce a
+ *  logged-out visitor to the login screen. */
+const PUBLIC_PATHS = [/^\/auth\/login/, /^\/auth\/signup/, /^\/health/, /^\/v1\/leaderboard/];
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken();
