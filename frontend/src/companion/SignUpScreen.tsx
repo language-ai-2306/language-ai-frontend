@@ -162,10 +162,8 @@ export function SignUpScreen(): JSX.Element {
       setError('Enter a 9-digit Australian phone number, e.g. 412 345 678.');
       return;
     }
-    if (needsGuardian && (!form.guardianName.trim() || !form.guardianEmail.trim())) {
-      setError('Guardian name and email are required for younger learners.');
-      return;
-    }
+    // Guardian details are OPTIONAL — the section is offered to younger learners
+    // but never blocks the account. The backend takes all three as nullable.
     if (!agree) {
       setError('Please agree to the Terms of Service and Privacy Policy.');
       return;
@@ -208,9 +206,12 @@ export function SignUpScreen(): JSX.Element {
           // Refined later on ProfileSetup; the backend requires a non-empty value.
           nickname: form.firstName.trim(),
           avatar_url: avatar,
-          guardian_name: needsGuardian ? form.guardianName.trim() : null,
-          guardian_relationship: needsGuardian ? form.guardianRelationship || null : null,
-          guardian_email: needsGuardian ? form.guardianEmail.trim() : null,
+          // Left blank → null, not "". The `needsGuardian` gate also stops values
+          // typed before an adult DOB was entered from being sent once the
+          // section hides again.
+          guardian_name: (needsGuardian && form.guardianName.trim()) || null,
+          guardian_relationship: (needsGuardian && form.guardianRelationship) || null,
+          guardian_email: (needsGuardian && form.guardianEmail.trim()) || null,
         });
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Sign up failed. Please try again.');
@@ -398,12 +399,16 @@ export function SignUpScreen(): JSX.Element {
           )}
         </div>
 
-        {/* Guardian details — patients under the guardian age only */}
+        {/* Guardian details — offered to younger learners, but OPTIONAL: blank is
+            accepted and never blocks the account. */}
         {needsGuardian && (
           <section className="su-guardian">
-            <h2 className="su-guardian__title">Guardian Details</h2>
+            <h2 className="su-guardian__title">
+              Guardian Details <span className="su-guardian__opt">Optional</span>
+            </h2>
             <p className="su-guardian__note">
-              We require guardian details for users under certain ages to ensure safety and support.
+              For younger learners we can keep a guardian in the loop for safety and support. You can
+              add this now or leave it blank and fill it in later.
             </p>
             <label className="su-field">
               <span>Guardian Name</span>
