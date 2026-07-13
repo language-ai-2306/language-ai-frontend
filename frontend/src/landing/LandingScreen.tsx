@@ -12,17 +12,21 @@ import {
   BookOpen,
   Brain,
   CalendarClock,
-  Check,
+  CheckCircle2,
   ClipboardCheck,
   FileDown,
   FileText,
   Gamepad2,
+  Globe,
+  GraduationCap,
   Heart,
   Home,
   Image as ImageIcon,
+  Lock,
   MessageCircle,
   ShieldCheck,
   Sparkles,
+  Star,
   Stethoscope,
   Target,
   User,
@@ -50,6 +54,38 @@ const HERO_APP_IMAGE: string = '/app-home.png';
 // Screenshot for the "For families" phone showcase. Defaults to the home screen;
 // drop a game screen in frontend/public/ and point this at it for variety.
 const FAMILIES_APP_IMAGE: string = '/app-games.png';
+
+// NB: the hero's room background is set in landing.css (.lp-hero__room) — it's the
+// same /backgroundImage.png the app uses for the Home hero and the Ollie game.
+const HERO_PILLARS = [
+  {
+    icon: <Heart size={22} aria-hidden="true" />,
+    title: 'Loved by Kids',
+    text: 'Engaging games and stories keep kids motivated to practice every day.',
+  },
+  {
+    icon: <ShieldCheck size={22} aria-hidden="true" />,
+    title: 'Built with SLPs',
+    text: 'Evidence based tools designed in collaboration with speech experts.',
+  },
+  {
+    icon: <BarChart3 size={22} aria-hidden="true" />,
+    title: 'Actionable Insights',
+    text: 'Real time data and reports help clinicians track progress and plan better.',
+  },
+  {
+    icon: <Lock size={22} aria-hidden="true" />,
+    title: 'Secure & Private',
+    text: "HIPAA aligned and privacy focused to keep every child's data safe.",
+  },
+];
+
+const HERO_STATS = [
+  { icon: <Users size={22} aria-hidden="true" />, value: '10,000+', label: 'Kids improving every day' },
+  { icon: <Star size={22} aria-hidden="true" />, value: '4.9/5', label: 'Average family rating' },
+  { icon: <GraduationCap size={22} aria-hidden="true" />, value: '1,200+', label: 'Clinicians using LanguageAI' },
+  { icon: <Globe size={22} aria-hidden="true" />, value: '30+', label: 'Countries served' },
+];
 
 const NAV_LINKS = [
   { label: 'Product', href: '#how' },
@@ -172,29 +208,35 @@ export function LandingScreen(): JSX.Element {
       </header>
 
       {/* ---- Hero ---- */}
+      {/* The room behind the hero is the SAME asset the app itself uses (Home hero
+          + the Ollie game), so the marketing page and the product look like one
+          place. Two layers sit over it: a dark violet wash so white type stays
+          legible on the bright rug, and a vignette to pull focus to the centre. */}
       <section className="lp-hero" id="top">
+        <div className="lp-hero__room" aria-hidden="true" />
+        <div className="lp-hero__scrim" aria-hidden="true" />
+
         <div className="lp-container lp-hero__inner">
           <div className="lp-hero__text">
             <span className="lp-badge"><Sparkles size={16} /> AI powered practice built with SLPs</span>
-            <h1 className="lp-h1">Speech practice kids love, insight therapists trust.</h1>
+            <h1 className="lp-h1">
+              Speech practice <span className="lp-h1__hl">kids love,</span> insights therapists trust.
+            </h1>
             <p className="lp-lead">
-              LanguageAI turns daily fluency practice into playful games with Ollie the otter, while every
-              recording becomes objective clinical insight for SLPs.
-            </p>
-            <p className="lp-punch">
-              We believe that speech therapy session should be available <span className="lp-punch__hl">24×7</span>
+              Transform everyday practice into playful games for kids and meaningful, measurable progress
+              for clinicians.
             </p>
             <div className="lp-hero__cta">
               <button type="button" className="lp-btn lp-btn--primary lp-btn--lg" onClick={enter}>
-                Start free <ArrowRight size={18} />
+                Start Free <ArrowRight size={18} />
               </button>
-              <button type="button" className="lp-btn lp-btn--outline lp-btn--lg" onClick={enter}>
-                For Clinicians
+              <button type="button" className="lp-btn lp-btn--white lp-btn--lg" onClick={enter}>
+                <Users size={18} /> For Clinicians
               </button>
             </div>
             <ul className="lp-checks">
-              {['Fluency scoring', 'Disfluency detection', 'SLP ready reports'].map((c) => (
-                <li key={c}><Check size={16} /> {c}</li>
+              {['SLP Designed', 'Evidence Based', 'HIPAA Aligned'].map((c) => (
+                <li key={c}><CheckCircle2 size={17} /> {c}</li>
               ))}
             </ul>
           </div>
@@ -239,17 +281,37 @@ export function LandingScreen(): JSX.Element {
               </div>
             )}
           </div>
+
+          {/* Four pillars, on glass over the room */}
+          <ul className="lp-pillars">
+            {HERO_PILLARS.map((p) => (
+              <li key={p.title} className="lp-pillar">
+                <span className="lp-pillar__icon">{p.icon}</span>
+                <div>
+                  <h2 className="lp-pillar__title">{p.title}</h2>
+                  <p className="lp-pillar__text">{p.text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Social proof */}
+          <div className="lp-stats">
+            <p className="lp-stats__label">Trusted by families and clinicians worldwide</p>
+            <ul className="lp-stats__row">
+              {HERO_STATS.map((s) => (
+                <li key={s.label} className="lp-stat">
+                  <span className="lp-stat__icon">{s.icon}</span>
+                  <div>
+                    <b className="lp-stat__value">{s.value}</b>
+                    <span className="lp-stat__label">{s.label}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
-
-      {/* ---- Trust strip ---- */}
-      <div className="lp-container">
-        <div className="lp-trust">
-          {['Built with SLPs', '5 practice games', 'AI measured fluency', 'Clinician ready reports'].map((t) => (
-            <span key={t} className="lp-trust__item">{t}</span>
-          ))}
-        </div>
-      </div>
 
       {/* ---- Problem ---- */}
       <section className="lp-section">
