@@ -6,7 +6,7 @@
  * Auth is mocked for now: submitting proceeds to the child profile picker /
  * quick check. Replace `submit` with a real API call to /auth later.
  */
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
 import { useApp } from '../store/AppStore';
@@ -22,6 +22,17 @@ export function LoginScreen(): JSX.Element {
   const [show, setShow] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // The wordmark is a ~230 kB PNG, so on a cold/slow connection the card opens
+  // with an empty gap where the brand should be. Show a shimmering placeholder
+  // of exactly the logo's size until it lands — no flash, and no layout shift.
+  const logoRef = useRef<HTMLImageElement>(null);
+  const [logoLoaded, setLogoLoaded] = useState(false);
+  useEffect(() => {
+    // A cached image can finish before React attaches onLoad, which would leave
+    // the skeleton up forever — so check `complete` once on mount too.
+    if (logoRef.current?.complete) setLogoLoaded(true);
+  }, []);
 
   const submit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
@@ -58,7 +69,17 @@ export function LoginScreen(): JSX.Element {
           <ArrowLeft size={22} aria-hidden="true" />
         </button>
         <div className="auth-brand">
-          <img className="auth-logo-img" src="/login-logo.png" alt="LanguageAI" />
+          {!logoLoaded && <span className="auth-logo-skel" aria-hidden="true" />}
+          <img
+            ref={logoRef}
+            className={`auth-logo-img${logoLoaded ? ' is-loaded' : ''}`}
+            src="/login-logo.png"
+            alt="LanguageAI"
+            onLoad={() => setLogoLoaded(true)}
+            // On error, drop the skeleton too — a permanent shimmer reads as a
+            // hung screen. The alt text carries the brand instead.
+            onError={() => setLogoLoaded(true)}
+          />
         </div>
         <p className="auth-sub">Welcome back! Ready to learn?</p>
 
