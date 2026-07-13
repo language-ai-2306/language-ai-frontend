@@ -37,6 +37,12 @@ backups/3d-models/*.fbx
 # Local Claude Code settings (machine-specific)
 .claude/settings.local.json
 
+# Local dev DB credentials (plaintext test-account logins — never commit)
+LOCAL_DEV_CREDENTIALS.txt
+
+# Local pointer to the sibling backend/ML repos (machine-specific absolute paths)
+BACKEND_ML_LOCATIONS.md
+
 # Editor / OS
 .DS_Store
 .idea/

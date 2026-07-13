@@ -14,7 +14,7 @@
  * expose (parent/guardian, contact, diagnosis date, session scheduling) are
  * rendered as clearly-marked "Not provided" placeholders — not invented values.
  */
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   AudioLines,
@@ -27,8 +27,10 @@ import {
   Gamepad2,
   History,
   Image as ImageIcon,
+  Loader2,
   MessageSquare,
   Mic,
+  Pause,
   Pencil,
   Play,
   Plus,
@@ -38,6 +40,7 @@ import {
 } from 'lucide-react';
 
 import {
+  getAttemptRecording,
   getPatientDetail,
   getPatientReportPdf,
   listPatientAttempts,
@@ -295,6 +298,112 @@ function gameMeta(type?: string | null): { label: string; icon: JSX.Element; lig
   return { label: type ? titleCase(type) : 'Practice', icon: <Mic size={18} />, light: false };
 }
 
+/** Game Recordings list with inline playback. Clicking a row fetches a FRESH
+ *  presigned S3 URL from the backend (GET /v1/doctor/attempts/{id}/recording) and
+ *  plays it through a shared hidden <audio>. We sign on demand because the URL
+ *  stored on the attempt expires; clicking the active row toggles play/pause. */
+function RecordingsList({ attempts }: { attempts: AttemptSummary[] }): JSX.Element {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [errorId, setErrorId] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const onPlayClick = useCallback(
+    async (attemptId: string): Promise<void> => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      setErrorId(null);
+      // Same row → toggle the already-loaded audio.
+      if (activeId === attemptId) {
+        if (audio.paused) void audio.play().catch(() => setErrorId(attemptId));
+        else audio.pause();
+        return;
+      }
+      // New row → fetch a fresh presigned URL, then play.
+      setLoadingId(attemptId);
+      try {
+        const { audio_url } = await getAttemptRecording(attemptId);
+        audio.src = audio_url;
+        setActiveId(attemptId);
+        await audio.play();
+      } catch {
+        setActiveId(null);
+        setErrorId(attemptId);
+      } finally {
+        setLoadingId(null);
+      }
+    },
+    [activeId],
+  );
+
+  return (
+    <>
+      {/* One shared player for the whole list. */}
+      <audio
+        ref={audioRef}
+        hidden
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
+      />
+      <ul className="po-recs">
+        {attempts.map((a) => {
+          const g = gameMeta(a.exercise_type);
+          const isActive = activeId === a.attempt_id;
+          const isLoading = loadingId === a.attempt_id;
+          const isPlaying = isActive && playing;
+          return (
+            <li key={a.attempt_id} className="po-rec">
+              <span className={`po-rec__icon${g.light ? ' po-rec__icon--light' : ''}`}>{g.icon}</span>
+              <span className="po-rec__body">
+                <span className="po-rec__name">{g.label}</span>
+                <span className="po-rec__date">
+                  {new Date(a.created_at).toLocaleString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+                <span className="po-rec__scores">
+                  Fluency {fmt(a.fluency_score, 1)} · Stutter {fmt(a.stutter_frequency_percent, 1)}% ·{' '}
+                  {fmt(a.words_per_minute, 0)} wpm
+                </span>
+                {errorId === a.attempt_id && (
+                  <span className="po-rec__err">Recording unavailable</span>
+                )}
+              </span>
+              <button
+                type="button"
+                className="po-rec__btn"
+                onClick={() => void onPlayClick(a.attempt_id)}
+                disabled={isLoading}
+                aria-label={isPlaying ? 'Pause recording' : 'Play recording'}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="po-spin" size={15} aria-hidden="true" /> Loading…
+                  </>
+                ) : isPlaying ? (
+                  <>
+                    <Pause size={15} aria-hidden="true" /> Pause
+                  </>
+                ) : (
+                  <>
+                    <Play size={15} aria-hidden="true" /> Play recording
+                  </>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  );
+}
+
 /* ---- Left rail cards ----------------------------------------------------- */
 
 function PatientDetailsCard({ detail }: { detail: PatientDetail }): JSX.Element {
@@ -473,37 +582,7 @@ function OverviewBody({
             {attempts.length === 0 ? (
               <p className="po-muted">No recorded attempts yet.</p>
             ) : (
-              <ul className="po-recs">
-                {attempts.map((a) => {
-                  const g = gameMeta(a.exercise_type);
-                  return (
-                    <li key={a.attempt_id} className="po-rec">
-                      <span className={`po-rec__icon${g.light ? ' po-rec__icon--light' : ''}`}>
-                        {g.icon}
-                      </span>
-                      <span className="po-rec__body">
-                        <span className="po-rec__name">{g.label}</span>
-                        <span className="po-rec__date">
-                          {new Date(a.created_at).toLocaleString(undefined, {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                        <span className="po-rec__scores">
-                          Fluency {fmt(a.fluency_score, 1)} · Stutter{' '}
-                          {fmt(a.stutter_frequency_percent, 1)}% · {fmt(a.words_per_minute, 0)} wpm
-                        </span>
-                      </span>
-                      <button type="button" className="po-rec__btn" onClick={() => undefined}>
-                        <Play size={15} aria-hidden="true" /> Check Recordings
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              <RecordingsList attempts={attempts} />
             )}
           </Section>
         </div>

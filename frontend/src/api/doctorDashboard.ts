@@ -169,6 +169,23 @@ export function listPatientAttempts(
 }
 
 /* ------------------------------------------------------------------ *
+ *  GET /v1/doctor/attempts/{id}/recording — a fresh presigned S3 URL.
+ * ------------------------------------------------------------------ */
+export interface AttemptRecording {
+  attempt_id: string;
+  audio_url: string;
+  content_type: string;
+  expires_in: number;
+}
+
+/** GET /v1/doctor/attempts/{id}/recording — a short-lived presigned S3 URL to
+ *  fetch/play one recording. The URL stored on the attempt expires, so the backend
+ *  re-signs a fresh one on every call. */
+export function getAttemptRecording(attemptId: string): Promise<AttemptRecording> {
+  return request<AttemptRecording>(`/v1/doctor/attempts/${attemptId}/recording`);
+}
+
+/* ------------------------------------------------------------------ *
  *  /patient/request — pending patient link requests to this doctor.
  * ------------------------------------------------------------------ */
 export interface PatientRequest {
