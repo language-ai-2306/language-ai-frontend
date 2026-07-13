@@ -30,6 +30,20 @@
   status = 200
   force = true
 
+# Bare "/doctors" (the therapist directory, GET /doctors?page=…) needs its OWN
+# rule, and it must come BEFORE /doctors/* below. Otherwise /doctors/* matches it
+# with an empty splat and proxies to ".../doctors/" — with a trailing slash. The
+# backend's route is "/doctors", so FastAPI 307s to an ABSOLUTE ngrok URL; the
+# browser follows that redirect cross-origin and, per the fetch spec, drops the
+# Authorization header. The API then sees no token, 401s, and the app bounces the
+# user to login. Any other collection endpoint called without a subpath needs the
+# same treatment.
+[[redirects]]
+  from = "/doctors"
+  to = "https://nounally-malaceous-louise.ngrok-free.dev/doctors"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/doctors/*"
   to = "https://nounally-malaceous-louise.ngrok-free.dev/doctors/:splat"
