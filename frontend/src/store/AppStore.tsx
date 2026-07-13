@@ -29,12 +29,8 @@ export type Screen =
   | 'profileSetup'
   | 'therapistSetup'
   | 'onboardingComplete'
-  | 'quickStart'
   | 'home'
   | 'repeatSelect'
-  | 'read'
-  | 'chat'
-  | 'breathing'
   | 'summary'
   | 'companion'
   | 'assessment'
@@ -264,12 +260,8 @@ const SCREENS: Screen[] = [
   'profileSetup',
   'therapistSetup',
   'onboardingComplete',
-  'quickStart',
   'home',
   'repeatSelect',
-  'read',
-  'chat',
-  'breathing',
   'summary',
   'companion',
   'assessment',
