@@ -234,6 +234,20 @@
   font-size: 1.05rem;
   font-weight: 800;
   color: var(--c-link);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* Says out loud what the validation now allows: this whole section can be left blank. */
+.su-guardian__opt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  background: rgba(124, 58, 237, 0.08);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
 }
 .su-guardian__note {
   margin: -0.2rem 0 0.2rem;
