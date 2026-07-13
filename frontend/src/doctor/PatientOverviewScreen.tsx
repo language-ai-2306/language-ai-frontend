@@ -43,6 +43,7 @@ import {
   getAttemptRecording,
   getPatientDetail,
   getPatientReportPdf,
+  listCaseload,
   listPatientAttempts,
   type AttemptSummary,
   type Metric,
@@ -242,24 +243,138 @@ function WeeklyGoalsCard({ detail }: { detail: PatientDetail }): JSX.Element {
 /* ---- AI clinical summary (mock) ------------------------------------------ */
 
 /**
- * MOCK AI clinical summary — placeholder content until the real analysis API
- * lands. It reads a couple of real fields (name, dominant disfluency) so it reads
- * patient-specific, but it is NOT clinically meaningful. Swap for the live call.
+ * MOCK AI clinical summaries — placeholder content until the real analysis API
+ * lands. Each reads a couple of real fields (name, dominant disfluency) so it
+ * reads patient-specific, but none of it is clinically meaningful. All 20 are
+ * strengths-first, matching the product's encouraging tone. Swap for the live call.
  */
-function buildMockSummary(detail: PatientDetail): { text: string; recommendation: string } {
+interface MockSummary {
+  text: string;
+  recommendation: string;
+}
+type SummaryTemplate = (first: string, dis: string) => MockSummary;
+
+const SUMMARY_TEMPLATES: SummaryTemplate[] = [
+  (first, dis) => ({
+    text: `${first} is engaging consistently with articulation drills and shows clear gains in isolated-word accuracy. Connected speech is steadily catching up, with ${dis} now confined to phrase onsets rather than running through a whole utterance. Voice analysis shows reduced articulatory tension in medial-position sounds relative to the prior period.`,
+    recommendation: 'Introduce phrase-level repetition and monitor carry-over into spontaneous speech over the next two weeks.',
+  }),
+  (first, dis) => ({
+    text: `${first} has built an impressively steady practice habit, completing sessions without prompting. Easy-onset technique is landing well: ${dis} resolve quickly rather than escalating, which is the pattern we most want to see. Breath support through longer phrases is noticeably more even than at intake.`,
+    recommendation: 'Extend target utterances by two to three words and keep reinforcing the self-correction that is already emerging.',
+  }),
+  (first, dis) => ({
+    text: `${first} shows strong self-monitoring — noticing ${dis} in the moment and recovering without frustration. That awareness is a reliable predictor of carry-over, and it is arriving earlier than expected. Speech rate is settling into a more sustainable range across the session.`,
+    recommendation: 'Begin light self-rating after each attempt to convert that awareness into an explicit, portable strategy.',
+  }),
+  (first, dis) => ({
+    text: `${first} reads aloud with growing confidence and rarely abandons a phrase mid-way. ${titleCaseFirst(dis)} appear mostly on longer, less familiar words, while everyday vocabulary is now largely fluent. Prosody is more natural, with pausing that reads as intentional rather than stuck.`,
+    recommendation: 'Move to unfamiliar passages to stretch the skill while keeping the current pacing strategy in place.',
+  }),
+  (first, dis) => ({
+    text: `${first} is generalising well beyond drills: fluency in free conversation is closing the gap with structured tasks. ${titleCaseFirst(dis)} still surface under time pressure, but recovery is fast and the child continues talking. Engagement across activities remains high.`,
+    recommendation: 'Add mild, playful time pressure in session so the recovery skill is rehearsed under realistic conditions.',
+  }),
+  (first, dis) => ({
+    text: `${first} is producing longer, better-organised utterances than at baseline, with richer vocabulary in storytelling tasks. ${titleCaseFirst(dis)} have not increased even as sentence length grew — a strong sign the technique is holding under load. Voice quality stays relaxed through the session.`,
+    recommendation: 'Keep lengthening narrative turns and watch that the relaxed onset survives the added complexity.',
+  }),
+  (first, dis) => ({
+    text: `${first} arrives ready to practise and sustains attention through the full session. Light-contact articulation is well established, and ${dis} are shorter than in earlier recordings. Pacing is the emerging strength: phrase boundaries land where meaning suggests they should.`,
+    recommendation: 'Introduce a short conversational partner task to test pacing when turn-taking adds unpredictability.',
+  }),
+  (first, dis) => ({
+    text: `${first} demonstrates good breath support and rarely runs out of air mid-phrase now. ${titleCaseFirst(dis)} cluster at the start of a speaking turn, easing markedly once momentum builds. Overall stability across the session is improved on the prior period.`,
+    recommendation: 'Rehearse turn-initiation specifically — a short pre-phrase breath before the first word is likely to pay off.',
+  }),
+  (first, dis) => ({
+    text: `${first} responds very well to modelling and imitates target patterns accurately on the first or second attempt. ${titleCaseFirst(dis)} reduce sharply in repetition tasks, showing the motor plan is available. The next step is retrieving it without a model present.`,
+    recommendation: 'Fade the model gradually — delayed imitation, then spontaneous production of the same targets.',
+  }),
+  (first, dis) => ({
+    text: `${first} keeps talking through moments of difficulty rather than avoiding words, which is exactly the resilience we look for. ${titleCaseFirst(dis)} occur but no longer derail the utterance, and word substitution has dropped. Confidence in conversation is visibly higher.`,
+    recommendation: 'Reinforce the approach behaviour explicitly and continue expanding conversational topics.',
+  }),
+  (first, dis) => ({
+    text: `${first} is showing steadier rate control, with fewer rushed passages than earlier recordings. ${titleCaseFirst(dis)} correlate with speeding up, so the link between rate and fluency is becoming clear and usable. Articulation stays precise at the slower rate.`,
+    recommendation: 'Make rate the explicit target for the next fortnight; the fluency gains appear to follow from it.',
+  }),
+  (first, dis) => ({
+    text: `${first} sustains fluent stretches for noticeably longer before any interruption. ${titleCaseFirst(dis)} are now isolated events rather than clusters, which points to genuine consolidation rather than a good day. Session-to-session variability has narrowed.`,
+    recommendation: 'Hold the current programme — consistency is doing the work; avoid changing too many variables at once.',
+  }),
+  (first, dis) => ({
+    text: `${first} carries technique into playful, unstructured talk, which is often the hardest transfer to achieve. ${titleCaseFirst(dis)} rise slightly when excited, as expected, but settle without adult prompting. Emotional tone throughout practice is positive.`,
+    recommendation: 'Deliberately practise during high-arousal, exciting topics so the strategy is robust when it matters most.',
+  }),
+  (first, dis) => ({
+    text: `${first} produces clear, well-differentiated target sounds and is easily understood by an unfamiliar listener. ${titleCaseFirst(dis)} affect flow more than intelligibility, so comprehension is already strong. Voice analysis shows relaxed phonation with no strain markers.`,
+    recommendation: 'Shift emphasis from clarity to flow — intelligibility is secured and no longer needs session time.',
+  }),
+  (first, dis) => ({
+    text: `${first} is markedly more willing to initiate conversation than at intake, volunteering rather than only answering. ${titleCaseFirst(dis)} have not risen with the extra talking, so the increased output is not costing fluency. Practice adherence is excellent.`,
+    recommendation: 'Encourage more initiated turns at home; the extra speaking time appears to be helping rather than hurting.',
+  }),
+  (first, dis) => ({
+    text: `${first} uses pausing effectively, giving time to plan the next phrase instead of pushing through. ${titleCaseFirst(dis)} drop noticeably when pauses are well placed, and the pauses now sound natural. This is a mature strategy to see this early.`,
+    recommendation: 'Formalise the pausing strategy so it is deliberate and available under pressure, not just incidental.',
+  }),
+  (first, dis) => ({
+    text: `${first} performs consistently across all exercise types, with no single activity lagging behind. ${titleCaseFirst(dis)} appear at a stable, low rate regardless of task, suggesting a solid and even foundation. Attention holds to the end of each session.`,
+    recommendation: 'Increase difficulty across the board — the even profile suggests capacity for a broader step up.',
+  }),
+  (first, dis) => ({
+    text: `${first} recovers from ${dis} within a syllable or two and returns to fluent speech without visible tension. Struggle behaviour and secondary movements are minimal, which is a very favourable prognostic sign. The child's attitude toward practice remains upbeat.`,
+    recommendation: 'Keep the low-pressure framing that is clearly working; protect it as tasks get harder.',
+  }),
+  (first, dis) => ({
+    text: `${first} is showing gains that hold between sessions rather than resetting, indicating real consolidation. ${titleCaseFirst(dis)} at the start of each session now resolve faster than they did previously. Warm-up time needed before fluent speech has shortened.`,
+    recommendation: 'Trim the warm-up and reinvest that time in connected-speech practice.',
+  }),
+  (first, dis) => ({
+    text: `${first} handles longer, more complex sentences without a corresponding rise in ${dis} — the technique is scaling with linguistic load. Comprehension and expression are well matched, and storytelling is becoming a genuine strength. Overall trajectory is positive.`,
+    recommendation: 'Progress to multi-sentence narratives and begin planning for reduced session frequency.',
+  }),
+];
+
+/** "prolongation events" → "Prolongation events" (for sentence-initial use). */
+function titleCaseFirst(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Stable fallback index when the peer list is unavailable (deep link, failed call). */
+function hashIndex(id: string, mod: number): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h % mod;
+}
+
+/**
+ * Pick this patient's summary. `peerIds` is every patient this doctor has, sorted
+ * — so each one lands on a different template and no two patients read alike
+ * (up to the 20 available; beyond that it necessarily wraps). Falls back to a
+ * hash of the id when the peer list didn't load.
+ */
+function buildMockSummary(detail: PatientDetail, patientId: string, peerIds: string[]): MockSummary {
   const first = detail.name?.trim().split(/\s+/)[0] || 'This patient';
   const dis = detail.dominant_disfluency
     ? `${titleCase(detail.dominant_disfluency).toLowerCase()} events`
     : 'occasional disfluencies';
-  return {
-    text: `${first} is engaging consistently with articulation drills and shows early gains in isolated-word accuracy. Connected-speech fluency remains variable, with intermittent ${dis} on phrase onsets. Voice analysis indicates reduced articulatory tension in medial-position sounds relative to the prior period.`,
-    recommendation:
-      'Recommend introducing phrase-level repetition exercises and monitoring carry-over into spontaneous speech over the next two weeks.',
-  };
+  const rank = peerIds.indexOf(patientId);
+  const i = (rank >= 0 ? rank : hashIndex(patientId, SUMMARY_TEMPLATES.length)) % SUMMARY_TEMPLATES.length;
+  return SUMMARY_TEMPLATES[i](first, dis);
 }
 
-function AiSummaryCard({ detail }: { detail: PatientDetail }): JSX.Element {
-  const s = buildMockSummary(detail);
+function AiSummaryCard({
+  detail,
+  patientId,
+  peerIds,
+}: {
+  detail: PatientDetail;
+  patientId: string;
+  peerIds: string[];
+}): JSX.Element {
+  const s = buildMockSummary(detail, patientId, peerIds);
   return (
     <section className="po-ai">
       <div className="po-ai__head">
@@ -500,6 +615,7 @@ function OverviewBody({
   detail,
   attempts,
   plan,
+  peerIds,
   onShowPlan,
   onEditPlan,
   onAddPlan,
@@ -507,6 +623,7 @@ function OverviewBody({
   detail: PatientDetail;
   attempts: AttemptSummary[];
   plan: PlanListItem | null;
+  peerIds: string[];
   onShowPlan: () => void;
   onEditPlan: () => void;
   onAddPlan: () => void;
@@ -555,7 +672,7 @@ function OverviewBody({
           {/* Weekly goals ring + AI summary */}
           <div className="po-toprow">
             <WeeklyGoalsCard detail={detail} />
-            <AiSummaryCard detail={detail} />
+            <AiSummaryCard detail={detail} patientId={detail.patient_id} peerIds={peerIds} />
           </div>
 
           {/* Performance breakdown */}
@@ -685,19 +802,25 @@ export function PatientOverviewScreen(): JSX.Element {
   const [error, setError] = useState<unknown>(null);
   const [showAddPlan, setShowAddPlan] = useState(false);
   const [exporting, setExporting] = useState(false);
+  /** Every patient of this doctor, id-sorted — gives each a distinct mock summary. */
+  const [peerIds, setPeerIds] = useState<string[]>([]);
 
   const load = useCallback(async (id: string): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      // Detail is required; attempts and plans are best-effort (don't fail the page).
-      const [d, a, plans] = await Promise.all([
+      // Detail is required; the rest are best-effort (don't fail the page).
+      const [d, a, plans, caseload] = await Promise.all([
         getPatientDetail(id),
         listPatientAttempts(id, 10).catch(() => ({ attempts: [], total: 0 })),
         listPlans(id).catch(() => [] as PlanListItem[]),
+        listCaseload().catch(() => ({ patients: [] })),
       ]);
       setDetail(d);
       setAttempts(a.attempts ?? []);
+      // Sorted by id so the order is canonical — independent of how the patient
+      // list happens to be sorted on screen, and stable across reloads.
+      setPeerIds((caseload.patients ?? []).map((p) => p.patient_id).sort());
       // Surface the active plan; else the most recent draft/other as "current".
       setPlan(plans.find((p) => p.status === 'ACTIVE') ?? plans[0] ?? null);
     } catch (e) {
@@ -808,6 +931,7 @@ export function PatientOverviewScreen(): JSX.Element {
             detail={detail}
             attempts={attempts}
             plan={plan}
+            peerIds={peerIds}
             onShowPlan={showPlan}
             onEditPlan={editPlan}
             onAddPlan={() => setShowAddPlan(true)}
