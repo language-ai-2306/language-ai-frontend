@@ -141,7 +141,41 @@
 .lp-nav__actions .lp-btn { padding: 0.5rem 0.85rem; font-size: 0.9rem; }
 
 /* ---- Hero ---- */
-.lp-hero { background: linear-gradient(180deg, #efeaff 0%, #e9e3fb 100%); padding: 36px 0 30px; }
+/* ---- Hero: Ollie's room, full-bleed, with the copy laid over it -------------
+   Layer 0  .lp-hero__room   the room photo (the app's own asset)
+   Layer 1  .lp-hero__scrim  violet wash + vignette — the rug is bright, and white
+                             type needs a dark, even field to stay readable
+   Layer 2  .lp-hero__inner  the content
+   The room render is PORTRAIT, so it's cover-cropped; the focal point is nudged
+   upward to keep the window and star wall in frame rather than the empty floor. */
+.lp-hero {
+  position: relative;
+  isolation: isolate;
+  background: #2b1259; /* shows through before the image paints, and behind it */
+  padding: 40px 0 30px;
+  overflow: hidden;
+}
+.lp-hero__room,
+.lp-hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.lp-hero__room {
+  background-image: url('/backgroundImage.png');
+  background-size: cover;
+  background-position: center 32%;
+}
+/* Dark enough for white type, light enough that the room still reads. The left
+   side carries the copy, so it's weighted darker than the right, where the phone
+   sits and the room can show through. */
+.lp-hero__scrim {
+  background:
+    linear-gradient(90deg, rgba(30, 11, 63, 0.78) 0%, rgba(30, 11, 63, 0.55) 55%, rgba(30, 11, 63, 0.34) 100%),
+    radial-gradient(120% 95% at 50% 40%, rgba(23, 6, 51, 0) 0%, rgba(23, 6, 51, 0.5) 100%),
+    linear-gradient(180deg, rgba(43, 18, 89, 0.35) 0%, rgba(43, 18, 89, 0.2) 45%, rgba(30, 11, 63, 0.75) 100%);
+}
 .lp-hero__inner { display: flex; flex-direction: column; gap: 2rem; }
 .lp-badge {
   display: inline-flex;
@@ -156,11 +190,94 @@
   font-size: 0.85rem;
   box-shadow: var(--lp-shadow);
 }
-.lp-badge svg { color: var(--lp-green); }
+.lp-badge svg { color: var(--lp-violet); }
 .lp-hero__cta { display: flex; gap: 0.7rem; flex-wrap: wrap; margin-top: 0.4rem; }
-.lp-checks { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; padding: 0; margin: 1.1rem 0 0; }
-.lp-checks li { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--lp-muted); font-weight: 700; font-size: 0.9rem; }
-.lp-checks svg { color: var(--lp-green); }
+.lp-checks { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; padding: 0; margin: 1.4rem 0 0; }
+.lp-checks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.lp-checks svg { color: #c4b5fd; }
+
+/* Hero type sits on the room, so it inverts. The shadow buys legibility over the
+   brighter parts of the render without needing a heavier scrim. */
+.lp-hero .lp-h1 {
+  color: #fff;
+  max-width: 19ch; /* break as "Speech practice / kids love, insights / therapists trust." */
+  text-shadow: 0 2px 18px rgba(23, 6, 51, 0.55);
+}
+/* "kids love," is one phrase — never let the line break split it. */
+.lp-h1__hl { color: #f9a8d4; white-space: nowrap; }
+.lp-hero .lp-lead {
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 32rem;
+  text-shadow: 0 1px 10px rgba(23, 6, 51, 0.5);
+}
+
+/* ---- Four pillars, on glass ---- */
+.lp-pillars {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 1.1rem 1.25rem;
+  display: grid;
+  gap: 1.1rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+  backdrop-filter: blur(8px);
+}
+.lp-pillar { display: flex; gap: 0.85rem; align-items: flex-start; }
+.lp-pillar__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(167, 139, 250, 0.22);
+  border: 1px solid rgba(196, 181, 253, 0.3);
+  color: #ddd6fe;
+}
+.lp-pillar__title {
+  margin: 0 0 0.2rem;
+  font-family: 'Baloo 2', system-ui, sans-serif;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #fff;
+}
+.lp-pillar__text { margin: 0; font-size: 0.88rem; line-height: 1.45; color: rgba(255, 255, 255, 0.72); }
+
+/* ---- Social proof ---- */
+.lp-stats { margin-top: 0.4rem; text-align: center; }
+.lp-stats__label {
+  margin: 0 0 1rem;
+  color: rgba(255, 255, 255, 0.66);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.lp-stats__row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.1rem 0.5rem;
+}
+.lp-stat { display: flex; align-items: center; justify-content: center; gap: 0.6rem; text-align: left; }
+.lp-stat__icon { color: #a78bfa; flex: none; }
+.lp-stat__value {
+  display: block;
+  font-family: 'Baloo 2', system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+}
+.lp-stat__label { font-size: 0.78rem; color: rgba(255, 255, 255, 0.66); }
 
 /* Hero visual — placeholder for the three.js Ollie scene (#hero-ollie) */
 .lp-hero__visual {
@@ -345,35 +462,33 @@
 .lp-phone__tabs span svg { width: 15px; height: 15px; }
 .lp-phone__tabs .is-active { color: #8b5cf6; }
 
-/* ---- Trust strip ---- */
-/* Trust strip: one bubble per item — 2×2 grid on mobile, a centered row on desktop. */
-.lp-trust {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.7rem;
-  margin-top: -26px;
-  position: relative;
-  z-index: 5;
-}
-.lp-trust__item {
-  background: #fff;
-  border-radius: 999px;
-  box-shadow: var(--lp-shadow);
-  padding: 0.7rem 1.1rem;
-  color: var(--lp-violet-d);
-  font-weight: 800;
-  font-size: 0.92rem;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 @media (min-width: 760px) {
-  .lp-trust { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 0.8rem; }
+  .lp-pillars { grid-template-columns: repeat(2, 1fr); gap: 1.4rem 1.8rem; padding: 1.4rem 1.6rem; }
+  .lp-stats__row { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Desktop hero: copy left, phone right — the room reads as one wide scene. */
+@media (min-width: 960px) {
+  .lp-hero { padding: 56px 0 34px; }
+  .lp-hero__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    align-items: center;
+    column-gap: 2.5rem;
+    row-gap: 2.2rem;
+  }
+  /* The pillars and stats span the full width, under both columns. */
+  .lp-pillars,
+  .lp-stats { grid-column: 1 / -1; }
+  .lp-pillars { grid-template-columns: repeat(4, 1fr); gap: 1.6rem; }
+  /* Hairline dividers between pillars, like the reference. */
+  .lp-pillar + .lp-pillar { border-left: 1px solid rgba(255, 255, 255, 0.12); padding-left: 1.6rem; }
+  .lp-hero__visual { padding: 0; }
 }
 
 /* ---- Sections & shared blocks ---- */
-.lp-section { padding: 52px 0; }
+/* Same vertical rhythm at every width — side gutters still come from .lp-container. */
+.lp-section { padding: 24px 0; }
 .lp-section--tint { background: var(--lp-tint); }
 .lp-card { background: var(--lp-card); border-radius: var(--lp-radius); padding: 1.5rem; box-shadow: var(--lp-shadow); }
 .lp-card--violet { background: linear-gradient(150deg, #7c3aed, #8b5cf6); color: #fff; }
@@ -492,7 +607,7 @@
 }
 
 @media (min-width: 960px) {
-  .lp-section { padding: 72px 0; }
+  /* .lp-section keeps its 24px — deliberately not bumped on desktop. */
   .lp-hero { padding: 56px 0 44px; }
   .lp-hero__inner { flex-direction: row; align-items: center; }
   .lp-hero__text { flex: 1 1 54%; }
