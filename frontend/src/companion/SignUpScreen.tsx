@@ -29,8 +29,30 @@ const MIN_PASSWORD = 8;
 const GENDERS = ['Female', 'Male', 'Non-binary', 'Prefer not to say'] as const;
 const TITLES = ['Dr.', 'Mr.', 'Mrs.', 'Ms.', 'Mx.'] as const;
 const RELATIONSHIPS = ['Parent', 'Guardian', 'Grandparent', 'Sibling', 'Other'] as const;
-/** A short list of dialling codes for the phone-number picker. */
-const DIAL_CODES = ['+1', '+44', '+61', '+91', '+49', '+33', '+81'] as const;
+/** Dialling codes for the phone-number picker. Australia leads — it's the default. */
+const DIAL_CODES = ['+61', '+1', '+44', '+91', '+49', '+33', '+81'] as const;
+const AU_DIAL_CODE = '+61';
+/** An Australian national number is 9 digits after +61 (the trunk "0" is dropped). */
+const AU_DIGITS = 9;
+
+/**
+ * Group an Australian number as it's typed — "0412345678" → "412 345 678".
+ * Tolerates what people actually paste: a leading 0, a leading 61, or +61.
+ * Other countries are left exactly as entered.
+ */
+function formatPhone(raw: string, dialCode: string): string {
+  if (dialCode !== AU_DIAL_CODE) return raw;
+  let d = raw.replace(/\D/g, '');
+  if (d.startsWith('61')) d = d.slice(2);
+  if (d.startsWith('0')) d = d.slice(1);
+  d = d.slice(0, AU_DIGITS);
+  return d.replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_m, a: string, b: string, c: string) =>
+    [a, b, c].filter(Boolean).join(' '),
+  );
+}
+
+/** Digits only — what we send to the API (E.164: +61412345678). */
+const phoneDigits = (raw: string): string => raw.replace(/\D/g, '');
 
 interface FormState {
   title: string;
@@ -56,7 +78,7 @@ const EMPTY_FORM: FormState = {
   email: '',
   dob: '',
   gender: '',
-  dialCode: '+1',
+  dialCode: AU_DIAL_CODE,
   phone: '',
   licenseNumber: '',
   password: '',
@@ -95,6 +117,14 @@ export function SignUpScreen(): JSX.Element {
     (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void =>
       setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  /** Phone groups itself as you type; changing country re-groups what's already there. */
+  const setPhone = (e: ChangeEvent<HTMLInputElement>): void =>
+    setForm((f) => ({ ...f, phone: formatPhone(e.target.value, f.dialCode) }));
+  const setDialCode = (e: ChangeEvent<HTMLSelectElement>): void =>
+    setForm((f) => ({ ...f, dialCode: e.target.value, phone: formatPhone(f.phone, e.target.value) }));
+
+  const phonePlaceholder = form.dialCode === AU_DIAL_CODE ? '412 345 678' : '(555) 000-0000';
+
   const age = useMemo(() => ageFromDob(form.dob), [form.dob]);
   // Patients default to showing guardian details (children are the norm); the
   // section hides only once an adult date of birth is entered.
@@ -126,6 +156,12 @@ export function SignUpScreen(): JSX.Element {
       setError('Passwords do not match.');
       return;
     }
+    // Phone is optional, but a half-typed one is worse than none.
+    const digits = phoneDigits(form.phone);
+    if (form.dialCode === AU_DIAL_CODE && digits && digits.length !== AU_DIGITS) {
+      setError('Enter a 9-digit Australian phone number, e.g. 412 345 678.');
+      return;
+    }
     if (needsGuardian && (!form.guardianName.trim() || !form.guardianEmail.trim())) {
       setError('Guardian name and email are required for younger learners.');
       return;
@@ -136,7 +172,8 @@ export function SignUpScreen(): JSX.Element {
     }
 
     setName(form.firstName.trim());
-    const phone = form.phone.trim() ? `${form.dialCode}${form.phone.trim()}` : '';
+    // E.164 for the API — the on-screen grouping ("412 345 678") is display only.
+    const phone = digits ? `${form.dialCode}${digits}` : '';
     // Carry identity forward. Doctors finish signup on TherapistSetup (which
     // collects the required qualification/bio); patients are created right here.
     setSignupDraft({
@@ -262,12 +299,12 @@ export function SignUpScreen(): JSX.Element {
               <label className="su-field">
                 <span>Phone Number</span>
                 <div className="su-phone">
-                  <select className="su-phone__code" value={form.dialCode} onChange={set('dialCode')} aria-label="Country dialling code">
+                  <select className="su-phone__code" value={form.dialCode} onChange={setDialCode} aria-label="Country dialling code">
                     {DIAL_CODES.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
-                  <input type="tel" value={form.phone} onChange={set('phone')} placeholder="(555) 000-0000" autoComplete="tel-national" />
+                  <input type="tel" value={form.phone} onChange={setPhone} placeholder={phonePlaceholder} autoComplete="tel-national" />
                 </div>
               </label>
 
@@ -310,7 +347,7 @@ export function SignUpScreen(): JSX.Element {
 
               <label className="su-field">
                 <span>Professional Email</span>
-                <div className="su-input">
+                <div className="su-input su-input--icon">
                   <Mail className="su-input__icon" size={18} aria-hidden="true" />
                   <input type="email" value={form.email} onChange={set('email')} placeholder="doctor@clinic.com" autoComplete="email" />
                 </div>
@@ -329,12 +366,12 @@ export function SignUpScreen(): JSX.Element {
               <label className="su-field">
                 <span>Phone Number</span>
                 <div className="su-phone">
-                  <select className="su-phone__code" value={form.dialCode} onChange={set('dialCode')} aria-label="Country dialling code">
+                  <select className="su-phone__code" value={form.dialCode} onChange={setDialCode} aria-label="Country dialling code">
                     {DIAL_CODES.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
-                  <input type="tel" value={form.phone} onChange={set('phone')} placeholder="(555) 000-0000" autoComplete="tel-national" />
+                  <input type="tel" value={form.phone} onChange={setPhone} placeholder={phonePlaceholder} autoComplete="tel-national" />
                 </div>
               </label>
 
