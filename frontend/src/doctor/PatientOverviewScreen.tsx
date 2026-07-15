@@ -10,9 +10,10 @@
  *                  trend, disfluency mix, per-sound mastery, practice calendar).
  *
  * Data sources: GET /v1/doctor/patients/{id} (+/attempts) and GET /v1/plans
- * (?patient_id=…) for the Treatment Plan card. Fields the backend does NOT
- * expose (parent/guardian, contact, diagnosis date, session scheduling) are
- * rendered as clearly-marked "Not provided" placeholders — not invented values.
+ * (?patient_id=…) for the Treatment Plan card. Parent/guardian and contact come
+ * from the patient's signup details when present. Fields the backend does NOT
+ * expose (session scheduling) are rendered as clearly-marked "Not provided"
+ * placeholders — not invented values.
  */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
@@ -342,6 +343,26 @@ function titleCaseFirst(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+/** Format a YYYY-MM-DD date of birth as e.g. "12 Mar 2018". Returns null if absent/invalid. */
+function formatDob(dob?: string | null): string | null {
+  if (!dob) return null;
+  // Parse as a plain calendar date (avoid UTC shifting the day across timezones).
+  const [y, m, d] = dob.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+/** Map the backend's single-letter gender code to a readable label. */
+function genderLabel(g?: string | null): string | null {
+  if (!g) return null;
+  const map: Record<string, string> = { M: 'Male', F: 'Female', O: 'Other' };
+  return map[g.toUpperCase()] ?? g;
+}
+
 /** Stable fallback index when the peer list is unavailable (deep link, failed call). */
 function hashIndex(id: string, mod: number): number {
   let h = 0;
@@ -523,17 +544,24 @@ function RecordingsList({ attempts }: { attempts: AttemptSummary[] }): JSX.Eleme
 
 function PatientDetailsCard({ detail }: { detail: PatientDetail }): JSX.Element {
   // Real fields the API exposes vs. mockup fields it does not (placeholders).
+  const guardian = detail.guardian_name
+    ? detail.guardian_relationship
+      ? `${detail.guardian_name} (${titleCase(detail.guardian_relationship)})`
+      : detail.guardian_name
+    : null;
+  const dob = formatDob(detail.date_of_birth);
+  const gender = genderLabel(detail.gender);
   const rows: { k: string; v: ReactNode; empty?: boolean; mono?: boolean }[] = [
-    { k: 'Parent/Guardian', v: 'Not provided', empty: true },
-    { k: 'Contact', v: 'Not provided', empty: true },
-    {
-      k: 'Diagnosis',
-      v: detail.dominant_disfluency ? titleCase(detail.dominant_disfluency) : 'Not provided',
-      empty: !detail.dominant_disfluency,
-    },
-    { k: 'Diagnosis Date', v: 'Not provided', empty: true },
-    { k: 'Primary Therapist', v: 'Not provided', empty: true },
     { k: 'Patient ID', v: detail.patient_id, mono: true },
+    { k: 'Date of Birth', v: dob ?? 'Not provided', empty: !dob },
+    {
+      k: 'Age',
+      v: detail.age != null ? `${detail.age} yrs` : 'Not provided',
+      empty: detail.age == null,
+    },
+    { k: 'Gender', v: gender ?? 'Not provided', empty: !gender },
+    { k: 'Parent/Guardian', v: guardian ?? 'Not provided', empty: !guardian },
+    { k: 'Contact', v: detail.guardian_email ?? 'Not provided', empty: !detail.guardian_email },
   ];
   return (
     <section className="po-card po-details">

@@ -100,7 +100,12 @@ export interface PatientDetail {
   patient_id: string;
   name: string;
   age?: number | null;
+  date_of_birth?: string | null; // YYYY-MM-DD
+  gender?: string | null; // 'M' | 'F' | 'O'
   dominant_disfluency?: string | null;
+  guardian_name?: string | null;
+  guardian_relationship?: string | null;
+  guardian_email?: string | null;
   active_plans?: string[];
   fluency: Metric;
   stutter_frequency: Metric;
